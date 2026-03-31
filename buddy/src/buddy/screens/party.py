@@ -69,11 +69,13 @@ class PartyScreen(Screen):
     """
 
     BINDINGS = [
-        Binding("escape", "dismiss(None)", "Close", show=True),
-        Binding("enter", "switch_buddy", "Switch", show=False),
+        Binding("escape", "close", "Close", show=True),
+        Binding("enter", "switch_buddy", "Switch", show=True),
         Binding("h", "cycle_hat", "Hat", show=True),
-        Binding("n", "rename", "Rename", show=False),
+        Binding("delete", "release_buddy", "Release", show=True),
         Binding("plus", "hatch", "Hatch New", show=True),
+        Binding("up", "navigate_up", "Up", show=False),
+        Binding("down", "navigate_down", "Down", show=False),
     ]
 
     def __init__(self, store: BuddyStore):
@@ -147,11 +149,44 @@ class PartyScreen(Screen):
 
         await buddies_list.mount(*rows)
 
+    def action_close(self):
+        """Close the party screen without switching."""
+        self.dismiss(None)
+
     def action_switch_buddy(self):
         """Switch to selected buddy."""
         if 0 <= self.selected_idx < len(self.buddies):
             buddy_id = self.buddies[self.selected_idx]["id"]
             self.dismiss(buddy_id)
+
+    async def action_release_buddy(self):
+        """Delete the selected buddy from the collection."""
+        if not (0 <= self.selected_idx < len(self.buddies)):
+            return
+
+        buddy = self.buddies[self.selected_idx]
+        buddy_id = buddy["id"]
+        buddy_name = buddy.get("name", "Buddy")
+
+        # Delete from DB (all buddies except this one)
+        # For now, we'll just remove this buddy's row
+        # In a real app, we'd ask for confirmation
+        await self.store.db.execute("DELETE FROM buddy WHERE id = ?", (buddy_id,))
+        await self.store.db.commit()
+
+        # Reload buddies
+        self.buddies = await self.store.get_all_buddies()
+
+        if not self.buddies:
+            # All buddies deleted, show empty state
+            await self._render_buddies()
+            return
+
+        # Adjust selection if needed
+        if self.selected_idx >= len(self.buddies):
+            self.selected_idx = len(self.buddies) - 1
+
+        await self._render_buddies()
 
     async def action_cycle_hat(self):
         """Cycle to next hat for selected buddy."""
