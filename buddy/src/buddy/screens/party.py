@@ -97,7 +97,7 @@ class PartyScreen(Screen):
         self.buddies = await self.store.get_all_buddies()
         if not self.buddies:
             buddies_list = self.query_one("#buddies-list", Vertical)
-            buddies_list.mount(Static("[dim]No buddies yet. Hatch your first one![/]"))
+            await buddies_list.mount(Static("[dim]No buddies yet. Hatch your first one![/]"))
             return
 
         # Find active buddy
@@ -107,13 +107,17 @@ class PartyScreen(Screen):
         )
         self.selected_idx = active_idx
 
-        self._render_buddies()
+        await self._render_buddies()
 
-    def _render_buddies(self):
+    async def _render_buddies(self):
         """Render the list of buddies."""
         buddies_list = self.query_one("#buddies-list", Vertical)
-        buddies_list.children = []
 
+        # Remove all existing children
+        await buddies_list.query("Static").remove()
+
+        # Create and mount new buddy rows
+        rows = []
         for idx, buddy in enumerate(self.buddies):
             is_active = "[bold yellow]★[/] " if buddy.get("is_active") else "  "
             is_selected = "[reverse]" if idx == self.selected_idx else ""
@@ -139,7 +143,9 @@ class PartyScreen(Screen):
                 f"{end_tag}"
             )
             row = Static(text, classes="buddy-row")
-            buddies_list.mount(row)
+            rows.append(row)
+
+        await buddies_list.mount(*rows)
 
     def action_switch_buddy(self):
         """Switch to selected buddy."""
@@ -179,7 +185,7 @@ class PartyScreen(Screen):
 
         # Update local state
         buddy["hat"] = new_hat
-        self._render_buddies()
+        await self._render_buddies()
 
     def action_rename(self):
         """Request rename for selected buddy (not yet implemented)."""
@@ -189,14 +195,14 @@ class PartyScreen(Screen):
         """Dismiss with signal to hatch a new buddy."""
         self.dismiss("hatch_new")
 
-    def action_navigate_up(self):
+    async def action_navigate_up(self):
         """Move selection up."""
         if self.buddies:
             self.selected_idx = (self.selected_idx - 1) % len(self.buddies)
-            self._render_buddies()
+            await self._render_buddies()
 
-    def action_navigate_down(self):
+    async def action_navigate_down(self):
         """Move selection down."""
         if self.buddies:
             self.selected_idx = (self.selected_idx + 1) % len(self.buddies)
-            self._render_buddies()
+            await self._render_buddies()
