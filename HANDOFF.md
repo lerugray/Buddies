@@ -1,7 +1,7 @@
-# Buddy — Project Handoff
+# BUDDIES — Project Handoff
 
 ## What Is This
-A tamagotchi-style local AI companion that runs alongside Claude Code. Inspired by the "Buddy" easter egg found in the Claude Code source leak (March 2026), but designed to be actually useful — not just decorative.
+A tamagotchi-style local AI companion **collection** that runs alongside Claude Code. Your buddies have personality stats (DEBUGGING, CHAOS, SNARK, WISDOM, PATIENCE), can be collected, named, customized with hats, and react to your coding sessions.
 
 ## Who Am I (The User)
 - Game designer / idea person — NOT a programmer
@@ -11,15 +11,18 @@ A tamagotchi-style local AI companion that runs alongside Claude Code. Inspired 
 - Work machine: Intel Iris Xe (integrated graphics, no dedicated GPU)
 - Home machine: Unknown GPU — check the `passive-income-hub` project for hardware specs, or just ask me
 
-## Project Status — Phases 1-4 COMPLETE, tested & running
-- **Phase 1** (Foundation): DONE — scaffolding, TUI, buddy character, 16 species with colored half-block pixel art
+## Project Status — Phases 1-5 MOSTLY COMPLETE
+- **Phase 1** (Foundation): DONE — scaffolding, TUI, buddy character, 25 species with colored half-block pixel art
 - **Phase 2** (Session Awareness): DONE — hooks, session observer, pattern detection
 - **Phase 3** (Intelligence): DONE — AI backend, query router, rule suggester
 - **Phase 4** (MCP Integration): DONE — MCP server with 5 tools, setup scripts
-- **Phase 5** (Polish): NOT STARTED — evolution system, more species, themes
-- **Hatch screen**: Working — seed-based, random roll, or reroll. Press `r` in main app to rehatch.
-- **Animation**: Working — 1-second idle frame cycling
-- **Known issues**: See `session-notes/2026-03-31-session-1.md` for bugs found & fixed
+- **Phase 5** (Refactor + Cosmetics): DONE — multi-buddy collection, hats, stat-based unlocking, new species
+- **Hatch screen**: Working — named buddies, seed-based or random, name input on hatch
+- **Party screen**: NEW — switch between buddies, equip hats, hatch new
+- **Hats**: NEW — crown (debug), wizard (wisdom), propeller (chaos), tinyduck (starter)
+- **Species**: 25 total (16 original + 9 new: bee, slime, raccoon, parrot, octopus, wolf, robot, tree, void_cat)
+- **Animation**: Working — 1-second idle frame cycling per buddy
+- **Stats**: DEBUGGING, CHAOS, SNARK, WISDOM, PATIENCE (already in code, now more visible)
 
 ## How To Run
 
@@ -132,11 +135,66 @@ Since the work machine has no GPU, the local AI component is flexible:
 - **DevForge** (lerugray/devforge) — Game dev tool for CC. Buddy could eventually integrate.
 - **Qwen3.5-27B** (HuggingFace) — Distilled model for local AI brain (needs RTX 3090+)
 
-## Next Steps (Phase 5 — Polish)
-- [ ] Confirm home machine GPU specs and set up Ollama
-- [ ] Evolution system — buddy changes appearance at level thresholds
-- [ ] More species sprites + animation frames
+## What Changed (Session 2026-03-31)
+
+### Major Refactor: Single → Multi-Buddy Collection
+- **DB Schema**: Removed `CHECK (id = 1)`, added `AUTOINCREMENT`, `is_active`, `hat`, `hats_owned` columns
+- **Migrations**: Idempotent SQL migrations for existing databases (backward compatible)
+- **BuddyState**: Now includes `buddy_id`, `hat`, and `hats_owned` fields
+- **Store methods**: New `get_active_buddy()`, `get_all_buddies()`, `set_active_buddy()`, `update_buddy_by_id()`
+- **App wiring**: `create_buddy()` deactivates old buddies instead of deleting; every hatch adds to collection
+
+### New Feature: Hats System
+- **4 hat types**: crown (yellow), wizard (blue), propeller (gray+red/blue), tinyduck (yellow)
+- **Hat rendering**: Pre-built half-block sprites, prepend to buddy sprite, shiny border applies to hat too
+- **Hat unlocking**: Behavior-based on dominant stat at level 5+
+  - Crown: high DEBUGGING
+  - Wizard: high WISDOM
+  - Propeller: high CHAOS
+  - Tinyduck: given at hatch (starter hat)
+- **Hat display**: Shows in stats ("🎩 crown"), lists owned hats
+- **Hat cycling**: In Party screen, cycle through owned hats with [h] key
+
+### New UI: Party Screen
+- **File**: `buddy/src/buddy/screens/party.py` (new)
+- **Features**: List all buddies with level/rarity, switch active buddy, cycle hats, request new hatch
+- **Keybindings**: [enter]=switch, [h]=hat cycle, [+]=hatch new, [escape]=close
+- **Navigation**: arrow keys to select buddy, [escape] to close
+
+### HatchScreen Updates
+- **Name input**: Added name field; users can customize buddy names on creation
+- **Dismiss tuple**: Now 4-tuple: `(Species, bool shiny, str seed, str name)` instead of 3
+- **Title**: "🥚 HATCH A NEW BUDDY 🥚" (updated from "HATCH YOUR BUDDY")
+
+### App.py Changes
+- **Renamed**: `action_rehatch()` → `action_hatch_new()` (creates, doesn't delete)
+- **New keybindings**: [r]=hatch new, [p]=party
+- **New methods**: `action_party()`, `_on_party_dismissed()`, `_check_and_unlock_hats()`
+- **Updated**: `_update_displays()` (removed StatusBar call), `on_unmount()` (uses `update_buddy_by_id`)
+- **Hat unlock check**: Runs after XP gain and stat boosts, notifies user of new hats
+- **Title**: Changed to "🐾 BUDDIES"
+- **Footer**: Replaced StatusBar with Textual's automatic Footer widget (keybindings shown automatically)
+- **Imports**: Removed StatusBar, added Footer, added `check_hat_unlock`, added `json`
+
+### New Species (9 added)
+**Common**: bee, slime  
+**Uncommon**: raccoon, parrot  
+**Rare**: octopus, wolf  
+**Epic**: robot  
+**Legendary**: tree, void_cat
+
+All 9 have sprite frames (simple pixel art, can be iterated on later)
+
+### Project Rename
+- `pyproject.toml`: name="buddies" (was "buddy"), version="0.2.0" (was "0.1.0")
+- MCP server title: "Buddies" (was "Buddy")
+
+## Next Steps (Phase 6+)
+- [ ] Input box integration — buddy sits beside chat input, reacts to typing
+- [ ] Hat cosmetics UI — show owned hats, indicator for locked hats
+- [ ] Rename buddies in Party screen (inline Input modal)
+- [ ] More animation frames for smoother idle
 - [ ] Theme customization (dark/light/custom)
-- [ ] Usage dashboard / stats screen
+- [ ] Evolution system — buddy appearance changes at level thresholds
 - [ ] claw-code integration for agentic local AI
-- [ ] Pick a real name for the project
+- [ ] Buddy "thoughts" — ambient commentary during sessions

@@ -26,7 +26,7 @@ from buddy.config import BuddyConfig, get_data_dir
 from buddy.core.hooks import get_events_path
 from buddy.db.store import BuddyStore
 
-mcp = FastMCP("Buddy")
+mcp = FastMCP("Buddies")
 
 # Lazy-initialized shared state
 _store: BuddyStore | None = None
@@ -50,7 +50,7 @@ async def buddy_status() -> str:
     change based on your coding sessions.
     """
     store = await _get_store()
-    data = await store.get_buddy()
+    data = await store.get_active_buddy()
 
     if not data:
         return "No buddy hatched yet! Run the Buddy TUI to hatch your companion."
@@ -61,11 +61,12 @@ async def buddy_status() -> str:
     }
     icon = mood_icons.get(data["mood"], "😐")
     shiny = " ✨SHINY" if data["shiny"] else ""
+    hat_line = f"\n**Hat:** 🎩 {data['hat']}" if data.get("hat") else ""
 
     return (
         f"# {data['name']} — {data['species'].capitalize()}{shiny}\n\n"
         f"**Level:** {data['level']}  |  **XP:** {data['xp']}  |  "
-        f"**Mood:** {icon} {data['mood']} ({data['mood_value']}/100)\n\n"
+        f"**Mood:** {icon} {data['mood']} ({data['mood_value']}/100){hat_line}\n\n"
         f"## Stats\n"
         f"- ⚔ Debugging: {data['stat_debugging']}\n"
         f"- 🛡 Patience: {data['stat_patience']}\n"

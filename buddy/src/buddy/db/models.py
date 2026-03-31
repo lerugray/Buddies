@@ -4,10 +4,13 @@ from __future__ import annotations
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS buddy (
-    id INTEGER PRIMARY KEY CHECK (id = 1),
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     species TEXT NOT NULL,
     name TEXT NOT NULL DEFAULT 'Buddy',
     shiny INTEGER NOT NULL DEFAULT 0,
+    is_active INTEGER NOT NULL DEFAULT 0,
+    hat TEXT DEFAULT NULL,
+    hats_owned TEXT NOT NULL DEFAULT '[]',
     stat_debugging INTEGER NOT NULL DEFAULT 10,
     stat_patience INTEGER NOT NULL DEFAULT 10,
     stat_chaos INTEGER NOT NULL DEFAULT 10,
@@ -49,3 +52,10 @@ CREATE TABLE IF NOT EXISTS buddy_notes (
     read INTEGER NOT NULL DEFAULT 0
 );
 """
+
+# Migration steps for existing databases (idempotent — safe to run on every startup)
+MIGRATIONS = [
+    "ALTER TABLE buddy ADD COLUMN is_active INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE buddy ADD COLUMN hat TEXT DEFAULT NULL",
+    "ALTER TABLE buddy ADD COLUMN hats_owned TEXT NOT NULL DEFAULT '[]'",
+]

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from enum import Enum
 
@@ -46,6 +47,16 @@ SPECIES_CATALOG: list[Species] = [
     # Legendary (3%)
     Species("ghost", "👻", Rarity.LEGENDARY, {"chaos": 5, "debugging": 5}, "Haunts your codebase. Finds dead code."),
     Species("cosmic_whale", "🐋", Rarity.LEGENDARY, {"wisdom": 6, "patience": 5}, "Swims through the void between commits."),
+    # Additional species (Phase 5+)
+    Species("bee", "🐝", Rarity.COMMON, {"patience": 3, "chaos": 2}, "Busy little helper. Productive but chaotic."),
+    Species("slime", "🫧", Rarity.COMMON, {"chaos": 3, "snark": 2}, "Gooey. Literally flows through problems."),
+    Species("raccoon", "🦝", Rarity.UNCOMMON, {"snark": 3, "chaos": 3}, "Sneaky troublemaker. Clever and mischievous."),
+    Species("parrot", "🦜", Rarity.UNCOMMON, {"snark": 3, "wisdom": 2}, "Repeats everything but with personality."),
+    Species("octopus", "🐙", Rarity.RARE, {"wisdom": 4, "debugging": 3}, "Multi-tasking maestro. Tentacles everywhere."),
+    Species("wolf", "🐺", Rarity.RARE, {"debugging": 3, "patience": 2}, "Pack hunter. Methodical and focused."),
+    Species("robot", "🤖", Rarity.EPIC, {"debugging": 5, "wisdom": 4}, "Perfectly logical. Almost sentient."),
+    Species("tree", "🌳", Rarity.LEGENDARY, {"patience": 6, "wisdom": 5}, "Ancient and grounded. Roots run deep."),
+    Species("void_cat", "🐈‍⬛", Rarity.LEGENDARY, {"chaos": 5, "snark": 5}, "From the void itself. Exists slightly off-phase."),
 ]
 
 # Rarity weights for the gacha
@@ -142,10 +153,52 @@ def xp_for_next_level(level: int) -> int:
     return xp + xp_needed
 
 
+# Hat unlock rules based on dominant stat and level
+HAT_UNLOCK_RULES: dict[str, dict] = {
+    "crown": {"dominant_stat": "debugging", "min_level": 5},
+    "wizard": {"dominant_stat": "wisdom", "min_level": 5},
+    "propeller": {"dominant_stat": "chaos", "min_level": 5},
+    "tinyduck": {"dominant_stat": None, "min_level": 0},  # Given at hatch
+}
+
+
+def check_hat_unlock(state: BuddyState) -> list[str]:
+    """Check which hats are newly unlocked for this buddy state.
+
+    Returns list of hat names that are newly unlocked (not yet owned).
+    """
+    newly_unlocked = []
+
+    for hat_name, rules in HAT_UNLOCK_RULES.items():
+        # tinyduck is given at hatch, not earned
+        if hat_name == "tinyduck":
+            continue
+
+        # Check if already owned
+        if hat_name in state.hats_owned:
+            continue
+
+        # Check level requirement
+        if state.level < rules["min_level"]:
+            continue
+
+        # Check dominant stat requirement
+        dominant_stat = rules["dominant_stat"]
+        if dominant_stat:
+            max_stat = max(state.stats.values())
+            if state.stats[dominant_stat] != max_stat:
+                continue
+
+        newly_unlocked.append(hat_name)
+
+    return newly_unlocked
+
+
 @dataclass
 class BuddyState:
     """Runtime representation of the buddy's current state."""
 
+    buddy_id: int
     species: Species
     name: str
     shiny: bool
@@ -155,6 +208,8 @@ class BuddyState:
     mood: str
     mood_value: int
     soul_description: str
+    hat: str | None
+    hats_owned: list[str]
 
     @classmethod
     def from_db(cls, data: dict) -> BuddyState:
@@ -163,6 +218,7 @@ class BuddyState:
             SPECIES_CATALOG[0],
         )
         return cls(
+            buddy_id=data["id"],
             species=species_obj,
             name=data["name"],
             shiny=bool(data["shiny"]),
@@ -178,6 +234,8 @@ class BuddyState:
             mood=data["mood"],
             mood_value=data["mood_value"],
             soul_description=data["soul_description"],
+            hat=data.get("hat"),
+            hats_owned=json.loads(data.get("hats_owned", "[]")),
         )
 
     def gain_xp(self, amount: int) -> bool:

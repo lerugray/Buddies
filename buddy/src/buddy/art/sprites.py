@@ -599,6 +599,213 @@ def _cosmic_whale_frames() -> list[str]:
     return [frame1, frame2]
 
 
+def _bee_frames() -> list[str]:
+    """A busy little bee."""
+    frame1 = _build_sprite([
+        "ttttgggtttt",
+        "ttggGGGgtt",
+        "tgGGGGGGgtt",
+        "tgGGYYGGgt",
+        "tgGGGGGGgt",
+        "ttgGGGGgt",
+        "tttgggtt",
+        "ttttttt",
+    ])
+    frame2 = _build_sprite([
+        "ttgggggtttt",
+        "tgGGGGGgt",
+        "gGGGGGGGGt",
+        "gGGYYGGGgt",
+        "gGGGGGGGgt",
+        "tgGGGGGgt",
+        "ttggggt",
+        "ttttttt",
+    ])
+    return [frame1, frame2]
+
+
+def _slime_frames() -> list[str]:
+    """A gelatinous slime."""
+    frame1 = _build_sprite([
+        "tttgggggtt",
+        "ttggGGGggt",
+        "tgGGGGGGgt",
+        "gGGGGGGGGg",
+        "gGGGGGGGGg",
+        "gGGGGGGGGg",
+        "ttggGGGggt",
+        "ttttgggtt",
+    ])
+    return [frame1, frame1]  # Slime doesn't move much
+
+
+def _raccoon_frames() -> list[str]:
+    """A sneaky raccoon."""
+    frame1 = _build_sprite([
+        "tttttkkttt",
+        "tttkkEEktt",
+        "ttkEEEEEkt",
+        "tkEkYYkEkt",
+        "tEEEEEEEt",
+        "tEERRRREt",
+        "tEERRRRRt",
+        "ttEEEEEt",
+    ])
+    return [frame1, frame1]
+
+
+def _parrot_frames() -> list[str]:
+    """A colorful parrot."""
+    frame1 = _build_sprite([
+        "tttttyyytt",
+        "tttyyyRytt",
+        "ttyRRRRRyt",
+        "tyRkYkRRyt",
+        "tRRRRRRRt",
+        "tRRoooRt",
+        "tRooRoRt",
+        "tttRRRtt",
+    ])
+    return [frame1, frame1]
+
+
+def _octopus_frames() -> list[str]:
+    """An octopus with tentacles."""
+    frame1 = _build_sprite([
+        "ttttbbbtt",
+        "tttBBBBt",
+        "ttBBBBBBt",
+        "tBBBkYkBt",
+        "tBBBBBBBt",
+        "tBtBtBtBt",
+        "tBtBtBtBt",
+        "tBtBtBtBt",
+    ])
+    return [frame1, frame1]
+
+
+def _wolf_frames() -> list[str]:
+    """A wolf."""
+    frame1 = _build_sprite([
+        "tttkkktt",
+        "ttkEEEktt",
+        "tkEEEEEkt",
+        "kEkYYkEEk",
+        "kEEEEEEk",
+        "kEEEEEEk",
+        "ttkkkktt",
+        "tttttttt",
+    ])
+    return [frame1, frame1]
+
+
+def _robot_frames() -> list[str]:
+    """A robot."""
+    frame1 = _build_sprite([
+        "ttteeeett",
+        "tteEEEEet",
+        "teEEEEEet",
+        "eEkYYkEEe",
+        "eEEEEEEEe",
+        "eEEwwEEEe",
+        "teEEEEEet",
+        "tteEEEEet",
+    ])
+    return [frame1, frame1]
+
+
+def _tree_frames() -> list[str]:
+    """A tree."""
+    frame1 = _build_sprite([
+        "ttttgytt",
+        "tttgGygtt",
+        "ttgGGGGgt",
+        "tgGGGGGGt",
+        "tGGGGGGGt",
+        "ttttYYttt",
+        "ttttYYttt",
+        "ttttYYttt",
+    ])
+    return [frame1, frame1]
+
+
+def _void_cat_frames() -> list[str]:
+    """A cat from the void."""
+    frame1 = _build_sprite([
+        "tttEEEtt",
+        "ttEEEEEtt",
+        "tEEEEEEEt",
+        "EEkYYkEEE",
+        "EEEEEEEEt",
+        "tEEEEEEEt",
+        "ttEEEEEtt",
+        "ttttttt",
+    ])
+    return [frame1, frame1]
+
+
+# ============================================================
+# HAT SPRITES — cosmetic accessories for buddies
+# Each hat is 6 pixel rows (3 rendered lines) for compact fit
+# ============================================================
+
+def _hat_crown() -> str:
+    """A classic crown with three golden peaks and black trim."""
+    return _build_sprite([
+        "tttyytyttytt",
+        "ttyYYtYYYytt",
+        "ttYYYYYYYYtt",
+        "ttyYYYYYYytt",
+        "ttkkkkkkkkt",
+        "ttttttttttt",
+    ])
+
+
+def _hat_wizard() -> str:
+    """A tall pointed wizard hat with a star accent."""
+    return _build_sprite([
+        "tttttBtttttt",
+        "ttttBBBttttt",
+        "tttBBBBBtttt",
+        "ttBBBBBBBttt",
+        "tBBBBBBBBBtt",
+        "tttttytttttt",
+    ])
+
+
+def _hat_propeller() -> str:
+    """A beanie with spinning propeller blades on top."""
+    return _build_sprite([
+        "tttrbrbrtt",
+        "ttrrrrrrrtt",
+        "ttrreeertt",
+        "ttrrrrrrtt",
+        "tttrrrrttt",
+        "ttttttttt",
+    ])
+
+
+def _hat_tinyduck() -> str:
+    """A tiny rubber duck perched as a hat."""
+    return _build_sprite([
+        "tttttoootttt",
+        "ttttoooooott",
+        "ttttooooottt",
+        "ttttooootttt",
+        "tttttttttttt",
+        "tttttttttttt",
+    ])
+
+
+# Build hat sprites
+HATS: dict[str, str] = {
+    "crown": _hat_crown(),
+    "wizard": _hat_wizard(),
+    "propeller": _hat_propeller(),
+    "tinyduck": _hat_tinyduck(),
+}
+
+
 # Build all sprite frames
 SPRITES: dict[str, list[str]] = {
     "phoenix": _phoenix_frames(),
@@ -617,20 +824,47 @@ SPRITES: dict[str, list[str]] = {
     "unicorn": _unicorn_frames(),
     "ghost": _ghost_frames(),
     "cosmic_whale": _cosmic_whale_frames(),
+    # Additional species
+    "bee": _bee_frames(),
+    "slime": _slime_frames(),
+    "raccoon": _raccoon_frames(),
+    "parrot": _parrot_frames(),
+    "octopus": _octopus_frames(),
+    "wolf": _wolf_frames(),
+    "robot": _robot_frames(),
+    "tree": _tree_frames(),
+    "void_cat": _void_cat_frames(),
 }
 
 SHINY_BORDER = "[bold yellow]✨[/]"
 
 
-def get_sprite(species_name: str, frame: int = 0, shiny: bool = False) -> str:
-    """Get a sprite frame for a species."""
+def get_sprite(species_name: str, frame: int = 0, shiny: bool = False, hat: str | None = None) -> str:
+    """Get a sprite frame for a species, optionally with a hat and shiny border.
+
+    Args:
+        species_name: Name of the species
+        frame: Animation frame index
+        shiny: Whether to apply shiny ✨ border
+        hat: Optional hat name to display above the sprite
+
+    Returns:
+        Multi-line Rich markup string with the sprite (and optionally hat and shiny)
+    """
     frames = SPRITES.get(species_name, SPRITES["duck"])
     frame_idx = frame % len(frames)
     sprite = frames[frame_idx]
+
+    # Prepend hat if provided
+    if hat and hat in HATS:
+        sprite = HATS[hat] + "\n" + sprite
+
+    # Apply shiny border (after hat prepend so hat glows too when shiny)
     if shiny:
         lines = sprite.split("\n")
         lines = [f"{SHINY_BORDER} {line} {SHINY_BORDER}" for line in lines]
         sprite = "\n".join(lines)
+
     return sprite
 
 

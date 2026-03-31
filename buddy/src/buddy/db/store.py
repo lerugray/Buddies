@@ -5,7 +5,7 @@ from __future__ import annotations
 import aiosqlite
 from pathlib import Path
 
-from buddy.db.models import SCHEMA
+from buddy.db.models import SCHEMA, MIGRATIONS
 
 
 class BuddyStore:
@@ -22,6 +22,22 @@ class BuddyStore:
         await self._db.executescript(SCHEMA)
         await self._db.commit()
 
+        # Run migrations (idempotent — safe on every startup)
+        for migration in MIGRATIONS:
+            try:
+                await self._db.execute(migration)
+            except aiosqlite.OperationalError:
+                pass  # Column already exists
+        await self._db.commit()
+
+        # Activate existing buddy if no buddy is active (for databases migrating from single-buddy)
+        await self._db.execute(
+            "UPDATE buddy SET is_active = 1 "
+            "WHERE id = (SELECT MIN(id) FROM buddy) "
+            "AND NOT EXISTS (SELECT 1 FROM buddy WHERE is_active = 1)"
+        )
+        await self._db.commit()
+
     async def close(self):
         if self._db:
             await self._db.close()
@@ -33,28 +49,68 @@ class BuddyStore:
 
     # --- Buddy CRUD ---
 
-    async def get_buddy(self) -> dict | None:
-        async with self.db.execute("SELECT * FROM buddy WHERE id = 1") as cursor:
+    async def get_active_buddy(self) -> dict | None:
+        """Get the currently active buddy."""
+        async with self.db.execute("SELECT * FROM buddy WHERE is_active = 1") as cursor:
             row = await cursor.fetchone()
             return dict(row) if row else None
 
+    async def get_buddy(self) -> dict | None:
+        """Alias for get_active_buddy (backward compatibility)."""
+        return await self.get_active_buddy()
+
     async def create_buddy(self, species: str, name: str = "Buddy", shiny: bool = False,
                            soul_description: str = "") -> dict:
+        # Deactivate all existing buddies
+        await self.db.execute("UPDATE buddy SET is_active = 0")
+        await self.db.commit()
+
+        # Create new buddy (auto-increment id, set as active, give tinyduck as starting hat)
         await self.db.execute(
-            "INSERT INTO buddy (id, species, name, shiny, soul_description) VALUES (1, ?, ?, ?, ?)",
-            (species, name, int(shiny), soul_description),
+            "INSERT INTO buddy (species, name, shiny, is_active, soul_description, hats_owned) "
+            "VALUES (?, ?, ?, 1, ?, ?)",
+            (species, name, int(shiny), soul_description, '["tinyduck"]'),
         )
         await self.db.commit()
         return await self.get_buddy()
 
     async def update_buddy(self, **kwargs) -> dict:
+        """Update the active buddy (backward compatible method)."""
         if not kwargs:
             return await self.get_buddy()
         sets = ", ".join(f"{k} = ?" for k in kwargs)
         vals = list(kwargs.values())
-        await self.db.execute(f"UPDATE buddy SET {sets} WHERE id = 1", vals)
+        await self.db.execute(f"UPDATE buddy SET {sets} WHERE is_active = 1", vals)
         await self.db.commit()
         return await self.get_buddy()
+
+    async def get_all_buddies(self) -> list[dict]:
+        """Get all buddies ordered by id."""
+        async with self.db.execute("SELECT * FROM buddy ORDER BY id") as cursor:
+            rows = await cursor.fetchall()
+            return [dict(r) for r in rows]
+
+    async def get_buddy_by_id(self, buddy_id: int) -> dict | None:
+        """Get a specific buddy by id."""
+        async with self.db.execute("SELECT * FROM buddy WHERE id = ?", (buddy_id,)) as cursor:
+            row = await cursor.fetchone()
+            return dict(row) if row else None
+
+    async def set_active_buddy(self, buddy_id: int) -> None:
+        """Set a buddy as active (deactivate all others)."""
+        await self.db.execute("UPDATE buddy SET is_active = 0")
+        await self.db.execute("UPDATE buddy SET is_active = 1 WHERE id = ?", (buddy_id,))
+        await self.db.commit()
+
+    async def update_buddy_by_id(self, buddy_id: int, **kwargs) -> dict:
+        """Update a specific buddy by id."""
+        if not kwargs:
+            return await self.get_buddy_by_id(buddy_id)
+        sets = ", ".join(f"{k} = ?" for k in kwargs)
+        vals = list(kwargs.values()) + [buddy_id]
+        await self.db.execute(f"UPDATE buddy SET {sets} WHERE id = ?", vals)
+        await self.db.commit()
+        return await self.get_buddy_by_id(buddy_id)
 
     # --- Session Log ---
 

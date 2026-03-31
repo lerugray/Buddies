@@ -104,9 +104,14 @@ class HatchScreen(Screen):
     def compose(self) -> ComposeResult:
         with Center():
             with Vertical(id="hatch-container"):
-                yield Static("🥚 HATCH YOUR BUDDY 🥚", id="hatch-title")
+                yield Static("🥚 HATCH A NEW BUDDY 🥚", id="hatch-title")
                 yield Static("", id="sprite-preview")
                 yield Static("", id="species-info")
+                yield Input(
+                    placeholder="Name your buddy...",
+                    id="name-input",
+                    value="Buddy",
+                )
                 yield Input(
                     placeholder="Enter a seed (or leave blank for username)",
                     id="seed-input",
@@ -129,7 +134,8 @@ class HatchScreen(Screen):
             random_seed = f"roll-{time.time_ns()}"
             self._roll_with_seed(random_seed)
         elif event.button.id == "btn-accept":
-            self.dismiss((self._current_species, self._current_shiny, self._current_seed))
+            name = self.query_one("#name-input", Input).value.strip() or "Buddy"
+            self.dismiss((self._current_species, self._current_shiny, self._current_seed, name))
 
     def _roll_with_seed(self, seed: str):
         self._current_seed = seed

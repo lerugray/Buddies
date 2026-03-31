@@ -16,7 +16,7 @@ class SpriteDisplay(Static):
     DEFAULT_CSS = """
     SpriteDisplay {
         height: auto;
-        min-height: 8;
+        min-height: 12;
         content-align: center middle;
         text-align: center;
     }
@@ -27,6 +27,7 @@ class SpriteDisplay(Static):
         super().__init__(initial, markup=True, **kwargs)
         self.species = "duck"
         self.shiny = False
+        self.hat: str | None = None
         self._frame = 0
         self._frame_count = 2
 
@@ -41,12 +42,13 @@ class SpriteDisplay(Static):
 
     def refresh_sprite(self):
         """Update the displayed sprite."""
-        sprite = get_sprite(self.species, self._frame, self.shiny)
+        sprite = get_sprite(self.species, self._frame, self.shiny, hat=self.hat)
         self.update(sprite)
 
-    def set_species(self, species: str, shiny: bool = False):
+    def set_species(self, species: str, shiny: bool = False, hat: str | None = None):
         self.species = species
         self.shiny = shiny
+        self.hat = hat
         self._frame = 0
         self._frame_count = get_frame_count(species)
         self.refresh_sprite()
@@ -92,12 +94,16 @@ class StatsDisplay(Static):
         }
         mood_icon = mood_icons.get(state.mood, "😐")
 
+        hat_line = f"🎩 {state.hat}" if state.hat else "No hat"
+        owned_hats = ", ".join(state.hats_owned) if state.hats_owned else "None"
+
         lines = [
             f"[bold {color}]{state.species.emoji} {state.name}[/]  [{color}]{rarity.upper()}[/]{shiny_tag}",
             f"[dim]{state.species.description}[/]",
             "",
             f"Lv.{state.level}  {xp_bar}  {state.xp}/{xp_next} XP",
             f"Mood: {mood_icon} {state.mood.capitalize()} ({state.mood_value}/100)",
+            f"Hat: {hat_line}  |  Owned: {owned_hats}",
             "",
             f"[red]⚔ DEBUG[/]  {state.stats['debugging']:>3}   [blue]🛡 PATIENCE[/] {state.stats['patience']:>3}",
             f"[magenta]💥 CHAOS[/]  {state.stats['chaos']:>3}   [cyan]📖 WISDOM[/]  {state.stats['wisdom']:>3}",
@@ -129,6 +135,6 @@ class BuddyDisplay(Vertical):
 
     def update_buddy(self, state: BuddyState):
         self.query_one("#buddy-sprite", SpriteDisplay).set_species(
-            state.species.name, state.shiny
+            state.species.name, state.shiny, hat=state.hat
         )
         self.query_one("#buddy-stats", StatsDisplay).render_stats(state)

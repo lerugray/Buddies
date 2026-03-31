@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from pathlib import Path
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.widgets import Static, Input
+from textual.widgets import Static, Input, Footer
 from textual.worker import Worker
 
 from buddy.config import BuddyConfig
@@ -15,6 +16,7 @@ from buddy.core.buddy_brain import (
     BuddyState,
     pick_species,
     SPECIES_CATALOG,
+    check_hat_unlock,
 )
 from buddy.core.ai_backend import create_backend
 from buddy.core.ai_router import AIRouter
@@ -25,7 +27,8 @@ from buddy.first_run import HatchScreen
 from buddy.widgets.buddy_display import BuddyDisplay
 from buddy.widgets.chat import ChatWindow
 from buddy.widgets.session_monitor import SessionMonitor
-from buddy.widgets.status_bar import StatusBar
+
+from buddy.screens.party import PartyScreen
 
 
 CSS_PATH = Path(__file__).parent.parent.parent / "styles" / "buddy.tcss"
@@ -34,14 +37,15 @@ CSS_PATH = Path(__file__).parent.parent.parent / "styles" / "buddy.tcss"
 class BuddyApp(App):
     """The main Buddy companion application."""
 
-    TITLE = "🐾 Buddy — Your AI Companion"
+    TITLE = "🐾 BUDDIES"
     CSS_PATH = CSS_PATH
 
     BINDINGS = [
         Binding("q", "quit", "Quit", show=True),
         Binding("question_mark", "help", "Help", show=True),
         Binding("f5", "refresh", "Refresh", show=True),
-        Binding("r", "rehatch", "Rehatch", show=True),
+        Binding("r", "hatch_new", "Hatch New", show=True),
+        Binding("p", "party", "Party", show=True),
     ]
 
     def __init__(self):
@@ -55,18 +59,18 @@ class BuddyApp(App):
         self.rule_suggester: RuleSuggester | None = None
 
     def compose(self) -> ComposeResult:
-        yield Static("🐾 BUDDY — Your AI Companion", id="title-bar")
+        yield Static("🐾 BUDDIES — Your AI Companions", id="title-bar")
         yield BuddyDisplay(id="buddy-panel")
         yield ChatWindow(id="chat-panel")
         yield SessionMonitor(id="session-panel")
-        yield StatusBar(id="status-bar")
+        yield Footer()
 
     async def on_mount(self):
         await self.store.connect()
         await self.ai_backend.connect()
 
         # Check if we need to hatch a new buddy
-        data = await self.store.get_buddy()
+        data = await self.store.get_active_buddy()
         if data:
             self.buddy_state = BuddyState.from_db(data)
             self._finish_setup()
@@ -75,22 +79,23 @@ class BuddyApp(App):
             self.push_screen(HatchScreen(), callback=self._on_hatch_complete)
 
     async def _on_hatch_complete(self, result) -> None:
-        """Called when the hatch screen is dismissed."""
+        """Called when the hatch screen is dismissed (first run only)."""
         if result:
-            species, shiny, seed = result
+            species, shiny, seed, name = result
             self.config.user_seed = seed
             self.config.save()
         else:
             species, shiny = pick_species(self.config.user_seed)
+            name = "Buddy"
 
         soul = f"A {species.rarity.value} {species.name} companion, born to help."
         await self.store.create_buddy(
             species=species.name,
-            name="Buddy",
+            name=name,
             shiny=shiny,
             soul_description=soul,
         )
-        data = await self.store.get_buddy()
+        data = await self.store.get_active_buddy()
         self.buddy_state = BuddyState.from_db(data)
         self._finish_setup()
 
@@ -135,13 +140,6 @@ class BuddyApp(App):
             return
         buddy_display = self.query_one("#buddy-panel", BuddyDisplay)
         buddy_display.update_buddy(self.buddy_state)
-
-        status = self.query_one("#status-bar", StatusBar)
-        status.set_buddy_info(
-            self.buddy_state.name,
-            self.buddy_state.mood,
-            self.buddy_state.level,
-        )
 
     def _get_greeting(self) -> str:
         """Get a mood-appropriate greeting from buddy."""
@@ -200,7 +198,8 @@ class BuddyApp(App):
         if self.buddy_state:
             leveled = self.buddy_state.gain_xp(5)
             self.buddy_state.adjust_mood(2)
-            await self.store.update_buddy(
+            await self.store.update_buddy_by_id(
+                self.buddy_state.buddy_id,
                 xp=self.buddy_state.xp,
                 level=self.buddy_state.level,
                 mood=self.buddy_state.mood,
@@ -209,6 +208,8 @@ class BuddyApp(App):
             if leveled:
                 chat.add_system(f"🎉 {self.buddy_state.name} reached level {self.buddy_state.level}!")
             self._update_displays()
+            # Check for newly unlocked hats
+            asyncio.create_task(self._check_and_unlock_hats())
 
     def _buddy_respond(self, message: str) -> str:
         """Generate a response from buddy (pre-AI fallback)."""
@@ -261,6 +262,23 @@ class BuddyApp(App):
             }
             return responses.get(top_stat, "Interesting! Tell me more.")
 
+    async def _check_and_unlock_hats(self):
+        """Check which hats are newly unlocked and notify user."""
+        if not self.buddy_state:
+            return
+        newly_unlocked = check_hat_unlock(self.buddy_state)
+        if not newly_unlocked:
+            return
+        # Persist unlocked hats to DB
+        self.buddy_state.hats_owned.extend(newly_unlocked)
+        await self.store.update_buddy_by_id(
+            self.buddy_state.buddy_id,
+            hats_owned=json.dumps(self.buddy_state.hats_owned),
+        )
+        chat = self.query_one("#chat-panel", ChatWindow)
+        for hat in newly_unlocked:
+            chat.add_system(f"🎩 {self.buddy_state.name} unlocked the {hat} hat!")
+
     def _on_session_event(self, event: SessionEvent):
         """Handle a new session event from the observer."""
         # Determine event category for the monitor
@@ -293,6 +311,8 @@ class BuddyApp(App):
                 self.buddy_state.stats["wisdom"] = min(99, self.buddy_state.stats["wisdom"] + 1)
             elif event.tool_name == "Bash":
                 self.buddy_state.stats["chaos"] = min(99, self.buddy_state.stats["chaos"] + 1)
+            # Check for hat unlocks after stat boosts
+            asyncio.create_task(self._check_and_unlock_hats())
 
     def _on_pattern_detected(self, pattern_type: str, description: str):
         """Handle a detected pattern from the session observer."""
@@ -303,8 +323,7 @@ class BuddyApp(App):
             monitor = self.query_one("#session-panel", SessionMonitor)
             monitor.log_event("info", f"Pattern: {pattern_type}")
 
-            status = self.query_one("#status-bar", StatusBar)
-            status.set_alert(f"Pattern: {pattern_type}")
+            self.notify(f"Pattern: {pattern_type}")
         except Exception:
             pass
 
@@ -335,34 +354,30 @@ class BuddyApp(App):
         chat.add_system("Simple questions → handled locally (saves Claude tokens)")
         chat.add_system("Complex questions → buddy tells you to ask Claude")
         chat.add_system("Commands: 'stats' 'help' 'name' 'session' 'tokens'")
-        chat.add_system("Keys: [q] quit  [?] help  [r] rehatch  [F5] refresh")
+        chat.add_system("Keys: [q] quit  [?] help  [r] hatch new  [p] party  [F5] refresh")
         chat.add_system("────────────")
 
-    def action_rehatch(self):
-        """Open the hatch screen to pick a new buddy."""
-        self.push_screen(HatchScreen(), callback=self._on_rehatch_complete)
+    def action_hatch_new(self):
+        """Open the hatch screen to create a new buddy (keep existing buddies)."""
+        self.push_screen(HatchScreen(), callback=self._on_hatch_new_complete)
 
-    async def _on_rehatch_complete(self, result) -> None:
-        """Replace current buddy with new hatch."""
+    async def _on_hatch_new_complete(self, result) -> None:
+        """Create a new buddy (add to collection, don't delete existing)."""
         if not result:
-            return  # User cancelled or dismissed
+            return  # User cancelled
 
-        species, shiny, seed = result
+        species, shiny, seed, name = result
         self.config.user_seed = seed
         self.config.save()
-
-        # Replace buddy in DB
-        await self.store.db.execute("DELETE FROM buddy")
-        await self.store.db.commit()
 
         soul = f"A {species.rarity.value} {species.name} companion, born to help."
         await self.store.create_buddy(
             species=species.name,
-            name="Buddy",
+            name=name,
             shiny=shiny,
             soul_description=soul,
         )
-        data = await self.store.get_buddy()
+        data = await self.store.get_active_buddy()
         self.buddy_state = BuddyState.from_db(data)
 
         if self.router:
@@ -370,8 +385,33 @@ class BuddyApp(App):
 
         self._update_displays()
         chat = self.query_one("#chat-panel", ChatWindow)
-        chat.add_system(f"🥚 New buddy hatched! {species.emoji} {species.name.capitalize()}!")
+        chat.add_system(f"🥚 New buddy hatched! {species.emoji} {name}!")
         chat.add_message("buddy", self._get_greeting())
+
+    def action_party(self):
+        """Open the party screen to switch or manage buddies."""
+        self.push_screen(PartyScreen(self.store), callback=self._on_party_dismissed)
+
+    async def _on_party_dismissed(self, result) -> None:
+        """Handle party screen dismissal."""
+        if result is None:
+            return
+
+        # If user requested a new hatch, open the hatch screen
+        if result == "hatch_new":
+            self.action_hatch_new()
+            return
+
+        # Otherwise, switch to the selected buddy
+        data = await self.store.get_buddy_by_id(result)
+        if data:
+            await self.store.set_active_buddy(result)
+            self.buddy_state = BuddyState.from_db(data)
+            if self.router:
+                self.router.buddy_state = self.buddy_state
+            self._update_displays()
+            chat = self.query_one("#chat-panel", ChatWindow)
+            chat.add_system(f"Switched to {self.buddy_state.name}!")
 
     def action_refresh(self):
         self._update_displays()
@@ -384,7 +424,8 @@ class BuddyApp(App):
                 task.cancel()
         await self.ai_backend.close()
         if self.buddy_state:
-            await self.store.update_buddy(
+            await self.store.update_buddy_by_id(
+                self.buddy_state.buddy_id,
                 xp=self.buddy_state.xp,
                 level=self.buddy_state.level,
                 mood=self.buddy_state.mood,
