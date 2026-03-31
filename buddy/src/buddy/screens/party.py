@@ -27,8 +27,8 @@ class PartyScreen(Screen):
     }
 
     #party-container {
-        width: 1fr;
-        max-width: 70;
+        width: 90%;
+        max-width: 80;
         height: auto;
         border: double $primary;
         padding: 1 2;
@@ -47,6 +47,8 @@ class PartyScreen(Screen):
         border: solid $primary;
         padding: 1;
         margin: 1 0;
+        width: 1fr;
+        overflow: auto;
     }
 
     .buddy-row {
@@ -54,7 +56,7 @@ class PartyScreen(Screen):
         height: auto;
         padding: 0 1;
         margin: 0 0 1 0;
-        border: solid $accent;
+        border: none;
     }
 
     Button {
@@ -112,7 +114,7 @@ class PartyScreen(Screen):
         # Create and mount new buddy rows
         rows = []
         for idx, buddy in enumerate(self.buddies):
-            is_active = "[bold yellow]★[/] " if buddy.get("is_active") else "  "
+            is_active = "★ " if buddy.get("is_active") else "  "
             is_selected = "[reverse]" if idx == self.selected_idx else ""
             end_tag = "[/]" if idx == self.selected_idx else ""
 
@@ -126,12 +128,18 @@ class PartyScreen(Screen):
             rarity = buddy.get("species", "unknown").lower()
             color = rarity_colors.get(rarity, "white")
 
-            hat_str = f" 🎩 {buddy.get('hat')}" if buddy.get("hat") else ""
+            # Truncate buddy name to 15 chars
+            buddy_name = buddy.get('name', 'Buddy')[:15]
+
+            # Hat display: just emoji if exists
+            hat_str = " 🎩" if buddy.get("hat") else ""
+
+            # Compact format: active | species | name | level | hat
             text = (
                 f"{is_selected}{is_active}"
-                f"[{color}]{buddy.get('species', '?').upper()}[/] "
-                f"{buddy.get('name')} "
-                f"Lv.{buddy.get('level', 1)}"
+                f"[{color}]{buddy.get('species', '?')[:8]}[/] "
+                f"{buddy_name:<15} "
+                f"L{buddy.get('level', 1)}"
                 f"{hat_str}"
                 f"{end_tag}"
             )

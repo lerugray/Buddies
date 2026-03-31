@@ -16,9 +16,11 @@ class SpriteDisplay(Static):
     DEFAULT_CSS = """
     SpriteDisplay {
         height: auto;
-        min-height: 12;
+        min-height: 10;
+        width: 1fr;
         content-align: center middle;
         text-align: center;
+        overflow: auto;
     }
     """
 
@@ -60,7 +62,9 @@ class StatsDisplay(Static):
     DEFAULT_CSS = """
     StatsDisplay {
         height: auto;
+        width: 1fr;
         padding: 1 0 0 0;
+        overflow: auto;
     }
     """
 
@@ -80,7 +84,7 @@ class StatsDisplay(Static):
         shiny_tag = " ✨SHINY✨" if state.shiny else ""
 
         xp_next = xp_for_next_level(state.level)
-        xp_bar_width = 16
+        xp_bar_width = 12  # Reduced from 16 for narrow terminals
         xp_progress = min(state.xp / max(xp_next, 1), 1.0)
         filled = int(xp_progress * xp_bar_width)
         xp_bar = "█" * filled + "░" * (xp_bar_width - filled)
@@ -94,25 +98,40 @@ class StatsDisplay(Static):
         }
         mood_icon = mood_icons.get(state.mood, "😐")
 
-        hat_line = f"🎩 {state.hat}" if state.hat else "No hat"
-        owned_hats = ", ".join(state.hats_owned) if state.hats_owned else "None"
+        # Hat display: current hat or empty
+        hat_line = f"🎩 {state.hat}" if state.hat else ""
+
+        # Truncate owned hats: show first 3, then +N count
+        owned_hats = state.hats_owned if state.hats_owned else []
+        if len(owned_hats) > 3:
+            hats_display = ", ".join(owned_hats[:3]) + f" +{len(owned_hats) - 3}"
+        else:
+            hats_display = ", ".join(owned_hats) if owned_hats else "none"
 
         lines = [
             f"[bold {color}]{state.species.emoji} {state.name}[/]  [{color}]{rarity.upper()}[/]{shiny_tag}",
-            f"[dim]{state.species.description}[/]",
+            f"[dim]{state.species.description[:40]}[/]",  # Truncate description
             "",
-            f"Lv.{state.level}  {xp_bar}  {state.xp}/{xp_next} XP",
-            f"Mood: {mood_icon} {state.mood.capitalize()} ({state.mood_value}/100)",
-            f"Hat: {hat_line}  |  Owned: {owned_hats}",
+            f"Lv.{state.level} {xp_bar} {state.xp}/{xp_next}",
+            f"{mood_icon} {state.mood.capitalize()}",
             "",
-            f"[red]⚔ DEBUG[/]  {state.stats['debugging']:>3}   [blue]🛡 PATIENCE[/] {state.stats['patience']:>3}",
-            f"[magenta]💥 CHAOS[/]  {state.stats['chaos']:>3}   [cyan]📖 WISDOM[/]  {state.stats['wisdom']:>3}",
-            f"[yellow]💬 SNARK[/]  {state.stats['snark']:>3}",
+            f"🎩 Owned: {hats_display}",
+            "",
+            # Stats in compact format, one per line
+            f"[red]⚔[/] DEBUG   {state.stats['debugging']:>3}",
+            f"[blue]🛡[/] PATIENCE {state.stats['patience']:>3}",
+            f"[magenta]💥[/] CHAOS   {state.stats['chaos']:>3}",
+            f"[cyan]📖[/] WISDOM  {state.stats['wisdom']:>3}",
+            f"[yellow]💬[/] SNARK   {state.stats['snark']:>3}",
         ]
 
         if state.soul_description:
+            # Truncate soul description to 50 chars with ellipsis
+            soul_text = state.soul_description[:50]
+            if len(state.soul_description) > 50:
+                soul_text += "..."
             lines.append("")
-            lines.append(f"[dim italic]\"{state.soul_description}\"[/]")
+            lines.append(f"[dim italic]\"{soul_text}\"[/]")
 
         self.update("\n".join(lines))
 
@@ -123,9 +142,11 @@ class BuddyDisplay(Vertical):
     DEFAULT_CSS = """
     BuddyDisplay {
         width: 1fr;
-        height: 1fr;
+        height: auto;
+        min-height: 20;
         border: solid $primary;
         padding: 1;
+        overflow: auto;
     }
     """
 

@@ -1,23 +1,31 @@
-/* Buddy TUI Theme */
+/* Buddy TUI Theme — Responsive 3-column layout */
 
 Screen {
     layout: grid;
     grid-size: 3 1;
     grid-columns: 1fr 2fr 1fr;
-    grid-rows: 1fr;
     background: $background;
 }
 
 #buddy-panel {
-    column-span: 1;
+    border: solid $primary;
+    width: 1fr;
+    height: 1fr;
+    overflow: auto;
 }
 
 #chat-panel {
-    column-span: 1;
+    border: solid $primary;
+    width: 1fr;
+    height: 1fr;
+    overflow: auto;
 }
 
 #session-panel {
-    column-span: 1;
+    border: solid $primary;
+    width: 1fr;
+    height: 1fr;
+    overflow: auto;
 }
 
 #title-bar {
