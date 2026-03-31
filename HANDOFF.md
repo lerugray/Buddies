@@ -1,5 +1,7 @@
 # BUDDIES — Project Handoff
 
+**Note**: Project folder is currently `new_ideas` but should be renamed to `Buddies` when you get a chance (folder rename was locked). The code doesn't care, but renaming will clean up the workspace.
+
 ## What Is This
 A tamagotchi-style local AI companion **collection** that runs alongside Claude Code. Your buddies have personality stats (DEBUGGING, CHAOS, SNARK, WISDOM, PATIENCE), can be collected, named, customized with hats, and react to your coding sessions.
 
