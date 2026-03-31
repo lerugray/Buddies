@@ -63,6 +63,7 @@ class BuddyApp(App):
         self.prose = ProseEngine()
         self._last_thought_time: float = 0
         self._recent_tools: list[str] = []
+        self._bored_minutes: float = 0  # Track sustained boredom for nightcap
 
     def compose(self) -> ComposeResult:
         yield Static("🐾 BUDDIES — Your AI Companions", id="title-bar")
@@ -132,6 +133,7 @@ class BuddyApp(App):
         self._observer_task = asyncio.create_task(self.observer.start())
         self._rule_check_task = asyncio.create_task(self._periodic_rule_check())
         self._idle_thought_task = asyncio.create_task(self._idle_thought_loop())
+        self._mood_decay_task = asyncio.create_task(self._mood_decay_loop())
 
     async def _show_ai_status(self):
         ai_available = await self.ai_backend.is_available()
@@ -373,12 +375,17 @@ class BuddyApp(App):
             if mood_mod["hat_discovery_chance"] > 0:
                 import random
                 if random.random() < mood_mod["hat_discovery_chance"]:
-                    all_hats = ["crown", "wizard", "propeller"]
+                    all_hats = ["crown", "wizard", "propeller", "tophat", "halo", "horns", "flower", "headphones", "nightcap"]
                     unowned = [h for h in all_hats if h not in self.buddy_state.hats_owned]
                     if unowned:
                         found = random.choice(unowned)
                         self.buddy_state.hats_owned.append(found)
                         asyncio.create_task(self._notify_hat_found(found))
+            # Headphones hat: unlocked at 100 session events
+            if (self.observer.stats.event_count >= 100
+                    and "headphones" not in self.buddy_state.hats_owned):
+                self.buddy_state.hats_owned.append("headphones")
+                asyncio.create_task(self._notify_hat_found("headphones"))
             # Check for hat unlocks after stat boosts
             asyncio.create_task(self._check_and_unlock_hats())
 
@@ -480,6 +487,43 @@ class BuddyApp(App):
                     except Exception:
                         pass
 
+    async def _mood_decay_loop(self):
+        """Mood drifts toward neutral (50) every 90 seconds. Sustained boredom unlocks nightcap."""
+        while True:
+            await asyncio.sleep(90)
+            if not self.buddy_state:
+                continue
+
+            old_mood = self.buddy_state.mood
+            # Drift toward neutral: -2 if above 50, +2 if below 50
+            if self.buddy_state.mood_value > 50:
+                self.buddy_state.adjust_mood(-2)
+            elif self.buddy_state.mood_value < 50:
+                self.buddy_state.adjust_mood(1)
+
+            # Track boredom for nightcap hat
+            if self.buddy_state.mood in ("bored", "grumpy"):
+                self._bored_minutes += 1.5  # 90 seconds = 1.5 minutes
+            else:
+                self._bored_minutes = max(0, self._bored_minutes - 0.5)
+
+            # Nightcap hat: 10+ minutes of boredom
+            if (self._bored_minutes >= 10
+                    and "nightcap" not in self.buddy_state.hats_owned):
+                self.buddy_state.hats_owned.append("nightcap")
+                asyncio.create_task(self._notify_hat_found("nightcap"))
+
+            # Persist mood changes
+            await self.store.update_buddy_by_id(
+                self.buddy_state.buddy_id,
+                mood=self.buddy_state.mood,
+                mood_value=self.buddy_state.mood_value,
+            )
+
+            # Update display if mood changed
+            if self.buddy_state.mood != old_mood:
+                self._update_displays()
+
     async def _periodic_rule_check(self):
         """Periodically analyze session patterns and suggest rules."""
         while True:
@@ -571,7 +615,7 @@ class BuddyApp(App):
 
     async def on_unmount(self):
         self.observer.stop()
-        for task_name in ('_observer_task', '_rule_check_task', '_idle_thought_task'):
+        for task_name in ('_observer_task', '_rule_check_task', '_idle_thought_task', '_mood_decay_task'):
             task = getattr(self, task_name, None)
             if task:
                 task.cancel()

@@ -917,6 +917,78 @@ def _hat_tinyduck() -> str:
     ])
 
 
+def _hat_tophat() -> str:
+    """A tall formal top hat — unlocked at level 10."""
+    return _build_sprite([
+        "tttkkkkktttt",
+        "tttkkkkktttt",
+        "tttkkkkktttt",
+        "tkkkkkkkkkt",
+        "tkkkkkkkkkt",
+        "ttttttttttt",
+    ])
+
+
+def _hat_halo() -> str:
+    """A glowing golden halo — unlocked at 50+ patience."""
+    return _build_sprite([
+        "tttyyyyyyttt",
+        "ttyttttttytt",
+        "ttyttttttytt",
+        "tttyyyyyyttt",
+        "tttttttttttt",
+        "tttttttttttt",
+    ])
+
+
+def _hat_horns() -> str:
+    """Little red devil horns — unlocked at 50+ chaos."""
+    return _build_sprite([
+        "trttttttrtt",
+        "trrttttrrtt",
+        "ttrrttrrttt",
+        "tttttttttttt",
+        "tttttttttttt",
+        "tttttttttttt",
+    ])
+
+
+def _hat_headphones() -> str:
+    """Over-ear headphones — unlocked after 100 session events."""
+    return _build_sprite([
+        "ttteeeeeett",
+        "ttettttttett",
+        "tetttttttet",
+        "tetttttttet",
+        "tttttttttttt",
+        "tttttttttttt",
+    ])
+
+
+def _hat_flower() -> str:
+    """A pretty flower — found when ecstatic."""
+    return _build_sprite([
+        "tttttppttttt",
+        "ttttppppttt",
+        "tttppgpppttt",
+        "ttttppppttt",
+        "tttttGtttttt",
+        "ttttttttttt",
+    ])
+
+
+def _hat_nightcap() -> str:
+    """A droopy nightcap — earned through patience (boredom)."""
+    return _build_sprite([
+        "ttttttbbbbtt",
+        "ttttbbbbbbbt",
+        "tttbbbbwbttt",
+        "ttbbbbbtttt",
+        "ttttttttttt",
+        "ttttttttttt",
+    ])
+
+
 # ============================================================
 # PHASE 6 SPECIES
 # ============================================================
@@ -1344,6 +1416,12 @@ HATS: dict[str, str] = {
     "wizard": _hat_wizard(),
     "propeller": _hat_propeller(),
     "tinyduck": _hat_tinyduck(),
+    "tophat": _hat_tophat(),
+    "halo": _hat_halo(),
+    "horns": _hat_horns(),
+    "headphones": _hat_headphones(),
+    "flower": _hat_flower(),
+    "nightcap": _hat_nightcap(),
 }
 
 

@@ -209,12 +209,20 @@ def check_evolution(old_level: int, new_level: int) -> dict | None:
     return None
 
 
-# Hat unlock rules based on dominant stat and level
+# Hat unlock rules based on stats, level, and conditions
 HAT_UNLOCK_RULES: dict[str, dict] = {
     "crown": {"dominant_stat": "debugging", "min_level": 5},
     "wizard": {"dominant_stat": "wisdom", "min_level": 5},
     "propeller": {"dominant_stat": "chaos", "min_level": 5},
+    "tophat": {"dominant_stat": None, "min_level": 10},
+    "halo": {"dominant_stat": None, "min_level": 1, "min_stat": ("patience", 50)},
+    "horns": {"dominant_stat": None, "min_level": 1, "min_stat": ("chaos", 50)},
 }
+
+# Hats with special unlock conditions (checked separately)
+# "headphones" — 100+ session events watched
+# "flower" — found via ecstatic mood bonus (random discovery)
+# "nightcap" — earned through boredom (mood decay mechanic)
 
 
 def check_hat_unlock(state: BuddyState) -> list[str]:
@@ -234,10 +242,17 @@ def check_hat_unlock(state: BuddyState) -> list[str]:
             continue
 
         # Check dominant stat requirement
-        dominant_stat = rules["dominant_stat"]
+        dominant_stat = rules.get("dominant_stat")
         if dominant_stat:
             max_stat = max(state.stats.values())
             if state.stats[dominant_stat] != max_stat:
+                continue
+
+        # Check minimum stat threshold
+        min_stat = rules.get("min_stat")
+        if min_stat:
+            stat_name, threshold = min_stat
+            if state.stats.get(stat_name, 0) < threshold:
                 continue
 
         newly_unlocked.append(hat_name)
