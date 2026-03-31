@@ -28,20 +28,24 @@ A tamagotchi-style local AI companion **collection** that runs alongside Claude 
 
 ### Launch the TUI
 ```bash
-cd buddy
-PYTHONPATH=src python -m buddy
+cd buddies
+python -m buddies
+```
+Or from anywhere after `pip install -e .` in the buddies folder:
+```bash
+buddy
 ```
 
 ### Register hooks (run once)
 Adds event hooks so Buddy can watch Claude Code sessions:
 ```bash
-PYTHONPATH=src python -m buddy.setup_hooks
+python -m buddies.setup_hooks
 ```
 
 ### Register MCP server (run once)
 Adds Buddy's tools to Claude Code so Claude can interact with buddy:
 ```bash
-PYTHONPATH=src python -m buddy.setup_mcp
+python -m buddies.setup_mcp
 ```
 
 ### Configure local AI backend
@@ -61,10 +65,10 @@ For remote Ollama (e.g., home machine): change `base_url` to `http://<home-ip>:1
 
 ### Files
 ```
-buddy/
+buddies/
 ├── pyproject.toml                    # Project config, dependencies
 ├── styles/buddy.tcss                 # TUI theme (CSS for Textual)
-├── src/buddy/
+├── src/buddies/
 │   ├── __init__.py
 │   ├── __main__.py                   # Entry point
 │   ├── app.py                        # Main TUI app — wires everything together
@@ -76,6 +80,8 @@ buddy/
 │   │   ├── chat.py                   # Chat interaction pane
 │   │   ├── session_monitor.py        # Live Claude Code activity feed
 │   │   └── status_bar.py             # Bottom status bar
+│   ├── screens/
+│   │   └── party.py                  # Party screen for buddy collection management
 │   ├── core/
 │   │   ├── buddy_brain.py            # Species, stats, personality, gacha, leveling
 │   │   ├── hooks.py                  # Claude Code hook receiver (writes events.jsonl)
@@ -86,11 +92,12 @@ buddy/
 │   ├── mcp/
 │   │   └── server.py                 # MCP server (5 tools for Claude)
 │   ├── art/
-│   │   ├── sprites.py                # 16 species, 2 frames each, Unicode art
+│   │   ├── sprites.py                # 25 species, 2 frames each, Unicode art
 │   │   └── animations.py             # Frame cycling controller
-│   └── db/
-│       ├── models.py                 # SQLite schema
-│       └── store.py                  # Async data access layer
+│   ├── db/
+│   │   ├── models.py                 # SQLite schema
+│   │   └── store.py                  # Async data access layer
+│   └── first_run.py                  # Hatch screen for initial buddy creation
 ```
 
 ### Key Design Decisions
