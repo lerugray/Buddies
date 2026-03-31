@@ -26,7 +26,7 @@ from buddies.core.rule_suggester import RuleSuggester
 from buddies.core.session_observer import SessionObserver, SessionEvent
 from buddies.db.store import BuddyStore
 from buddies.first_run import HatchScreen
-from buddies.widgets.buddy_display import BuddyDisplay
+from buddies.widgets.buddy_display import BuddyDisplay, SpriteDisplay
 from buddies.widgets.chat import ChatWindow
 from buddies.widgets.session_monitor import SessionMonitor
 
@@ -214,6 +214,12 @@ class BuddyApp(App):
             )
             if leveled:
                 chat.add_system(f"🎉 {self.buddy_state.name} reached level {self.buddy_state.level}!")
+                # Celebration animation
+                try:
+                    sprite = self.query_one("#buddy-sprite", SpriteDisplay)
+                    sprite.celebrate(6)
+                except Exception:
+                    pass
                 lvl_thought = self.prose.thought("level_up", self.buddy_state, {"level": self.buddy_state.level})
                 if lvl_thought:
                     chat.add_message("buddy", f"💭 {lvl_thought}")
@@ -324,6 +330,13 @@ class BuddyApp(App):
         except Exception:
             pass
 
+        # Animate buddy — speed up during active sessions
+        try:
+            sprite = self.query_one("#buddy-sprite", SpriteDisplay)
+            sprite.set_activity("excited")
+        except Exception:
+            pass
+
         # Buddy reacts to events — gains XP from watching sessions
         if self.buddy_state and event.event_type == "PreToolUse":
             self.buddy_state.gain_xp(1)
@@ -409,13 +422,19 @@ class BuddyApp(App):
         return None
 
     async def _idle_thought_loop(self):
-        """Periodically emit idle thoughts when nothing is happening."""
+        """Periodically emit idle thoughts and slow animation when nothing is happening."""
         while True:
             await asyncio.sleep(120)
             if not self.buddy_state:
                 continue
             now = time.time()
             if now - self._last_thought_time > 120:
+                # Slow down animation — buddy is getting bored
+                try:
+                    sprite = self.query_one("#buddy-sprite", SpriteDisplay)
+                    sprite.set_activity("sleepy")
+                except Exception:
+                    pass
                 ctx = {
                     "count": self.observer.stats.event_count,
                     "minutes": self.observer.stats.duration_minutes,

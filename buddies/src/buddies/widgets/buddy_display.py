@@ -24,6 +24,13 @@ class SpriteDisplay(Static):
     }
     """
 
+    # Animation speeds for different activity levels
+    ANIM_SPEEDS = {
+        "excited": 0.4,   # Fast cycling during active sessions
+        "normal": 1.0,    # Default idle
+        "sleepy": 2.5,    # Slow when nothing happening
+    }
+
     def __init__(self, **kwargs):
         initial = get_sprite("duck", 0, False)
         super().__init__(initial, markup=True, **kwargs)
@@ -33,15 +40,40 @@ class SpriteDisplay(Static):
         self.evolution_border: str | None = None
         self._frame = 0
         self._frame_count = 2
+        self._activity = "normal"
+        self._timer = None
+        self._celebration_frames = 0
 
     def on_mount(self):
         self.refresh_sprite()
-        self.set_interval(1.0, self.advance_frame)
+        self._timer = self.set_interval(1.0, self.advance_frame)
+
+    def set_activity(self, level: str):
+        """Change animation speed: 'excited', 'normal', or 'sleepy'."""
+        if level == self._activity:
+            return
+        self._activity = level
+        speed = self.ANIM_SPEEDS.get(level, 1.0)
+        if self._timer:
+            self._timer.stop()
+        self._timer = self.set_interval(speed, self.advance_frame)
+
+    def celebrate(self, frames: int = 6):
+        """Briefly speed up animation for level-up/evolution."""
+        self._celebration_frames = frames
+        old_activity = self._activity
+        self.set_activity("excited")
+        # Will auto-revert after celebration_frames ticks
 
     def advance_frame(self):
         """Advance to next animation frame and update display."""
         self._frame = (self._frame + 1) % self._frame_count
         self.refresh_sprite()
+        # Handle celebration countdown
+        if self._celebration_frames > 0:
+            self._celebration_frames -= 1
+            if self._celebration_frames == 0:
+                self.set_activity("normal")
 
     def refresh_sprite(self):
         """Update the displayed sprite."""
