@@ -22,9 +22,9 @@ from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 
-from buddy.config import BuddyConfig, get_data_dir
-from buddy.core.hooks import get_events_path
-from buddy.db.store import BuddyStore
+from buddies.config import BuddyConfig, get_data_dir
+from buddies.core.hooks import get_events_path
+from buddies.db.store import BuddyStore
 
 mcp = FastMCP("Buddies")
 
@@ -170,7 +170,7 @@ async def ask_buddy(question: str) -> str:
         )
 
     # Try to use the AI backend directly
-    from buddy.core.ai_backend import create_backend
+    from buddies.core.ai_backend import create_backend
     backend = create_backend(config.ai_backend)
     await backend.connect()
 

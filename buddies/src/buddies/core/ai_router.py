@@ -12,8 +12,8 @@ import re
 from dataclasses import dataclass
 from collections import deque
 
-from buddy.core.ai_backend import AIBackend, AIResponse
-from buddy.core.buddy_brain import BuddyState
+from buddies.core.ai_backend import AIBackend, AIResponse
+from buddies.core.buddy_brain import BuddyState
 
 
 @dataclass

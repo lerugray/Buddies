@@ -10,24 +10,24 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.widgets import Static, Input, Footer
 
-from buddy.config import BuddyConfig
-from buddy.core.buddy_brain import (
+from buddies.config import BuddyConfig
+from buddies.core.buddy_brain import (
     BuddyState,
     pick_species,
     SPECIES_CATALOG,
     check_hat_unlock,
 )
-from buddy.core.ai_backend import create_backend
-from buddy.core.ai_router import AIRouter
-from buddy.core.rule_suggester import RuleSuggester
-from buddy.core.session_observer import SessionObserver, SessionEvent
-from buddy.db.store import BuddyStore
-from buddy.first_run import HatchScreen
-from buddy.widgets.buddy_display import BuddyDisplay
-from buddy.widgets.chat import ChatWindow
-from buddy.widgets.session_monitor import SessionMonitor
+from buddies.core.ai_backend import create_backend
+from buddies.core.ai_router import AIRouter
+from buddies.core.rule_suggester import RuleSuggester
+from buddies.core.session_observer import SessionObserver, SessionEvent
+from buddies.db.store import BuddyStore
+from buddies.first_run import HatchScreen
+from buddies.widgets.buddy_display import BuddyDisplay
+from buddies.widgets.chat import ChatWindow
+from buddies.widgets.session_monitor import SessionMonitor
 
-from buddy.screens.party import PartyScreen
+from buddies.screens.party import PartyScreen
 
 
 CSS_PATH = Path(__file__).parent.parent.parent / "styles" / "buddy.tcss"
@@ -141,7 +141,7 @@ class BuddyApp(App):
         buddy_display.update_buddy(self.buddy_state)
 
     def _get_greeting(self) -> str:
-        """Get a mood-appropriate greeting from buddy."""
+        """Get a mood-appropriate greeting from buddies."""
         if not self.buddy_state:
             return "Hello!"
         greetings = {

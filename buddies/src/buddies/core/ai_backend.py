@@ -11,7 +11,7 @@ from __future__ import annotations
 import httpx
 from dataclasses import dataclass
 
-from buddy.config import AIBackendConfig
+from buddies.config import AIBackendConfig
 
 
 @dataclass

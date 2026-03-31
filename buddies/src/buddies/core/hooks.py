@@ -19,7 +19,7 @@ import sys
 import time
 from pathlib import Path
 
-from buddy.config import get_data_dir
+from buddies.config import get_data_dir
 
 
 EVENTS_FILE = "events.jsonl"

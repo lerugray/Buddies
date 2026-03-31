@@ -1,5 +1,5 @@
 """Allow running buddy as: python -m buddy"""
 
-from buddy.app import main
+from buddies.app import main
 
 main()

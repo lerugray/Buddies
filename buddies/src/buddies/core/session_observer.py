@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
-from buddy.core.hooks import get_events_path
+from buddies.core.hooks import get_events_path
 
 
 @dataclass

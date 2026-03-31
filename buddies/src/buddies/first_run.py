@@ -18,8 +18,8 @@ from textual.containers import Vertical, Center
 from textual.widgets import Static, Input, Button
 from textual.screen import Screen
 
-from buddy.art.sprites import get_sprite
-from buddy.core.buddy_brain import pick_species, Species, Rarity
+from buddies.art.sprites import get_sprite
+from buddies.core.buddy_brain import pick_species, Species, Rarity
 
 
 RARITY_COLORS = {

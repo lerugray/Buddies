@@ -6,8 +6,8 @@ from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.widgets import Static
 
-from buddy.art.sprites import get_sprite, get_frame_count
-from buddy.core.buddy_brain import BuddyState, xp_for_next_level
+from buddies.art.sprites import get_sprite, get_frame_count
+from buddies.core.buddy_brain import BuddyState, xp_for_next_level
 
 
 class SpriteDisplay(Static):

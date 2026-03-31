@@ -13,8 +13,8 @@ from textual.containers import Vertical, Center, ScrollableContainer
 from textual.widgets import Static, Button, Footer
 from textual.screen import Screen
 
-from buddy.db.store import BuddyStore
-from buddy.core.buddy_brain import HAT_UNLOCK_RULES
+from buddies.db.store import BuddyStore
+from buddies.core.buddy_brain import HAT_UNLOCK_RULES
 
 
 class PartyScreen(Screen):

@@ -12,8 +12,8 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from buddy.core.session_observer import SessionObserver, SessionStats
-from buddy.db.store import BuddyStore
+from buddies.core.session_observer import SessionObserver, SessionStats
+from buddies.db.store import BuddyStore
 
 
 @dataclass

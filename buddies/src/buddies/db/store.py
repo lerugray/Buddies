@@ -5,7 +5,7 @@ from __future__ import annotations
 import aiosqlite
 from pathlib import Path
 
-from buddy.db.models import SCHEMA, MIGRATIONS
+from buddies.db.models import SCHEMA, MIGRATIONS
 
 
 class BuddyStore:
