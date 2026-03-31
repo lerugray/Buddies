@@ -71,6 +71,13 @@ class StatsDisplay(Static):
     def __init__(self, **kwargs):
         super().__init__("Loading...", markup=True, **kwargs)
 
+    def _truncate_at_word(self, text: str, max_len: int) -> str:
+        """Truncate text at word boundary, add ellipsis if needed."""
+        if len(text) <= max_len:
+            return text
+        truncated = text[:max_len].rsplit(" ", 1)[0]
+        return truncated + "…" if truncated else text[:max_len - 1] + "…"
+
     def render_stats(self, state: BuddyState):
         rarity_colors = {
             "common": "white",
@@ -98,8 +105,8 @@ class StatsDisplay(Static):
         }
         mood_icon = mood_icons.get(state.mood, "😐")
 
-        # Hat display: current hat or empty
-        hat_line = f"🎩 {state.hat}" if state.hat else ""
+        # Truncate description to 28 chars at word boundary
+        desc = self._truncate_at_word(state.species.description, 28)
 
         # Truncate owned hats: show first 3, then +N count
         owned_hats = state.hats_owned if state.hats_owned else []
@@ -110,7 +117,7 @@ class StatsDisplay(Static):
 
         lines = [
             f"[bold {color}]{state.species.emoji} {state.name}[/]  [{color}]{rarity.upper()}[/]{shiny_tag}",
-            f"[dim]{state.species.description[:40]}[/]",  # Truncate description
+            f"[dim]{desc}[/]",
             "",
             f"Lv.{state.level} {xp_bar} {state.xp}/{xp_next}",
             f"{mood_icon} {state.mood.capitalize()}",
@@ -126,10 +133,8 @@ class StatsDisplay(Static):
         ]
 
         if state.soul_description:
-            # Truncate soul description to 50 chars with ellipsis
-            soul_text = state.soul_description[:50]
-            if len(state.soul_description) > 50:
-                soul_text += "..."
+            # Truncate soul description to 28 chars at word boundary
+            soul_text = self._truncate_at_word(state.soul_description, 28)
             lines.append("")
             lines.append(f"[dim italic]\"{soul_text}\"[/]")
 
