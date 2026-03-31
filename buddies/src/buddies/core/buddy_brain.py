@@ -88,6 +88,21 @@ MOODS = {
 }
 
 
+# Mood-reactive gameplay modifiers
+MOOD_MODIFIERS = {
+    "ecstatic": {"xp_multiplier": 1.5, "bonus_stat": None, "hat_discovery_chance": 0.05},
+    "happy": {"xp_multiplier": 1.25, "bonus_stat": None, "hat_discovery_chance": 0.0},
+    "neutral": {"xp_multiplier": 1.0, "bonus_stat": None, "hat_discovery_chance": 0.0},
+    "bored": {"xp_multiplier": 1.0, "bonus_stat": "patience", "hat_discovery_chance": 0.0},
+    "grumpy": {"xp_multiplier": 0.75, "bonus_stat": "snark", "hat_discovery_chance": 0.0},
+}
+
+
+def get_mood_modifier(mood: str) -> dict:
+    """Get gameplay modifiers for the current mood."""
+    return MOOD_MODIFIERS.get(mood, MOOD_MODIFIERS["neutral"])
+
+
 def mulberry32(seed: int) -> float:
     """Mulberry32 PRNG — deterministic float from seed."""
     seed = (seed + 0x6D2B79F5) & 0xFFFFFFFF

@@ -18,6 +18,7 @@ from buddies.core.buddy_brain import (
     SPECIES_CATALOG,
     check_hat_unlock,
     check_evolution,
+    get_mood_modifier,
 )
 from buddies.core.ai_backend import create_backend
 from buddies.core.prose import ProseEngine
@@ -200,10 +201,12 @@ class BuddyApp(App):
             response = self._buddy_respond(message)
             chat.add_message("buddy", response)
 
-        # Gain XP for interaction
+        # Gain XP for interaction (mood-modified)
         if self.buddy_state:
             old_level = self.buddy_state.level
-            leveled = self.buddy_state.gain_xp(5)
+            mood_mod = get_mood_modifier(self.buddy_state.mood)
+            xp_gain = int(5 * mood_mod["xp_multiplier"])
+            leveled = self.buddy_state.gain_xp(xp_gain)
             self.buddy_state.adjust_mood(2)
             await self.store.update_buddy_by_id(
                 self.buddy_state.buddy_id,
@@ -291,6 +294,19 @@ class BuddyApp(App):
             }
             return responses.get(top_stat, "Interesting! Tell me more.")
 
+    async def _notify_hat_found(self, hat_name: str):
+        """Persist and notify about a hat found via ecstatic mood bonus."""
+        if self.buddy_state:
+            await self.store.update_buddy_by_id(
+                self.buddy_state.buddy_id,
+                hats_owned=json.dumps(self.buddy_state.hats_owned),
+            )
+            try:
+                chat = self.query_one("#chat-panel", ChatWindow)
+                chat.add_system(f"🎩 {self.buddy_state.name} found a {hat_name} hat! (ecstatic bonus)")
+            except Exception:
+                pass
+
     async def _check_and_unlock_hats(self):
         """Check which hats are newly unlocked and notify user."""
         if not self.buddy_state:
@@ -339,7 +355,9 @@ class BuddyApp(App):
 
         # Buddy reacts to events — gains XP from watching sessions
         if self.buddy_state and event.event_type == "PreToolUse":
-            self.buddy_state.gain_xp(1)
+            mood_mod = get_mood_modifier(self.buddy_state.mood)
+            xp_gain = max(1, int(1 * mood_mod["xp_multiplier"]))
+            self.buddy_state.gain_xp(xp_gain)
             # Specific stat boosts based on what Claude is doing
             if event.tool_name in ("Edit", "Write"):
                 self.buddy_state.stats["debugging"] = min(99, self.buddy_state.stats["debugging"] + 1)
@@ -347,6 +365,20 @@ class BuddyApp(App):
                 self.buddy_state.stats["wisdom"] = min(99, self.buddy_state.stats["wisdom"] + 1)
             elif event.tool_name == "Bash":
                 self.buddy_state.stats["chaos"] = min(99, self.buddy_state.stats["chaos"] + 1)
+            # Mood bonus stat (bored = patience, grumpy = snark)
+            bonus_stat = mood_mod.get("bonus_stat")
+            if bonus_stat:
+                self.buddy_state.stats[bonus_stat] = min(99, self.buddy_state.stats[bonus_stat] + 1)
+            # Ecstatic hat discovery chance
+            if mood_mod["hat_discovery_chance"] > 0:
+                import random
+                if random.random() < mood_mod["hat_discovery_chance"]:
+                    all_hats = ["crown", "wizard", "propeller"]
+                    unowned = [h for h in all_hats if h not in self.buddy_state.hats_owned]
+                    if unowned:
+                        found = random.choice(unowned)
+                        self.buddy_state.hats_owned.append(found)
+                        asyncio.create_task(self._notify_hat_found(found))
             # Check for hat unlocks after stat boosts
             asyncio.create_task(self._check_and_unlock_hats())
 
