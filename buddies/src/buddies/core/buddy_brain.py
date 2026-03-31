@@ -164,6 +164,36 @@ def xp_for_next_level(level: int) -> int:
     return xp + xp_needed
 
 
+# Evolution stages — visual progression at level thresholds
+EVOLUTION_STAGES = [
+    {"name": "Hatchling", "min_level": 1, "symbol": "🥚", "border": None},
+    {"name": "Juvenile", "min_level": 5, "symbol": "🌱", "border": "cyan"},
+    {"name": "Adult", "min_level": 10, "symbol": "⭐", "border": "green"},
+    {"name": "Elder", "min_level": 20, "symbol": "👑", "border": "yellow"},
+]
+
+
+def get_evolution_stage(level: int) -> dict:
+    """Get the evolution stage for a given level."""
+    stage = EVOLUTION_STAGES[0]
+    for s in EVOLUTION_STAGES:
+        if level >= s["min_level"]:
+            stage = s
+    return stage
+
+
+def check_evolution(old_level: int, new_level: int) -> dict | None:
+    """Check if a level change triggers an evolution.
+
+    Returns the new stage dict if evolved, None otherwise.
+    """
+    old_stage = get_evolution_stage(old_level)
+    new_stage = get_evolution_stage(new_level)
+    if new_stage["name"] != old_stage["name"]:
+        return new_stage
+    return None
+
+
 # Hat unlock rules based on dominant stat and level
 HAT_UNLOCK_RULES: dict[str, dict] = {
     "crown": {"dominant_stat": "debugging", "min_level": 5},

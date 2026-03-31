@@ -7,7 +7,7 @@ from textual.containers import Vertical
 from textual.widgets import Static
 
 from buddies.art.sprites import get_sprite, get_frame_count
-from buddies.core.buddy_brain import BuddyState, xp_for_next_level
+from buddies.core.buddy_brain import BuddyState, xp_for_next_level, get_evolution_stage
 
 
 class SpriteDisplay(Static):
@@ -30,6 +30,7 @@ class SpriteDisplay(Static):
         self.species = "duck"
         self.shiny = False
         self.hat: str | None = None
+        self.evolution_border: str | None = None
         self._frame = 0
         self._frame_count = 2
 
@@ -44,13 +45,20 @@ class SpriteDisplay(Static):
 
     def refresh_sprite(self):
         """Update the displayed sprite."""
-        sprite = get_sprite(self.species, self._frame, self.shiny, hat=self.hat)
+        sprite = get_sprite(
+            self.species, self._frame, self.shiny,
+            hat=self.hat, evolution_border=self.evolution_border,
+        )
         self.update(sprite)
 
-    def set_species(self, species: str, shiny: bool = False, hat: str | None = None):
+    def set_species(
+        self, species: str, shiny: bool = False,
+        hat: str | None = None, evolution_border: str | None = None,
+    ):
         self.species = species
         self.shiny = shiny
         self.hat = hat
+        self.evolution_border = evolution_border
         self._frame = 0
         self._frame_count = get_frame_count(species)
         self.refresh_sprite()
@@ -115,9 +123,12 @@ class StatsDisplay(Static):
         else:
             hats_display = ", ".join(owned_hats) if owned_hats else "none"
 
+        stage = get_evolution_stage(state.level)
+
         lines = [
             f"[bold {color}]{state.species.emoji} {state.name}[/]  [{color}]{rarity.upper()}[/]{shiny_tag}",
             f"[dim]{desc}[/]",
+            f"{stage['symbol']} {stage['name']}",
             "",
             f"Lv.{state.level} {xp_bar} {state.xp}/{xp_next}",
             f"{mood_icon} {state.mood.capitalize()}",
@@ -160,7 +171,9 @@ class BuddyDisplay(Vertical):
         yield StatsDisplay(id="buddy-stats")
 
     def update_buddy(self, state: BuddyState):
+        stage = get_evolution_stage(state.level)
         self.query_one("#buddy-sprite", SpriteDisplay).set_species(
-            state.species.name, state.shiny, hat=state.hat
+            state.species.name, state.shiny,
+            hat=state.hat, evolution_border=stage.get("border"),
         )
         self.query_one("#buddy-stats", StatsDisplay).render_stats(state)

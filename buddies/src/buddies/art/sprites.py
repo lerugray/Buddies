@@ -1181,17 +1181,31 @@ SPRITES: dict[str, list[str]] = {
 SHINY_BORDER = "[bold yellow]✨[/]"
 
 
-def get_sprite(species_name: str, frame: int = 0, shiny: bool = False, hat: str | None = None) -> str:
-    """Get a sprite frame for a species, optionally with a hat and shiny border.
+EVOLUTION_BORDERS = {
+    "cyan": "[bold cyan]│[/]",
+    "green": "[bold green]║[/]",
+    "yellow": "[bold yellow]✦[/]",
+}
+
+
+def get_sprite(
+    species_name: str,
+    frame: int = 0,
+    shiny: bool = False,
+    hat: str | None = None,
+    evolution_border: str | None = None,
+) -> str:
+    """Get a sprite frame for a species, with optional hat, shiny, and evolution border.
 
     Args:
         species_name: Name of the species
         frame: Animation frame index
-        shiny: Whether to apply shiny ✨ border
+        shiny: Whether to apply shiny border
         hat: Optional hat name to display above the sprite
+        evolution_border: Color key for evolution stage border (cyan/green/yellow)
 
     Returns:
-        Multi-line Rich markup string with the sprite (and optionally hat and shiny)
+        Multi-line Rich markup string with the sprite
     """
     frames = SPRITES.get(species_name, SPRITES["duck"])
     frame_idx = frame % len(frames)
@@ -1201,7 +1215,14 @@ def get_sprite(species_name: str, frame: int = 0, shiny: bool = False, hat: str 
     if hat and hat in HATS:
         sprite = HATS[hat] + "\n" + sprite
 
-    # Apply shiny border (after hat prepend so hat glows too when shiny)
+    # Apply evolution border (before shiny so both can stack)
+    if evolution_border and evolution_border in EVOLUTION_BORDERS:
+        border = EVOLUTION_BORDERS[evolution_border]
+        lines = sprite.split("\n")
+        lines = [f"{border} {line} {border}" for line in lines]
+        sprite = "\n".join(lines)
+
+    # Apply shiny border (outermost layer)
     if shiny:
         lines = sprite.split("\n")
         lines = [f"{SHINY_BORDER} {line} {SHINY_BORDER}" for line in lines]

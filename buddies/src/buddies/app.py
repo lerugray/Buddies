@@ -17,6 +17,7 @@ from buddies.core.buddy_brain import (
     pick_species,
     SPECIES_CATALOG,
     check_hat_unlock,
+    check_evolution,
 )
 from buddies.core.ai_backend import create_backend
 from buddies.core.prose import ProseEngine
@@ -201,6 +202,7 @@ class BuddyApp(App):
 
         # Gain XP for interaction
         if self.buddy_state:
+            old_level = self.buddy_state.level
             leveled = self.buddy_state.gain_xp(5)
             self.buddy_state.adjust_mood(2)
             await self.store.update_buddy_by_id(
@@ -215,6 +217,19 @@ class BuddyApp(App):
                 lvl_thought = self.prose.thought("level_up", self.buddy_state, {"level": self.buddy_state.level})
                 if lvl_thought:
                     chat.add_message("buddy", f"💭 {lvl_thought}")
+                # Check for evolution
+                evolution = check_evolution(old_level, self.buddy_state.level)
+                if evolution:
+                    chat.add_system(
+                        f"✨ {self.buddy_state.name} evolved to "
+                        f"{evolution['symbol']} {evolution['name']}!"
+                    )
+                    evo_thought = self.prose.thought(
+                        "evolution", self.buddy_state,
+                        {"stage": evolution["name"]},
+                    )
+                    if evo_thought:
+                        chat.add_message("buddy", f"💭 {evo_thought}")
             self._update_displays()
             # Check for newly unlocked hats
             asyncio.create_task(self._check_and_unlock_hats())

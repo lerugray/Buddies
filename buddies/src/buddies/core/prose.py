@@ -123,6 +123,16 @@ TEMPLATES: dict[str, list[str]] = {
         "{name} can feel the power coursing through their pixels.",
         "Another level, another step closer to greatness.",
     ],
+    "evolution": [
+        "{name} feels different. Stronger. More... {stage}.",
+        "Something shifted. {name} isn't the same {species} anymore.",
+        "The pixels are rearranging. {name} has evolved!",
+        "A new form! {name} can feel the change in every stat.",
+        "{name} stands taller now. {stage} energy.",
+        "Evolution complete. {name} looks in a mirror and doesn't recognize themselves. In a good way.",
+        "Is this what growth feels like? {name} approves.",
+        "From hatchling to... this. What a journey.",
+    ],
     "test_run": [
         "Running tests. Fingers crossed.",
         "Test suite engaged. Let's see those green checks.",
@@ -271,6 +281,7 @@ class ProseEngine:
             count=ctx.get("count", "?"),
             minutes=ctx.get("minutes", 0),
             tool=ctx.get("tool", "something"),
+            stage=ctx.get("stage", "evolved"),
         )
 
         # Maybe add weirdness overlay (replaces text entirely at high chaos)
