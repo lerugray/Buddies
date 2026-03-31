@@ -8,7 +8,7 @@ Register in .claude/settings.json or claude_desktop_config.json:
     "mcpServers": {
         "buddy": {
             "command": "python",
-            "args": ["-m", "buddy.mcp.server"]
+            "args": ["-m", "buddies.mcp.server"]
         }
     }
 """

@@ -2,7 +2,7 @@
 
 A tamagotchi-style AI companion that lives in your terminal and watches your Claude Code sessions. Hatch buddies, collect species, earn hats, and build a team of quirky little creatures that react to how you code.
 
-![Buddies in action](https://github.com/lerugray/buddies/raw/main/screenshot.png)
+![Buddies TUI — early version](screenshot.jpg)
 
 ## What You Get
 

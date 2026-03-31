@@ -4,7 +4,7 @@ Run this once to add Buddy's event hooks to your Claude Code settings.
 It adds hook entries that forward events to Buddy's event log.
 
 Usage:
-    python -m buddy.setup_hooks
+    python -m buddies.setup_hooks
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ def get_claude_settings_path() -> Path:
 def get_hook_command() -> str:
     """Get the command to invoke the buddy hook receiver."""
     python = sys.executable.replace("\\", "/")
-    return f"{python} -m buddy.core.hooks"
+    return f"{python} -m buddies.core.hooks"
 
 
 def setup_hooks():
@@ -49,7 +49,7 @@ def setup_hooks():
         "Notification",
     ]
 
-    buddy_hook_marker = "buddy.core.hooks"
+    buddy_hook_marker = "buddies.core.hooks"
     changes_made = False
 
     for event_name in events_to_hook:
@@ -92,7 +92,7 @@ def remove_hooks():
 
     settings = json.loads(settings_path.read_text(encoding="utf-8"))
     hooks = settings.get("hooks", {})
-    buddy_hook_marker = "buddy.core.hooks"
+    buddy_hook_marker = "buddies.core.hooks"
 
     for event_name in list(hooks.keys()):
         hooks[event_name] = [

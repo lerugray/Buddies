@@ -4,8 +4,8 @@ Adds the Buddy MCP server to Claude Code's settings so Claude can
 use buddy_status, buddy_note, session_stats, and ask_buddy tools.
 
 Usage:
-    python -m buddy.setup_mcp
-    python -m buddy.setup_mcp remove
+    python -m buddies.setup_mcp
+    python -m buddies.setup_mcp remove
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ def setup_mcp():
 
     mcp_servers["buddy"] = {
         "command": python_path,
-        "args": ["-m", "buddy.mcp.server"],
+        "args": ["-m", "buddies.mcp.server"],
         "env": {
             "PYTHONPATH": str(Path(__file__).parent.parent.resolve()).replace("\\", "/"),
         },
