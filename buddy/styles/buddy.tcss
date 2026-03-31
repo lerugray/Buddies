@@ -1,0 +1,31 @@
+/* Buddy TUI Theme */
+
+Screen {
+    layout: grid;
+    grid-size: 3 1;
+    grid-columns: 1fr 2fr 1fr;
+    grid-rows: 1fr;
+    background: $background;
+}
+
+#buddy-panel {
+    column-span: 1;
+}
+
+#chat-panel {
+    column-span: 1;
+}
+
+#session-panel {
+    column-span: 1;
+}
+
+#title-bar {
+    dock: top;
+    height: 1;
+    background: $primary;
+    color: $text;
+    text-align: center;
+    text-style: bold;
+    padding: 0 1;
+}

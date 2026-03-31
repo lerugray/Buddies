@@ -1,0 +1,225 @@
+"""Buddy MCP Server — exposes tools to Claude Code.
+
+This runs as a separate process (stdio transport) that Claude Code connects to.
+It provides tools for Claude to check on buddy, leave notes, view session stats,
+and delegate simple tasks to the local AI.
+
+Register in .claude/settings.json or claude_desktop_config.json:
+    "mcpServers": {
+        "buddy": {
+            "command": "python",
+            "args": ["-m", "buddy.mcp.server"]
+        }
+    }
+"""
+
+from __future__ import annotations
+
+import asyncio
+import json
+import time
+from pathlib import Path
+
+from mcp.server.fastmcp import FastMCP
+
+from buddy.config import BuddyConfig, get_data_dir
+from buddy.core.hooks import get_events_path
+from buddy.db.store import BuddyStore
+
+mcp = FastMCP("Buddy")
+
+# Lazy-initialized shared state
+_store: BuddyStore | None = None
+_config: BuddyConfig | None = None
+
+
+async def _get_store() -> BuddyStore:
+    global _store, _config
+    if _store is None:
+        _config = BuddyConfig.load()
+        _store = BuddyStore(_config.db_path)
+        await _store.connect()
+    return _store
+
+
+@mcp.tool()
+async def buddy_status() -> str:
+    """Check on your buddy — see their species, stats, mood, and level.
+
+    Use this to see how your companion is doing. Their mood and stats
+    change based on your coding sessions.
+    """
+    store = await _get_store()
+    data = await store.get_buddy()
+
+    if not data:
+        return "No buddy hatched yet! Run the Buddy TUI to hatch your companion."
+
+    mood_icons = {
+        "ecstatic": "😄", "happy": "🙂", "neutral": "😐",
+        "bored": "😒", "grumpy": "😠",
+    }
+    icon = mood_icons.get(data["mood"], "😐")
+    shiny = " ✨SHINY" if data["shiny"] else ""
+
+    return (
+        f"# {data['name']} — {data['species'].capitalize()}{shiny}\n\n"
+        f"**Level:** {data['level']}  |  **XP:** {data['xp']}  |  "
+        f"**Mood:** {icon} {data['mood']} ({data['mood_value']}/100)\n\n"
+        f"## Stats\n"
+        f"- ⚔ Debugging: {data['stat_debugging']}\n"
+        f"- 🛡 Patience: {data['stat_patience']}\n"
+        f"- 💥 Chaos: {data['stat_chaos']}\n"
+        f"- 📖 Wisdom: {data['stat_wisdom']}\n"
+        f"- 💬 Snark: {data['stat_snark']}\n\n"
+        f"*\"{data['soul_description']}\"*"
+    )
+
+
+@mcp.tool()
+async def buddy_note(message: str) -> str:
+    """Leave a note for the user via Buddy.
+
+    The note will appear in Buddy's chat window next time the user
+    checks. Use this for helpful reminders, suggestions, or status updates.
+
+    Args:
+        message: The note to leave for the user
+    """
+    store = await _get_store()
+    await store.add_note(source="Claude", message=message)
+    return f"Note saved! Your buddy will show it to the user."
+
+
+@mcp.tool()
+async def session_stats() -> str:
+    """View current session statistics — events, token usage, tool counts.
+
+    Shows what's happened in the current Claude Code session including
+    estimated token usage and which tools have been used most.
+    """
+    events_path = get_events_path()
+    if not events_path.exists():
+        return "No session data yet. The Buddy TUI needs to be running to collect events."
+
+    # Read recent events
+    events = []
+    try:
+        with open(events_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    try:
+                        events.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        continue
+    except OSError:
+        return "Could not read session events."
+
+    if not events:
+        return "No events recorded yet."
+
+    # Compute stats
+    tool_counts: dict[str, int] = {}
+    total_events = len(events)
+    first_ts = events[0].get("timestamp", time.time())
+    duration_min = (time.time() - first_ts) / 60
+
+    for evt in events:
+        data = evt.get("data", {})
+        tool = data.get("tool_name", "")
+        if tool:
+            tool_counts[tool] = tool_counts.get(tool, 0) + 1
+
+    tool_lines = "\n".join(
+        f"- {tool}: {count}" for tool, count in
+        sorted(tool_counts.items(), key=lambda x: -x[1])[:10]
+    )
+
+    return (
+        f"# Session Stats\n\n"
+        f"**Events:** {total_events}  |  "
+        f"**Duration:** {duration_min:.1f} min\n\n"
+        f"## Tool Usage\n{tool_lines}\n\n"
+        f"*Data from Buddy's event log*"
+    )
+
+
+@mcp.tool()
+async def ask_buddy(question: str) -> str:
+    """Ask Buddy's local AI a simple question to save tokens.
+
+    Routes the question to the locally-running AI model. Best for:
+    - Syntax questions
+    - Simple explanations
+    - Quick lookups
+
+    For complex tasks, handle them yourself — you're better at those.
+
+    Args:
+        question: The question to ask the local AI
+    """
+    # Check if local AI is configured and available
+    config = BuddyConfig.load()
+    if config.ai_backend.provider == "none":
+        return (
+            "Local AI is not configured. The user needs to set up an AI backend "
+            "(Ollama, LM Studio, etc.) in Buddy's config. You should handle this "
+            "question yourself."
+        )
+
+    # Try to use the AI backend directly
+    from buddy.core.ai_backend import create_backend
+    backend = create_backend(config.ai_backend)
+    await backend.connect()
+
+    try:
+        if not await backend.is_available():
+            return (
+                "Local AI is configured but not reachable. "
+                "You should handle this question yourself."
+            )
+
+        response = await backend.chat(
+            [{"role": "user", "content": question}],
+            system_prompt=(
+                "You are a helpful coding assistant. Keep responses concise and practical. "
+                "If you're not confident in your answer, say so."
+            ),
+        )
+
+        if response.error:
+            return f"Local AI error: {response.error}. Handle this yourself."
+
+        return f"**Buddy's local AI says:**\n\n{response.content}"
+
+    finally:
+        await backend.close()
+
+
+@mcp.tool()
+async def get_buddy_notes() -> str:
+    """Check if Buddy has any unread notes from previous sessions or from you.
+
+    Returns unread notes left by either you (Claude) or the user via Buddy.
+    """
+    store = await _get_store()
+    notes = await store.get_unread_notes()
+
+    if not notes:
+        return "No unread notes."
+
+    lines = []
+    for note in notes:
+        lines.append(f"- **{note['source']}** ({note['timestamp']}): {note['message']}")
+
+    await store.mark_notes_read()
+    return f"# Unread Notes\n\n" + "\n".join(lines)
+
+
+def main():
+    mcp.run(transport="stdio")
+
+
+if __name__ == "__main__":
+    main()

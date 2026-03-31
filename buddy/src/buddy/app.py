@@ -1,0 +1,407 @@
+"""Buddy — Main Textual TUI application."""
+
+from __future__ import annotations
+
+import asyncio
+from pathlib import Path
+
+from textual.app import App, ComposeResult
+from textual.binding import Binding
+from textual.widgets import Static, Input
+from textual.worker import Worker
+
+from buddy.config import BuddyConfig
+from buddy.core.buddy_brain import (
+    BuddyState,
+    pick_species,
+    SPECIES_CATALOG,
+)
+from buddy.core.ai_backend import create_backend
+from buddy.core.ai_router import AIRouter
+from buddy.core.rule_suggester import RuleSuggester
+from buddy.core.session_observer import SessionObserver, SessionEvent
+from buddy.db.store import BuddyStore
+from buddy.first_run import HatchScreen
+from buddy.widgets.buddy_display import BuddyDisplay
+from buddy.widgets.chat import ChatWindow
+from buddy.widgets.session_monitor import SessionMonitor
+from buddy.widgets.status_bar import StatusBar
+
+
+CSS_PATH = Path(__file__).parent.parent.parent / "styles" / "buddy.tcss"
+
+
+class BuddyApp(App):
+    """The main Buddy companion application."""
+
+    TITLE = "🐾 Buddy — Your AI Companion"
+    CSS_PATH = CSS_PATH
+
+    BINDINGS = [
+        Binding("q", "quit", "Quit", show=True),
+        Binding("question_mark", "help", "Help", show=True),
+        Binding("f5", "refresh", "Refresh", show=True),
+        Binding("r", "rehatch", "Rehatch", show=True),
+    ]
+
+    def __init__(self):
+        super().__init__()
+        self.config = BuddyConfig.load()
+        self.store = BuddyStore(self.config.db_path)
+        self.buddy_state: BuddyState | None = None
+        self.observer = SessionObserver()
+        self.ai_backend = create_backend(self.config.ai_backend)
+        self.router: AIRouter | None = None
+        self.rule_suggester: RuleSuggester | None = None
+
+    def compose(self) -> ComposeResult:
+        yield Static("🐾 BUDDY — Your AI Companion", id="title-bar")
+        yield BuddyDisplay(id="buddy-panel")
+        yield ChatWindow(id="chat-panel")
+        yield SessionMonitor(id="session-panel")
+        yield StatusBar(id="status-bar")
+
+    async def on_mount(self):
+        await self.store.connect()
+        await self.ai_backend.connect()
+
+        # Check if we need to hatch a new buddy
+        data = await self.store.get_buddy()
+        if data:
+            self.buddy_state = BuddyState.from_db(data)
+            self._finish_setup()
+        else:
+            # First run — show hatch screen (must use callback, not await)
+            self.push_screen(HatchScreen(), callback=self._on_hatch_complete)
+
+    async def _on_hatch_complete(self, result) -> None:
+        """Called when the hatch screen is dismissed."""
+        if result:
+            species, shiny, seed = result
+            self.config.user_seed = seed
+            self.config.save()
+        else:
+            species, shiny = pick_species(self.config.user_seed)
+
+        soul = f"A {species.rarity.value} {species.name} companion, born to help."
+        await self.store.create_buddy(
+            species=species.name,
+            name="Buddy",
+            shiny=shiny,
+            soul_description=soul,
+        )
+        data = await self.store.get_buddy()
+        self.buddy_state = BuddyState.from_db(data)
+        self._finish_setup()
+
+    def _finish_setup(self):
+        """Set up the rest of the app after buddy is loaded/hatched."""
+        # Initialize AI router and rule suggester
+        self.router = AIRouter(self.ai_backend, self.buddy_state)
+        self.rule_suggester = RuleSuggester(self.store)
+        asyncio.create_task(self.rule_suggester.load_dismissed())
+
+        self._update_displays()
+
+        # Welcome message
+        chat = self.query_one("#chat-panel", ChatWindow)
+        chat.add_system(f"{self.buddy_state.species.emoji} {self.buddy_state.name} hatched!")
+        chat.add_message("buddy", self._get_greeting())
+
+        # Show AI backend status
+        asyncio.create_task(self._show_ai_status())
+
+        # Log startup and start session observer
+        session = self.query_one("#session-panel", SessionMonitor)
+        session.log_event("session", "Buddy started up", 0)
+
+        # Wire up session observer
+        self.observer.on_event(self._on_session_event)
+        self.observer.on_pattern(self._on_pattern_detected)
+        self._observer_task = asyncio.create_task(self.observer.start())
+        self._rule_check_task = asyncio.create_task(self._periodic_rule_check())
+
+    async def _show_ai_status(self):
+        ai_available = await self.ai_backend.is_available()
+        chat = self.query_one("#chat-panel", ChatWindow)
+        if ai_available:
+            chat.add_system(f"🧠 Local AI connected: {self.config.ai_backend.model}")
+        else:
+            chat.add_system("💤 No local AI connected — using personality mode")
+
+    def _update_displays(self):
+        """Push current buddy state to all widgets."""
+        if not self.buddy_state:
+            return
+        buddy_display = self.query_one("#buddy-panel", BuddyDisplay)
+        buddy_display.update_buddy(self.buddy_state)
+
+        status = self.query_one("#status-bar", StatusBar)
+        status.set_buddy_info(
+            self.buddy_state.name,
+            self.buddy_state.mood,
+            self.buddy_state.level,
+        )
+
+    def _get_greeting(self) -> str:
+        """Get a mood-appropriate greeting from buddy."""
+        if not self.buddy_state:
+            return "Hello!"
+        greetings = {
+            "ecstatic": "I'm SO happy to see you! Let's build something amazing! 🎉",
+            "happy": "Hey there! Ready to get some work done? 😊",
+            "neutral": "Hi. What are we working on today?",
+            "bored": "Oh, you're here. Finally. I was getting restless...",
+            "grumpy": "Hmph. About time. Let's just get to work.",
+        }
+        return greetings.get(self.buddy_state.mood, "Hello!")
+
+    async def on_input_submitted(self, event: Input.Submitted) -> None:
+        """Handle chat input."""
+        if event.input.id != "chat-input":
+            return
+
+        message = event.value.strip()
+        if not message:
+            return
+
+        event.input.value = ""
+        chat = self.query_one("#chat-panel", ChatWindow)
+        chat.add_message("you", message)
+
+        # Route through AI router
+        if self.router:
+            decision = await self.router.route(message)
+
+            if decision.route == "buddy_only":
+                # Buddy handles directly with personality
+                response = self._buddy_respond(message)
+                chat.add_message("buddy", response)
+            elif decision.route == "local":
+                # Local AI handled it
+                chat.add_message("buddy", decision.response)
+                chat.add_system(
+                    f"[dim]✅ Handled locally — saved ~{decision.tokens_saved:,} tokens "
+                    f"(total saved: ~{self.router.tokens_saved:,})[/]"
+                )
+                monitor = self.query_one("#session-panel", SessionMonitor)
+                monitor.log_event("info", f"Local AI: saved ~{decision.tokens_saved} tokens")
+            elif decision.route == "claude":
+                # Too complex for local
+                chat.add_message("buddy", decision.response)
+                chat.add_system(
+                    f"[dim]Complexity: {decision.complexity_score:.0%} — {decision.reason}[/]"
+                )
+        else:
+            response = self._buddy_respond(message)
+            chat.add_message("buddy", response)
+
+        # Gain XP for interaction
+        if self.buddy_state:
+            leveled = self.buddy_state.gain_xp(5)
+            self.buddy_state.adjust_mood(2)
+            await self.store.update_buddy(
+                xp=self.buddy_state.xp,
+                level=self.buddy_state.level,
+                mood=self.buddy_state.mood,
+                mood_value=self.buddy_state.mood_value,
+            )
+            if leveled:
+                chat.add_system(f"🎉 {self.buddy_state.name} reached level {self.buddy_state.level}!")
+            self._update_displays()
+
+    def _buddy_respond(self, message: str) -> str:
+        """Generate a response from buddy (pre-AI fallback)."""
+        if not self.buddy_state:
+            return "..."
+
+        msg_lower = message.lower()
+
+        if any(w in msg_lower for w in ["hello", "hi", "hey", "sup"]):
+            return self._get_greeting()
+        elif any(w in msg_lower for w in ["stats", "status", "how are you"]):
+            s = self.buddy_state
+            return (
+                f"I'm feeling {s.mood}! "
+                f"Level {s.level}, {s.stat_total()} total stat points. "
+                f"My strongest stat is {max(s.stats, key=s.stats.get)}."
+            )
+        elif any(w in msg_lower for w in ["session", "tokens", "usage", "cost", "saved"]):
+            stats = self.observer.stats
+            saved = self.router.tokens_saved if self.router else 0
+            return (
+                f"Session: {stats.event_count} events, "
+                f"~{stats.tokens_estimated:,} tokens used by Claude, "
+                f"~{saved:,} tokens saved by me. "
+                f"Running for {stats.duration_minutes:.1f} min. "
+                f"Most used tool: {stats.most_used_tool}."
+            )
+        elif any(w in msg_lower for w in ["help", "what can you do"]):
+            return (
+                "I can chat, answer simple questions locally (saving Claude tokens), "
+                "watch your Claude sessions, suggest config improvements, "
+                "and track my own stats. Try asking me a coding question!"
+            )
+        elif any(w in msg_lower for w in ["name", "who are you", "what are you"]):
+            s = self.buddy_state
+            shiny = " (shiny!)" if s.shiny else ""
+            return (
+                f"I'm {s.name}, a {s.species.rarity.value} {s.species.name}{shiny}. "
+                f"{s.species.description}"
+            )
+        else:
+            # Personality-flavored generic responses based on highest stat
+            top_stat = max(self.buddy_state.stats, key=self.buddy_state.stats.get)
+            responses = {
+                "debugging": "Hmm, interesting. Let me think about that from a debugging perspective...",
+                "patience": "I hear you. Take your time, we'll figure this out together.",
+                "chaos": "CHAOS REIGNS! ...I mean, that's an interesting thought. 🔥",
+                "wisdom": "A wise question. The answer often lies in the question itself.",
+                "snark": "Oh, is THAT what we're doing now? Sure, I guess. 😏",
+            }
+            return responses.get(top_stat, "Interesting! Tell me more.")
+
+    def _on_session_event(self, event: SessionEvent):
+        """Handle a new session event from the observer."""
+        # Determine event category for the monitor
+        tool_categories = {
+            "Edit": "edit", "Write": "edit",
+            "Read": "read",
+            "Bash": "bash",
+            "Grep": "search", "Glob": "search",
+            "Agent": "tool_use",
+            "WebSearch": "search", "WebFetch": "search",
+        }
+        category = tool_categories.get(event.tool_name, "info")
+        if event.event_type in ("SessionStart", "SessionEnd"):
+            category = "session"
+
+        # Update session monitor
+        try:
+            monitor = self.query_one("#session-panel", SessionMonitor)
+            monitor.log_event(category, event.summary, event.tokens_estimated)
+        except Exception:
+            pass
+
+        # Buddy reacts to events — gains XP from watching sessions
+        if self.buddy_state and event.event_type == "PreToolUse":
+            self.buddy_state.gain_xp(1)
+            # Specific stat boosts based on what Claude is doing
+            if event.tool_name in ("Edit", "Write"):
+                self.buddy_state.stats["debugging"] = min(99, self.buddy_state.stats["debugging"] + 1)
+            elif event.tool_name == "Agent":
+                self.buddy_state.stats["wisdom"] = min(99, self.buddy_state.stats["wisdom"] + 1)
+            elif event.tool_name == "Bash":
+                self.buddy_state.stats["chaos"] = min(99, self.buddy_state.stats["chaos"] + 1)
+
+    def _on_pattern_detected(self, pattern_type: str, description: str):
+        """Handle a detected pattern from the session observer."""
+        try:
+            chat = self.query_one("#chat-panel", ChatWindow)
+            chat.add_message("buddy", f"💡 I noticed something: {description}")
+
+            monitor = self.query_one("#session-panel", SessionMonitor)
+            monitor.log_event("info", f"Pattern: {pattern_type}")
+
+            status = self.query_one("#status-bar", StatusBar)
+            status.set_alert(f"Pattern: {pattern_type}")
+        except Exception:
+            pass
+
+    async def _periodic_rule_check(self):
+        """Periodically analyze session patterns and suggest rules."""
+        while True:
+            await asyncio.sleep(60)  # Check every minute
+            if self.rule_suggester and self.observer.stats.event_count > 5:
+                try:
+                    suggestions = await self.rule_suggester.analyze(self.observer.stats)
+                    chat = self.query_one("#chat-panel", ChatWindow)
+                    for s in suggestions[:2]:  # Max 2 suggestions at a time
+                        chat.add_message(
+                            "buddy",
+                            f"💡 **Suggestion: {s.title}**\n{s.description}"
+                        )
+                        if s.config_snippet:
+                            chat.add_system(f"Config snippet:\n{s.config_snippet}")
+                        monitor = self.query_one("#session-panel", SessionMonitor)
+                        monitor.log_event("info", f"Rule suggested: {s.title}")
+                except Exception:
+                    pass
+
+    def action_help(self):
+        chat = self.query_one("#chat-panel", ChatWindow)
+        chat.add_system("─── Help ───")
+        chat.add_system("Type messages to chat with your buddy")
+        chat.add_system("Simple questions → handled locally (saves Claude tokens)")
+        chat.add_system("Complex questions → buddy tells you to ask Claude")
+        chat.add_system("Commands: 'stats' 'help' 'name' 'session' 'tokens'")
+        chat.add_system("Keys: [q] quit  [?] help  [r] rehatch  [F5] refresh")
+        chat.add_system("────────────")
+
+    def action_rehatch(self):
+        """Open the hatch screen to pick a new buddy."""
+        self.push_screen(HatchScreen(), callback=self._on_rehatch_complete)
+
+    async def _on_rehatch_complete(self, result) -> None:
+        """Replace current buddy with new hatch."""
+        if not result:
+            return  # User cancelled or dismissed
+
+        species, shiny, seed = result
+        self.config.user_seed = seed
+        self.config.save()
+
+        # Replace buddy in DB
+        await self.store.db.execute("DELETE FROM buddy")
+        await self.store.db.commit()
+
+        soul = f"A {species.rarity.value} {species.name} companion, born to help."
+        await self.store.create_buddy(
+            species=species.name,
+            name="Buddy",
+            shiny=shiny,
+            soul_description=soul,
+        )
+        data = await self.store.get_buddy()
+        self.buddy_state = BuddyState.from_db(data)
+
+        if self.router:
+            self.router.buddy_state = self.buddy_state
+
+        self._update_displays()
+        chat = self.query_one("#chat-panel", ChatWindow)
+        chat.add_system(f"🥚 New buddy hatched! {species.emoji} {species.name.capitalize()}!")
+        chat.add_message("buddy", self._get_greeting())
+
+    def action_refresh(self):
+        self._update_displays()
+
+    async def on_unmount(self):
+        self.observer.stop()
+        for task_name in ('_observer_task', '_rule_check_task'):
+            task = getattr(self, task_name, None)
+            if task:
+                task.cancel()
+        await self.ai_backend.close()
+        if self.buddy_state:
+            await self.store.update_buddy(
+                xp=self.buddy_state.xp,
+                level=self.buddy_state.level,
+                mood=self.buddy_state.mood,
+                mood_value=self.buddy_state.mood_value,
+                stat_debugging=self.buddy_state.stats["debugging"],
+                stat_patience=self.buddy_state.stats["patience"],
+                stat_chaos=self.buddy_state.stats["chaos"],
+                stat_wisdom=self.buddy_state.stats["wisdom"],
+                stat_snark=self.buddy_state.stats["snark"],
+            )
+        await self.store.close()
+
+
+def main():
+    app = BuddyApp()
+    app.run()
+
+
+if __name__ == "__main__":
+    main()
