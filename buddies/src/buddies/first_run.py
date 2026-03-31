@@ -14,7 +14,7 @@ import os
 
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Vertical, Center
+from textual.containers import Vertical, Center, VerticalScroll
 from textual.widgets import Static, Input, Button
 from textual.screen import Screen
 
@@ -42,55 +42,67 @@ RARITY_LABELS = {
 class HatchScreen(Screen):
     """The egg-hatching / species selection screen."""
 
+    BINDINGS = [
+        Binding("q", "quit_app", "Quit", show=True),
+    ]
+
+    def action_quit_app(self):
+        self.app.exit()
+
     CSS = """
     HatchScreen {
         align: center middle;
         background: $background;
     }
 
-    #hatch-container {
+    #hatch-scroll {
         width: 1fr;
         max-width: 50;
-        height: auto;
+        height: 1fr;
         border: double $primary;
         padding: 1 2;
         margin: 1 2;
+    }
+
+    #hatch-container {
+        width: 1fr;
+        height: auto;
     }
 
     #hatch-title {
         text-align: center;
         text-style: bold;
         color: $text;
-        margin-bottom: 1;
     }
 
     #sprite-preview {
         height: auto;
-        min-height: 8;
+        min-height: 6;
         text-align: center;
         content-align: center middle;
-        margin: 1 0;
     }
 
     #species-info {
         text-align: center;
         height: auto;
-        margin: 1 0;
     }
 
     #seed-input {
-        margin: 1 0;
+        margin: 0;
+    }
+
+    #name-input {
+        margin: 0;
     }
 
     #button-row {
         align: center middle;
         height: auto;
-        margin: 1 0;
     }
 
     Button {
         width: 100%;
-        margin: 0 0 1 0;
+        margin: 0;
     }
     """
 
@@ -103,24 +115,25 @@ class HatchScreen(Screen):
 
     def compose(self) -> ComposeResult:
         with Center():
-            with Vertical(id="hatch-container"):
-                yield Static("🥚 HATCH A NEW BUDDY 🥚", id="hatch-title")
-                yield Static("", id="sprite-preview")
-                yield Static("", id="species-info")
-                yield Input(
-                    placeholder="Name your buddy...",
-                    id="name-input",
-                    value="Buddy",
-                )
-                yield Input(
-                    placeholder="Enter a seed (or leave blank for username)",
-                    id="seed-input",
-                    value=self._current_seed,
-                )
-                with Vertical(id="button-row"):
-                    yield Button("Roll with Seed", id="btn-seed", variant="primary")
-                    yield Button("Random Roll!", id="btn-random", variant="warning")
-                    yield Button("✓ Keep This One", id="btn-accept", variant="success", disabled=True)
+            with VerticalScroll(id="hatch-scroll"):
+                with Vertical(id="hatch-container"):
+                    yield Static("🥚 HATCH A NEW BUDDY 🥚", id="hatch-title")
+                    yield Static("", id="sprite-preview")
+                    yield Static("", id="species-info")
+                    yield Input(
+                        placeholder="Name your buddy...",
+                        id="name-input",
+                        value="Buddy",
+                    )
+                    yield Input(
+                        placeholder="Enter a seed (or leave blank for username)",
+                        id="seed-input",
+                        value=self._current_seed,
+                    )
+                    with Vertical(id="button-row"):
+                        yield Button("Roll with Seed", id="btn-seed", variant="primary")
+                        yield Button("Random Roll!", id="btn-random", variant="warning")
+                        yield Button("✓ Keep This One", id="btn-accept", variant="success", disabled=True)
 
     def on_mount(self):
         self._roll_with_seed(self._current_seed)

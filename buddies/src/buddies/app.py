@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import time
 from pathlib import Path
 
 from textual.app import App, ComposeResult
@@ -18,6 +19,7 @@ from buddies.core.buddy_brain import (
     check_hat_unlock,
 )
 from buddies.core.ai_backend import create_backend
+from buddies.core.prose import ProseEngine
 from buddies.core.ai_router import AIRouter
 from buddies.core.rule_suggester import RuleSuggester
 from buddies.core.session_observer import SessionObserver, SessionEvent
@@ -56,6 +58,9 @@ class BuddyApp(App):
         self.ai_backend = create_backend(self.config.ai_backend)
         self.router: AIRouter | None = None
         self.rule_suggester: RuleSuggester | None = None
+        self.prose = ProseEngine()
+        self._last_thought_time: float = 0
+        self._recent_tools: list[str] = []
 
     def compose(self) -> ComposeResult:
         yield Static("🐾 BUDDIES — Your AI Companions", id="title-bar")
@@ -124,6 +129,7 @@ class BuddyApp(App):
         self.observer.on_pattern(self._on_pattern_detected)
         self._observer_task = asyncio.create_task(self.observer.start())
         self._rule_check_task = asyncio.create_task(self._periodic_rule_check())
+        self._idle_thought_task = asyncio.create_task(self._idle_thought_loop())
 
     async def _show_ai_status(self):
         ai_available = await self.ai_backend.is_available()
@@ -206,6 +212,9 @@ class BuddyApp(App):
             )
             if leveled:
                 chat.add_system(f"🎉 {self.buddy_state.name} reached level {self.buddy_state.level}!")
+                lvl_thought = self.prose.thought("level_up", self.buddy_state, {"level": self.buddy_state.level})
+                if lvl_thought:
+                    chat.add_message("buddy", f"💭 {lvl_thought}")
             self._update_displays()
             # Check for newly unlocked hats
             asyncio.create_task(self._check_and_unlock_hats())
@@ -313,6 +322,29 @@ class BuddyApp(App):
             # Check for hat unlocks after stat boosts
             asyncio.create_task(self._check_and_unlock_hats())
 
+        # --- Prose engine: buddy thoughts ---
+        if self.buddy_state:
+            self._recent_tools.append(event.tool_name)
+            if len(self._recent_tools) > 10:
+                self._recent_tools = self._recent_tools[-10:]
+
+            trigger = self._detect_trigger(event)
+            now = time.time()
+            if trigger and now - self._last_thought_time > 30:
+                ctx = {
+                    "count": self.observer.stats.event_count,
+                    "minutes": self.observer.stats.duration_minutes,
+                    "tool": event.tool_name,
+                }
+                thought = self.prose.thought(trigger, self.buddy_state, ctx)
+                if thought:
+                    try:
+                        chat = self.query_one("#chat-panel", ChatWindow)
+                        chat.add_message("buddy", f"💭 {thought}")
+                        self._last_thought_time = now
+                    except Exception:
+                        pass
+
     def _on_pattern_detected(self, pattern_type: str, description: str):
         """Handle a detected pattern from the session observer."""
         try:
@@ -325,6 +357,62 @@ class BuddyApp(App):
             self.notify(f"Pattern: {pattern_type}")
         except Exception:
             pass
+
+    def _detect_trigger(self, event: SessionEvent) -> str | None:
+        """Detect what kind of thought trigger this event should produce."""
+        if event.event_type == "SessionStart":
+            return "session_start"
+
+        if event.event_type != "PreToolUse":
+            return None
+
+        recent = self._recent_tools[-5:]
+
+        # Edit storm: 3+ edits in last 5 tools
+        if recent.count("Edit") + recent.count("Write") >= 3:
+            return "edit_storm"
+
+        # Big read: 3+ reads in last 5
+        if recent.count("Read") >= 3:
+            return "big_read"
+
+        # Agent spawn
+        if event.tool_name == "Agent":
+            return "agent_spawn"
+
+        # Bash run (test detection via summary)
+        if event.tool_name == "Bash":
+            summary_lower = event.summary.lower()
+            if any(w in summary_lower for w in ["test", "pytest", "jest", "cargo test"]):
+                return "test_run"
+            return "bash_run"
+
+        # Long session (only trigger once per 10 minutes)
+        if self.observer.stats.duration_minutes > 30:
+            return "long_session"
+
+        return None
+
+    async def _idle_thought_loop(self):
+        """Periodically emit idle thoughts when nothing is happening."""
+        while True:
+            await asyncio.sleep(120)
+            if not self.buddy_state:
+                continue
+            now = time.time()
+            if now - self._last_thought_time > 120:
+                ctx = {
+                    "count": self.observer.stats.event_count,
+                    "minutes": self.observer.stats.duration_minutes,
+                }
+                thought = self.prose.thought("idle", self.buddy_state, ctx)
+                if thought:
+                    try:
+                        chat = self.query_one("#chat-panel", ChatWindow)
+                        chat.add_message("buddy", f"💭 {thought}")
+                        self._last_thought_time = now
+                    except Exception:
+                        pass
 
     async def _periodic_rule_check(self):
         """Periodically analyze session patterns and suggest rules."""
@@ -417,7 +505,7 @@ class BuddyApp(App):
 
     async def on_unmount(self):
         self.observer.stop()
-        for task_name in ('_observer_task', '_rule_check_task'):
+        for task_name in ('_observer_task', '_rule_check_task', '_idle_thought_task'):
             task = getattr(self, task_name, None)
             if task:
                 task.cancel()

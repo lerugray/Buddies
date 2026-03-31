@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalScroll
-from textual.widgets import Input, RichLog
+from textual.widgets import Input, RichLog, Static
 
 
 class ChatWindow(Vertical):
