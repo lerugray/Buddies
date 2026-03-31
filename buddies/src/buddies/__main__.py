@@ -1,4 +1,4 @@
-"""Allow running buddy as: python -m buddy"""
+"""Allow running buddies as: python -m buddies"""
 
 from buddies.app import main
 

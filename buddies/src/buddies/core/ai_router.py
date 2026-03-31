@@ -103,10 +103,10 @@ class AIRouter:
         word_count = len(query.split())
         if word_count < 8:
             score -= 0.1
-        elif word_count > 30:
-            score += 0.1
         elif word_count > 60:
             score += 0.2
+        elif word_count > 30:
+            score += 0.1
 
         # Code blocks suggest complexity
         if "```" in query or query.count("\n") > 5:

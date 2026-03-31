@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "buddies"
-version = "0.2.0"
+version = "0.2.1"
 description = "A tamagotchi-style AI companion collection that runs alongside Claude Code"
 requires-python = ">=3.11"
 dependencies = [

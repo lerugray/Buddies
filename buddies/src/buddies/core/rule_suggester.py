@@ -190,12 +190,12 @@ class RuleSuggester:
 
         return suggestions
 
-    async def dismiss(self, suggestion_title: str):
+    async def dismiss(self, config_snippet: str):
         """Mark a suggestion as dismissed so it won't be shown again."""
-        self._dismissed.add(suggestion_title)
+        self._dismissed.add(config_snippet)
         await self.store.db.execute(
             "UPDATE rule_suggestions SET status = 'dismissed' WHERE rule_content = ?",
-            (suggestion_title,),
+            (config_snippet,),
         )
         await self.store.db.commit()
 

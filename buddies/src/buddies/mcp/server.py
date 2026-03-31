@@ -20,7 +20,12 @@ import json
 import time
 from pathlib import Path
 
-from mcp.server.fastmcp import FastMCP
+try:
+    from mcp.server.fastmcp import FastMCP
+except ImportError:
+    raise ImportError(
+        "MCP package not installed. Install with: pip install buddies[mcp]"
+    )
 
 from buddies.config import BuddyConfig, get_data_dir
 from buddies.core.hooks import get_events_path

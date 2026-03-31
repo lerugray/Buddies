@@ -158,7 +158,6 @@ HAT_UNLOCK_RULES: dict[str, dict] = {
     "crown": {"dominant_stat": "debugging", "min_level": 5},
     "wizard": {"dominant_stat": "wisdom", "min_level": 5},
     "propeller": {"dominant_stat": "chaos", "min_level": 5},
-    "tinyduck": {"dominant_stat": None, "min_level": 0},  # Given at hatch
 }
 
 
@@ -170,10 +169,6 @@ def check_hat_unlock(state: BuddyState) -> list[str]:
     newly_unlocked = []
 
     for hat_name, rules in HAT_UNLOCK_RULES.items():
-        # tinyduck is given at hatch, not earned
-        if hat_name == "tinyduck":
-            continue
-
         # Check if already owned
         if hat_name in state.hats_owned:
             continue

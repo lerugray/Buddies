@@ -12,7 +12,7 @@ from __future__ import annotations
 import time
 import os
 
-from textual.app import App, ComposeResult
+from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical, Center
 from textual.widgets import Static, Input, Button

@@ -4,24 +4,7 @@ from __future__ import annotations
 
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalScroll
-from textual.widgets import Input, Static, RichLog
-
-
-class ChatMessage(Static):
-    """A single chat message."""
-
-    def __init__(self, sender: str, message: str, **kwargs):
-        super().__init__(**kwargs)
-        self.sender = sender
-        self.message = message
-
-    def render(self):
-        if self.sender == "you":
-            return f"[bold cyan]You:[/] {self.message}"
-        elif self.sender == "buddy":
-            return f"[bold green]Buddy:[/] {self.message}"
-        else:
-            return f"[bold yellow]{self.sender}:[/] {self.message}"
+from textual.widgets import Input, RichLog
 
 
 class ChatWindow(Vertical):

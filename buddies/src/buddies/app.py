@@ -30,7 +30,7 @@ from buddies.widgets.session_monitor import SessionMonitor
 from buddies.screens.party import PartyScreen
 
 
-CSS_PATH = Path(__file__).parent.parent.parent / "styles" / "buddy.tcss"
+CSS_PATH = Path(__file__).parent / "styles" / "buddy.tcss"
 
 
 class BuddyApp(App):

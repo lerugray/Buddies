@@ -14,7 +14,7 @@ from textual.widgets import Static, Button, Footer
 from textual.screen import Screen
 
 from buddies.db.store import BuddyStore
-from buddies.core.buddy_brain import HAT_UNLOCK_RULES
+from buddies.core.buddy_brain import HAT_UNLOCK_RULES, SPECIES_CATALOG
 
 
 class PartyScreen(Screen):
@@ -125,7 +125,11 @@ class PartyScreen(Screen):
                 "epic": "magenta",
                 "legendary": "yellow",
             }
-            rarity = buddy.get("species", "unknown").lower()
+            species_name = buddy.get("species", "unknown")
+            species_info = next(
+                (s for s in SPECIES_CATALOG if s.name == species_name), None
+            )
+            rarity = species_info.rarity.value if species_info else "common"
             color = rarity_colors.get(rarity, "white")
 
             # Truncate buddy name to 15 chars
@@ -169,22 +173,27 @@ class PartyScreen(Screen):
 
         buddy = self.buddies[self.selected_idx]
         buddy_id = buddy["id"]
-        buddy_name = buddy.get("name", "Buddy")
+        was_active = bool(buddy.get("is_active"))
 
         # Delete from DB using store method
         try:
             await self.store.delete_buddy(buddy_id)
-        except Exception as e:
-            # In a real app, show error dialog
+        except Exception:
             return
 
         # Reload buddies
         self.buddies = await self.store.get_all_buddies()
 
         if not self.buddies:
-            # All buddies deleted, show empty state
-            await self._render_buddies()
+            # All buddies deleted — dismiss and trigger hatch
+            self.dismiss("hatch_new")
             return
+
+        # If we deleted the active buddy, activate the first remaining one
+        if was_active:
+            new_active_id = self.buddies[0]["id"]
+            await self.store.set_active_buddy(new_active_id)
+            self.buddies = await self.store.get_all_buddies()
 
         # Adjust selection if needed
         if self.selected_idx >= len(self.buddies):
