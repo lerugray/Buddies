@@ -15,7 +15,7 @@ import os
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical, Center
-from textual.widgets import Static, Input, Button, RichLog
+from textual.widgets import Static, Input, Button
 from textual.screen import Screen
 
 from buddy.art.sprites import get_sprite

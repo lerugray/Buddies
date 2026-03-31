@@ -9,7 +9,6 @@ from pathlib import Path
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.widgets import Static, Input, Footer
-from textual.worker import Worker
 
 from buddy.config import BuddyConfig
 from buddy.core.buddy_brain import (

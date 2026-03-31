@@ -6,6 +6,7 @@ Shows all hatched buddies, allows switching active buddy, renaming, and hat equi
 from __future__ import annotations
 
 import asyncio
+import json
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical, Center, ScrollableContainer
@@ -149,8 +150,12 @@ class PartyScreen(Screen):
             buddy_id = self.buddies[self.selected_idx]["id"]
             self.dismiss(buddy_id)
 
-    async def action_release_buddy(self):
+    def action_release_buddy(self):
         """Delete the selected buddy from the collection."""
+        asyncio.create_task(self._do_release_buddy())
+
+    async def _do_release_buddy(self):
+        """Async logic for releasing/deleting a buddy."""
         if not (0 <= self.selected_idx < len(self.buddies)):
             return
 
@@ -158,11 +163,12 @@ class PartyScreen(Screen):
         buddy_id = buddy["id"]
         buddy_name = buddy.get("name", "Buddy")
 
-        # Delete from DB (all buddies except this one)
-        # For now, we'll just remove this buddy's row
-        # In a real app, we'd ask for confirmation
-        await self.store.db.execute("DELETE FROM buddy WHERE id = ?", (buddy_id,))
-        await self.store.db.commit()
+        # Delete from DB using store method
+        try:
+            await self.store.delete_buddy(buddy_id)
+        except Exception as e:
+            # In a real app, show error dialog
+            return
 
         # Reload buddies
         self.buddies = await self.store.get_all_buddies()
@@ -178,8 +184,12 @@ class PartyScreen(Screen):
 
         await self._render_buddies()
 
-    async def action_cycle_hat(self):
+    def action_cycle_hat(self):
         """Cycle to next hat for selected buddy."""
+        asyncio.create_task(self._do_cycle_hat())
+
+    async def _do_cycle_hat(self):
+        """Async logic for hat cycling."""
         if not (0 <= self.selected_idx < len(self.buddies)):
             return
 
@@ -189,8 +199,10 @@ class PartyScreen(Screen):
 
         # Parse JSON if string
         if isinstance(hats_owned, str):
-            import json
-            hats_owned = json.loads(hats_owned)
+            try:
+                hats_owned = json.loads(hats_owned)
+            except json.JSONDecodeError:
+                hats_owned = []
 
         if not hats_owned:
             return
@@ -220,14 +232,22 @@ class PartyScreen(Screen):
         """Dismiss with signal to hatch a new buddy."""
         self.dismiss("hatch_new")
 
-    async def action_navigate_up(self):
+    def action_navigate_up(self):
         """Move selection up."""
+        asyncio.create_task(self._do_navigate_up())
+
+    async def _do_navigate_up(self):
+        """Async logic for moving selection up."""
         if self.buddies:
             self.selected_idx = (self.selected_idx - 1) % len(self.buddies)
             await self._render_buddies()
 
-    async def action_navigate_down(self):
+    def action_navigate_down(self):
         """Move selection down."""
+        asyncio.create_task(self._do_navigate_down())
+
+    async def _do_navigate_down(self):
+        """Async logic for moving selection down."""
         if self.buddies:
             self.selected_idx = (self.selected_idx + 1) % len(self.buddies)
             await self._render_buddies()

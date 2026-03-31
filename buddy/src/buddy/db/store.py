@@ -16,11 +16,22 @@ class BuddyStore:
         self._db: aiosqlite.Connection | None = None
 
     async def connect(self):
-        Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
-        self._db = await aiosqlite.connect(self.db_path)
+        try:
+            Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
+        except OSError as e:
+            raise RuntimeError(f"Failed to create database directory: {e}")
+
+        try:
+            self._db = await aiosqlite.connect(self.db_path)
+        except aiosqlite.OperationalError as e:
+            raise RuntimeError(f"Failed to connect to database at {self.db_path}: {e}")
+
         self._db.row_factory = aiosqlite.Row
-        await self._db.executescript(SCHEMA)
-        await self._db.commit()
+        try:
+            await self._db.executescript(SCHEMA)
+            await self._db.commit()
+        except aiosqlite.OperationalError as e:
+            raise RuntimeError(f"Failed to initialize database schema: {e}")
 
         # Run migrations (idempotent — safe on every startup)
         for migration in MIGRATIONS:
@@ -61,17 +72,21 @@ class BuddyStore:
 
     async def create_buddy(self, species: str, name: str = "Buddy", shiny: bool = False,
                            soul_description: str = "") -> dict:
-        # Deactivate all existing buddies
-        await self.db.execute("UPDATE buddy SET is_active = 0")
-        await self.db.commit()
+        try:
+            # Deactivate all existing buddies
+            await self.db.execute("UPDATE buddy SET is_active = 0")
 
-        # Create new buddy (auto-increment id, set as active, give tinyduck as starting hat)
-        await self.db.execute(
-            "INSERT INTO buddy (species, name, shiny, is_active, soul_description, hats_owned) "
-            "VALUES (?, ?, ?, 1, ?, ?)",
-            (species, name, int(shiny), soul_description, '["tinyduck"]'),
-        )
-        await self.db.commit()
+            # Create new buddy (auto-increment id, set as active, give tinyduck as starting hat)
+            await self.db.execute(
+                "INSERT INTO buddy (species, name, shiny, is_active, soul_description, hats_owned) "
+                "VALUES (?, ?, ?, 1, ?, ?)",
+                (species, name, int(shiny), soul_description, '["tinyduck"]'),
+            )
+            await self.db.commit()
+        except aiosqlite.Error as e:
+            await self.db.rollback()
+            raise RuntimeError(f"Failed to create buddy: {e}")
+
         return await self.get_buddy()
 
     async def update_buddy(self, **kwargs) -> dict:
@@ -111,6 +126,11 @@ class BuddyStore:
         await self.db.execute(f"UPDATE buddy SET {sets} WHERE id = ?", vals)
         await self.db.commit()
         return await self.get_buddy_by_id(buddy_id)
+
+    async def delete_buddy(self, buddy_id: int) -> None:
+        """Delete a specific buddy by id."""
+        await self.db.execute("DELETE FROM buddy WHERE id = ?", (buddy_id,))
+        await self.db.commit()
 
     # --- Session Log ---
 
