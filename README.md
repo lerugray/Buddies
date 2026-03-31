@@ -1,6 +1,6 @@
 # 🐾 Buddies — Your Local AI Companion Collection
 
-A tamagotchi-style AI companion that lives in your terminal and watches your Claude Code sessions. Hatch buddies, collect species, earn hats, and build a team of quirky little creatures that react to how you code.
+A tamagotchi-style AI companion that lives in your terminal and watches your Claude Code sessions. Hatch buddies, collect species, earn hats, evolve, and build a team of quirky little creatures that react to how you code.
 
 ![Buddies TUI — early version](screenshot.jpg)
 
@@ -9,10 +9,12 @@ A tamagotchi-style AI companion that lives in your terminal and watches your Cla
 - **35 species** to collect — from common Gorby to Legendary Starspawn
 - **Personality stats** (DEBUGGING, CHAOS, SNARK, WISDOM, PATIENCE) that evolve as you code
 - **Buddy thoughts** — personality-driven ambient commentary during sessions, flavored by stats and mood
-- **Hats & cosmetics** unlocked by playstyle — crown for debuggers, wizard hat for thinkers, propeller for chaos agents
-- **Multi-buddy collection** — hatch new buddies, switch between them, customize names
-- **Session awareness** — your buddy watches Claude Code activity, detects patterns, suggests config rules
-- **Local AI brain** — connects to Ollama or any OpenAI-compatible API for personality responses (works offline too)
+- **10 hats** unlocked by playstyle, stats, milestones, and even boredom
+- **Evolution system** — 4 stages (Hatchling, Juvenile, Adult, Elder) with visual borders
+- **Mood system** — mood decays over time, affects XP gain and stat growth
+- **Agentic local AI** — buddy can read files, search code, and run commands via Ollama
+- **Multi-buddy collection** — hatch, switch, rename, customize
+- **Session awareness** — watches Claude Code activity, detects patterns, suggests config rules
 - **Zero token cost** — everything runs locally except tiny MCP payloads to Claude
 
 ## Quick Start
@@ -42,9 +44,9 @@ So your buddy can watch your Claude Code sessions:
 python -m buddies.setup_hooks
 ```
 
-### 4. Set up local AI (optional)
+### 4. Set up local AI (recommended)
 
-Edit `%APPDATA%/buddy/config.json`:
+Install [Ollama](https://ollama.com), pull a model, then edit `%APPDATA%/buddy/config.json`:
 
 ```json
 {
@@ -55,6 +57,11 @@ Edit `%APPDATA%/buddy/config.json`:
   }
 }
 ```
+
+With a local model, your buddy can:
+- Answer coding questions using personality-flavored responses
+- Read files, search code, and run safe commands (agentic mode)
+- Route complex questions to Claude and handle simple ones locally
 
 For Ollama on another machine, use `http://<home-ip>:11434`.
 
@@ -69,8 +76,10 @@ python -m buddies.setup_mcp
 ## How to Play
 
 - **[q]** — Quit
-- **[p]** — Open Party screen, switch buddies, equip hats
+- **[p]** — Open Party screen, switch buddies, equip hats, rename
 - **[r]** — Hatch a new buddy (name it!)
+- **[n]** — Rename selected buddy (in Party screen)
+- **[h]** — Cycle hats (in Party screen)
 - **[?]** — Help
 - **[F5]** — Refresh display
 - **Talk** — Type in the chat box, your buddy responds based on their personality
@@ -84,7 +93,45 @@ python -m buddies.setup_mcp
 **Epic (6):** Phoenix, Kraken, Unicorn, Robot, Chonk, Tardigrade
 **Legendary (5):** Ghost, Cosmic Whale, Tree, Void Cat, Starspawn
 
-Your starting species is seeded from your username (same user = same buddy, so you get consistency across sessions).
+Your starting species is seeded from your username (same user = same buddy).
+
+## Hats (10)
+
+| Hat | How to Unlock |
+|-----|---------------|
+| Tinyduck | Given at hatch (starter) |
+| Crown | Dominant DEBUGGING stat at level 5+ |
+| Wizard | Dominant WISDOM stat at level 5+ |
+| Propeller | Dominant CHAOS stat at level 5+ |
+| Tophat | Reach level 10 (Adult evolution) |
+| Halo | 50+ PATIENCE stat |
+| Horns | 50+ CHAOS stat |
+| Headphones | Watch 100+ session events |
+| Flower | Random discovery when ecstatic |
+| Nightcap | 10+ minutes of sustained boredom |
+
+## Evolution
+
+Buddies evolve at level thresholds with visual changes:
+
+| Stage | Level | Visual |
+|-------|-------|--------|
+| Hatchling | 1-4 | Base sprite |
+| Juvenile | 5-9 | Cyan border accent |
+| Adult | 10-19 | Green double border |
+| Elder | 20+ | Golden star border |
+
+## Mood System
+
+Mood drifts toward neutral over time. Interact with your buddy to boost it!
+
+| Mood | XP Effect | Bonus |
+|------|-----------|-------|
+| Ecstatic | +50% XP | 5% hat discovery chance |
+| Happy | +25% XP | — |
+| Neutral | Baseline | — |
+| Bored | Baseline | +1 PATIENCE per event |
+| Grumpy | -25% XP | +1 SNARK per event |
 
 ## Personality Prose Engine
 
@@ -98,7 +145,20 @@ Each buddy has a unique voice driven by their dominant stat:
 | WISDOM | Philosophical | "Every edit is a small act of faith that the code will be better." |
 | PATIENCE | Calm | "Take your time. We'll get there when we get there." |
 
-Buddies react to session events (edit storms, bash commands, long sessions, idle time) and add contextual flavor referencing their species, hat, and mood.
+High CHAOS stat adds a "weirdness parameter" that makes commentary increasingly absurd.
+
+## Agentic Local AI
+
+When connected to Ollama, your buddy becomes a real coding assistant. Ask it about your codebase and it will:
+
+- **Read files** — examine source code, configs, docs
+- **Search code** — regex search across your project
+- **List directories** — explore project structure
+- **Run safe commands** — git status, python --version, etc.
+
+All tool executions are sandboxed: destructive commands are blocked, paths can't escape the working directory, output is truncated, and the agent loop has a max iteration limit.
+
+The AI router automatically decides when to use agent mode (queries mentioning files, code, or project structure) vs simple chat.
 
 ## Architecture
 
@@ -108,20 +168,21 @@ buddies/
 │   ├── app.py                    # Main TUI
 │   ├── first_run.py              # Hatch screen
 │   ├── core/
-│   │   ├── buddy_brain.py        # 35 species, stats, personality
+│   │   ├── buddy_brain.py        # 35 species, stats, evolution, mood
 │   │   ├── prose.py              # Personality prose engine
+│   │   ├── agent.py              # Agentic tool loop (read/grep/bash)
 │   │   ├── session_observer.py   # Watches Claude Code events
 │   │   ├── ai_backend.py         # Ollama/OpenAI connector
-│   │   ├── ai_router.py          # Complexity routing
+│   │   ├── ai_router.py          # Complexity routing + agent dispatch
 │   │   └── rule_suggester.py     # Pattern -> rule suggestions
 │   ├── screens/
 │   │   └── party.py              # Buddy collection management
 │   ├── widgets/
-│   │   ├── buddy_display.py      # Sprite + stats
+│   │   ├── buddy_display.py      # Animated sprite + stats + evolution
 │   │   ├── chat.py               # Chat pane
 │   │   └── session_monitor.py    # Activity feed
 │   ├── art/
-│   │   └── sprites.py            # 35 species (half-block Unicode pixel art)
+│   │   └── sprites.py            # 35 species, 10 hats (half-block pixel art)
 │   ├── mcp/
 │   │   └── server.py             # MCP tools for Claude
 │   └── db/
@@ -134,8 +195,9 @@ buddies/
 - **Python + Textual** — easy to maintain and extend
 - **Event-driven** — hooks write to JSONL, observer watches file, TUI updates
 - **Deterministic gacha** — same user always gets the same initial species
-- **Personality prose without AI** — template pools with register modulation, compositional templates, and weirdness parameters (inspired by [Veridian Contraption](https://github.com/lerugray/veridian-contraption))
-- **Flexible AI backend** — works with Ollama, OpenAI, or personality mode (no local model needed)
+- **Personality prose without AI** — template pools with register modulation (inspired by [Veridian Contraption](https://github.com/lerugray/veridian-contraption))
+- **Agentic tools with safety** — local model gets real capabilities but can't break anything
+- **Mood as gameplay** — mood affects XP, stats, and hat discovery — neglect has consequences
 
 ## MCP Tools (for Claude)
 
@@ -149,11 +211,10 @@ If you register the MCP server, Claude can:
 
 ## What's Next
 
-- Hat cosmetics UI — view owned/locked hats
-- Buddy renaming in Party screen
-- Evolution system — buddy appearance changes at level thresholds
-- Agentic local AI — give buddy real file/command powers via Ollama
 - Social buddies — buddies talk to each other across users via MCP
+- More animation frames for additional species
+- Theme customization (dark/light/custom)
+- Buddy achievements and milestone tracking
 
 ## Requirements
 
@@ -161,7 +222,7 @@ If you register the MCP server, Claude can:
 - Textual 3.0+
 - httpx (for AI backend)
 - aiosqlite (for buddy storage)
-- Optional: Ollama running locally or on network
+- Optional: [Ollama](https://ollama.com) for local AI + agentic tools
 - Optional: `mcp` package for Claude integration (`pip install buddies[mcp]`)
 
 ## License
