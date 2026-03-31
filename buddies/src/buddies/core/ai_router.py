@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from collections import deque
 
 from buddies.core.ai_backend import AIBackend, AIResponse
+from buddies.core.agent import BuddyAgent
 from buddies.core.buddy_brain import BuddyState
 
 
@@ -71,6 +72,7 @@ class AIRouter:
     def __init__(self, backend: AIBackend, buddy_state: BuddyState | None = None):
         self.backend = backend
         self.buddy_state = buddy_state
+        self.agent = BuddyAgent(backend)
         self._conversation: deque[dict] = deque(maxlen=20)
         self._tokens_saved_total = 0
 
@@ -153,7 +155,30 @@ class AIRouter:
                 reason="Local AI not available, using buddy fallback",
             )
 
-        # Build system prompt with buddy personality
+        # Check if query needs agentic tools (mentions files, code investigation)
+        needs_tools = self._needs_tools(query)
+
+        if needs_tools and complexity >= 0.3:
+            # Use agentic loop with tool calling
+            system_prompt = self._build_system_prompt()
+            result = await self.agent.run(query, system_prompt)
+
+            if result.error:
+                # Fall back to simple chat
+                pass
+            elif result.response:
+                estimated_claude_tokens = len(query.split()) * 15 + len(result.response.split()) * 5
+                self._tokens_saved_total += estimated_claude_tokens
+                tools_str = ", ".join(set(result.tools_used)) if result.tools_used else "none"
+                return RoutingDecision(
+                    route="local",
+                    complexity_score=complexity,
+                    reason=f"Agent mode ({result.tool_calls_made} tool calls: {tools_str})",
+                    response=result.response,
+                    tokens_saved=estimated_claude_tokens,
+                )
+
+        # Simple chat (no tools needed)
         system_prompt = self._build_system_prompt()
 
         # Add to conversation history
@@ -183,6 +208,21 @@ class AIRouter:
             response=ai_response.content,
             tokens_saved=estimated_claude_tokens,
         )
+
+    def _needs_tools(self, query: str) -> bool:
+        """Check if a query would benefit from tool use (file access, code search)."""
+        tool_indicators = [
+            r"(read|show|open|look at|check|view)\s.*(file|code|source|module)",
+            r"(find|search|grep|where)\s.*(function|class|import|variable|definition)",
+            r"(what|which)\s.*(files|modules|functions)",
+            r"(list|show)\s.*(directory|folder|files)",
+            r"[/\\]\w+\.\w+",  # file paths
+            r"\.(py|js|ts|rs|go|java|toml|json|yaml|md)\b",  # file extensions
+            r"(project|repo|codebase)\s.*(structure|layout|organization)",
+            r"(run|execute|check)\s.*(command|script|test|version)",
+        ]
+        query_lower = query.lower()
+        return any(re.search(p, query_lower) for p in tool_indicators)
 
     def _build_system_prompt(self) -> str:
         """Build a system prompt that includes buddy's personality."""
