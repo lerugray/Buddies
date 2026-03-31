@@ -1,6 +1,6 @@
 # BUDDIES — Project Handoff
 
-**Note**: Project folder is currently `new_ideas` but should be renamed to `Buddies` when you get a chance (folder rename was locked). The code doesn't care, but renaming will clean up the workspace.
+**Folder Status**: ✅ Renamed to `Buddies` (2026-03-31)
 
 ## What Is This
 A tamagotchi-style local AI companion **collection** that runs alongside Claude Code. Your buddies have personality stats (DEBUGGING, CHAOS, SNARK, WISDOM, PATIENCE), can be collected, named, customized with hats, and react to your coding sessions.
@@ -207,3 +207,17 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 - [ ] Evolution system — buddy appearance changes at level thresholds
 - [ ] claw-code integration for agentic local AI
 - [ ] Buddy "thoughts" — ambient commentary during sessions
+
+## Session Notes (2026-03-31 — Work)
+
+### Completed
+- ✅ Folder successfully renamed to `Buddies` (closed Claude to release file locks, then rename went through)
+- ✅ Created comprehensive README.md (pitch + quick start guide, screenshot placeholder ready)
+
+### Lesson Learned
+- **File handle locks on CWD**: Claude Code holds file handles on the working directory, preventing folder renames. Closing the window releases the locks. Not a code issue—Windows filesystem constraint. Future folder ops: close Claude first.
+
+### Status for Home Machine
+- All core features working (Phases 1-5 complete)
+- Ready to pick up Phase 6 work or iterate on UI
+- HANDOFF.md is the single source of truth for context switching
