@@ -9,7 +9,7 @@ import asyncio
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical, Center, ScrollableContainer
-from textual.widgets import Static, Button
+from textual.widgets import Static, Button, Footer
 from textual.screen import Screen
 
 from buddy.db.store import BuddyStore
@@ -56,13 +56,6 @@ class PartyScreen(Screen):
         border: solid $accent;
     }
 
-    #party-footer {
-        text-align: center;
-        height: auto;
-        padding: 1 0;
-        margin-top: 1;
-    }
-
     Button {
         margin: 0 1;
     }
@@ -89,10 +82,7 @@ class PartyScreen(Screen):
             with Vertical(id="party-container"):
                 yield Static("🐾 BUDDY PARTY 🐾", id="party-title")
                 yield ScrollableContainer(Vertical(id="buddies-list"))
-                yield Static(
-                    "Keys: [enter] switch  [h] hat  [+] hatch new  [esc] close",
-                    id="party-footer"
-                )
+        yield Footer()
 
     async def on_mount(self):
         """Load all buddies and display them."""
