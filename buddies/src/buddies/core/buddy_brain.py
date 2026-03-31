@@ -57,6 +57,17 @@ SPECIES_CATALOG: list[Species] = [
     Species("robot", "🤖", Rarity.EPIC, {"debugging": 5, "wisdom": 4}, "Perfectly logical. Almost sentient."),
     Species("tree", "🌳", Rarity.LEGENDARY, {"patience": 6, "wisdom": 5}, "Ancient and grounded. Roots run deep."),
     Species("void_cat", "🐈‍⬛", Rarity.LEGENDARY, {"chaos": 5, "snark": 5}, "From the void itself. Exists slightly off-phase."),
+    # Phase 6 species
+    Species("gorby", "🩷", Rarity.COMMON, {"patience": 3, "chaos": 2}, "Round. Pink. Absorbs everything."),
+    Species("dolphin", "🐬", Rarity.UNCOMMON, {"wisdom": 4, "patience": 2}, "Clicks, whistles, and solves problems."),
+    Species("panda", "🐼", Rarity.UNCOMMON, {"patience": 4, "wisdom": 2}, "Eats bamboo. Judges silently."),
+    Species("orca", "🐋", Rarity.RARE, {"wisdom": 3, "chaos": 4}, "Apex predator. Strategic and relentless."),
+    Species("basilisk", "🐸", Rarity.RARE, {"chaos": 4, "debugging": 4}, "Curse frog. Those eyes have seen things."),
+    Species("cane_toad", "🐸", Rarity.RARE, {"chaos": 5, "snark": 3}, "Toxic and proud of it. The frog's chaotic cousin."),
+    Species("mantis_shrimp", "🦐", Rarity.RARE, {"debugging": 5, "chaos": 3}, "Sees every color. Punches at mach speed."),
+    Species("chonk", "🐈", Rarity.EPIC, {"patience": 5, "snark": 4}, "The legendary fat cat. Sits on your keyboard."),
+    Species("tardigrade", "🔬", Rarity.EPIC, {"patience": 5, "debugging": 4}, "Indestructible micro-bear. Survives anything."),
+    Species("starspawn", "🟣", Rarity.LEGENDARY, {"chaos": 5, "wisdom": 5}, "Eldritch tentacle blob. Ph'nglui mglw'nafh."),
 ]
 
 # Rarity weights for the gacha

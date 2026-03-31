@@ -797,6 +797,337 @@ def _hat_tinyduck() -> str:
     ])
 
 
+# ============================================================
+# PHASE 6 SPECIES
+# ============================================================
+
+def _dolphin_frames() -> list[str]:
+    frame1 = _build_sprite([
+        "ttttttttttttt",
+        "tttteeeettttt",
+        "ttteeeeeettt",
+        "tteeeeeeeettt",
+        "teeekeeeeett",
+        "teeeeeeeeettt",
+        "tteeeeeeeettt",
+        "ttteeeeeettt",
+        "tttteeeettttt",
+        "tteeeeettttt",
+        "tttteeeettttt",
+        "ttttteettttt",
+    ])
+    frame2 = _build_sprite([
+        "ttttttttttttt",
+        "tttteeeettttt",
+        "ttteeeeeettt",
+        "tteeeeeeeettt",
+        "teeekeeeeett",
+        "teeeeeeeeettt",
+        "tteeeeeeeettt",
+        "ttteeeeeettt",
+        "tttteeeettttt",
+        "ttttteeeetttt",
+        "tttteeeettttt",
+        "ttteettttttt",
+    ])
+    return [frame1, frame2]
+
+
+def _orca_frames() -> list[str]:
+    frame1 = _build_sprite([
+        "ttttttttttttt",
+        "ttttkkkktttt",
+        "tttkkkkkkttt",
+        "ttkkkkkkkkttt",
+        "tkwkkkkkkktt",
+        "tkwwkkkkkkttt",
+        "ttwwwkkkkkttt",
+        "tttwwwkkktt",
+        "ttttwwwkkttt",
+        "ttwwwwwttttt",
+        "tttttwwwttttt",
+        "ttttttwwttttt",
+    ])
+    frame2 = _build_sprite([
+        "ttttttttttttt",
+        "ttttkkkktttt",
+        "tttkkkkkkttt",
+        "ttkkkkkkkkttt",
+        "tkwkkkkkkktt",
+        "tkwwkkkkkkttt",
+        "ttwwwkkkkkttt",
+        "tttwwwkkktt",
+        "ttttwwwkkttt",
+        "ttttwwwwwtttt",
+        "tttwwwttttttt",
+        "ttttwwttttttt",
+    ])
+    return [frame1, frame2]
+
+
+def _chonk_frames() -> list[str]:
+    # BIG round cat — the legendary chonk
+    frame1 = _build_sprite([
+        "ttootttootttt",
+        "ttoooooootttt",
+        "tooooooooottt",
+        "tokooookoottt",
+        "toooorkooott",
+        "tooooooooott",
+        "tooooooooottt",
+        "tooooooooottt",
+        "tooooooooottt",
+        "tooooooooottt",
+        "ttoottttoott",
+        "ttoottttoott",
+    ])
+    frame2 = _build_sprite([
+        "ttootttootttt",
+        "ttoooooootttt",
+        "tooooooooottt",
+        "tokooookoottt",
+        "tooookooott",
+        "tooooooooott",
+        "tooooooooottt",
+        "tooooooooottt",
+        "tooooooooottt",
+        "tooooooooottt",
+        "tttootttoott",
+        "tttootttoott",
+    ])
+    return [frame1, frame2]
+
+
+def _panda_frames() -> list[str]:
+    frame1 = _build_sprite([
+        "ttkktttkktttt",
+        "ttwwwwwwwtttt",
+        "twwwwwwwwttt",
+        "twkwwwwkwttt",
+        "twkwwwwkwttt",
+        "twwwkwwwwttt",
+        "ttwwwwwwwtttt",
+        "ttwwwwwwwttt",
+        "twwwwwwwwttt",
+        "twwwwwwwwttt",
+        "ttwwttwwtttt",
+        "ttwwttwwtttt",
+    ])
+    frame2 = _build_sprite([
+        "ttkktttkktttt",
+        "ttwwwwwwwtttt",
+        "twwwwwwwwttt",
+        "twkwwwwkwttt",
+        "twkwwwwkwttt",
+        "twwwkwwwwttt",
+        "ttwwwwwwwtttt",
+        "ttwwwwwwwttt",
+        "twwwwwwwwttt",
+        "twwwwwwwwttt",
+        "tttwwtwwttttt",
+        "tttwwtwwttttt",
+    ])
+    return [frame1, frame2]
+
+
+def _starspawn_frames() -> list[str]:
+    # Eldritch tentacle blob — Pac-Man ghost meets Cthulhu
+    frame1 = _build_sprite([
+        "ttttPPPPttttt",
+        "tttPPPPPPtttt",
+        "ttPPPPPPPPttt",
+        "tPPwPPPPwPttt",
+        "tPPPPPPPPPttt",
+        "tPPPpppPPPttt",
+        "ttPPPPPPPtttt",
+        "ttPPPPPPPtttt",
+        "tPPPPPPPPPttt",
+        "tPtPPtPPtPttt",
+        "tPttPttPtttt",
+        "tttttttttttt",
+    ])
+    frame2 = _build_sprite([
+        "ttttPPPPttttt",
+        "tttPPPPPPtttt",
+        "ttPPPPPPPPttt",
+        "tPPwPPPPwPttt",
+        "tPPPPPPPPPttt",
+        "tPPPpppPPPttt",
+        "ttPPPPPPPtttt",
+        "ttPPPPPPPtttt",
+        "tPPPPPPPPPttt",
+        "ttPtPPtPttttt",
+        "tttPttPttttt",
+        "tttttttttttt",
+    ])
+    return [frame1, frame2]
+
+
+def _basilisk_frames() -> list[str]:
+    # Dark Souls curse frog — big googly eyes on top
+    frame1 = _build_sprite([
+        "twwttttwwtttt",
+        "twkwttwkwtttt",
+        "twwwttwwwtttt",
+        "tttGGGGGttttt",
+        "ttGGGGGGGtttt",
+        "tGGGGGGGGGttt",
+        "tGGGGGGGGGttt",
+        "ttGGGGGGGtttt",
+        "tttGGGGGttttt",
+        "ttGGttGGttttt",
+        "ttGGttGGttttt",
+        "tGGGttGGGtttt",
+    ])
+    frame2 = _build_sprite([
+        "twwttttwwtttt",
+        "tkwwttwwktttt",
+        "twwwttwwwtttt",
+        "tttGGGGGttttt",
+        "ttGGGGGGGtttt",
+        "tGGGGGGGGGttt",
+        "tGGGGGGGGGttt",
+        "ttGGGGGGGtttt",
+        "tttGGGGGttttt",
+        "tttGGGGttttt",
+        "ttGGttGGttttt",
+        "tGGGttGGGtttt",
+    ])
+    return [frame1, frame2]
+
+
+def _cane_toad_frames() -> list[str]:
+    # Chunky toxic frog — bigger and meaner than regular frog
+    frame1 = _build_sprite([
+        "ttttttttttttt",
+        "ttGGGGGGGtttt",
+        "tGGGGGGGGGttt",
+        "tGwGGGGGwGttt",
+        "tGkGGGGGkGttt",
+        "tGGGoooGGGttt",
+        "tGGGGGGGGGttt",
+        "ttGGGGGGGtttt",
+        "tGGGGGGGGGttt",
+        "tGGGGGGGGGttt",
+        "ttGGtttGGtttt",
+        "ttGGtttGGtttt",
+    ])
+    frame2 = _build_sprite([
+        "ttttttttttttt",
+        "ttGGGGGGGtttt",
+        "tGGGGGGGGGttt",
+        "tGwGGGGGwGttt",
+        "tGkGGGGGkGttt",
+        "tGGGoooGGGttt",
+        "tGGGGGGGGGttt",
+        "ttGGGGGGGtttt",
+        "tGGGGGGGGGttt",
+        "tGGGGGGGGGttt",
+        "tttGGtGGttttt",
+        "tttGGtGGttttt",
+    ])
+    return [frame1, frame2]
+
+
+def _gorby_frames() -> list[str]:
+    # Round pink blob — Kirby-like
+    frame1 = _build_sprite([
+        "ttttttttttttt",
+        "ttttppppttttt",
+        "tttpppppptttt",
+        "ttppppppppttt",
+        "tppkppppkpttt",
+        "tppppppppptt",
+        "tpppprrpppttt",
+        "ttppppppppttt",
+        "tttpppppptttt",
+        "ttttppppttttt",
+        "tttpptpptttt",
+        "tttpptpptttt",
+    ])
+    frame2 = _build_sprite([
+        "ttttttttttttt",
+        "ttttppppttttt",
+        "tttpppppptttt",
+        "ttppppppppttt",
+        "tppkppppkpttt",
+        "tppppppppptt",
+        "tpppprrpppttt",
+        "ttppppppppttt",
+        "tttpppppptttt",
+        "ttttppppttttt",
+        "ttttpppptttt",
+        "tttpptpptttt",
+    ])
+    return [frame1, frame2]
+
+
+def _tardigrade_frames() -> list[str]:
+    # Tiny indestructible water bear
+    frame1 = _build_sprite([
+        "ttttttttttttt",
+        "ttttnnnnttttt",
+        "tttnnnnnnttt",
+        "ttnnnnnnnnttt",
+        "tnknnnnnnkntt",
+        "tnnnnnnnnntt",
+        "ttnnnnnnnnttt",
+        "nntnnnnnntnn",
+        "nnttnnnnttnn",
+        "tttnnttnntttt",
+        "ttnnttttnntt",
+        "ttnnttttnntt",
+    ])
+    frame2 = _build_sprite([
+        "ttttttttttttt",
+        "ttttnnnnttttt",
+        "tttnnnnnnttt",
+        "ttnnnnnnnnttt",
+        "tnknnnnnnkntt",
+        "tnnnnnnnnntt",
+        "ttnnnnnnnnttt",
+        "tntnnnnnntntt",
+        "nnttnnnnttnnt",
+        "tttnnttnntttt",
+        "ttnnttttnnttt",
+        "ttnnttttnnttt",
+    ])
+    return [frame1, frame2]
+
+
+def _mantis_shrimp_frames() -> list[str]:
+    # Colorful punching shrimp — uses multiple colors!
+    frame1 = _build_sprite([
+        "ttttttttttttt",
+        "rrttrrrrttttt",
+        "rrtooooortttt",
+        "tttooooootttt",
+        "ttkooookottt",
+        "tttooooootttt",
+        "tttyyyyyytttt",
+        "tttggggggtttt",
+        "ttttbbbbtttt",
+        "tttttbbbttttt",
+        "ttttttbbtttt",
+        "tttttttbtttt",
+    ])
+    frame2 = _build_sprite([
+        "ttttttttttttt",
+        "ttrrrrrrttttt",
+        "rrtooooorttt",
+        "tttooooootttt",
+        "ttkooookottt",
+        "tttooooootttt",
+        "tttyyyyyytttt",
+        "tttggggggtttt",
+        "ttttbbbbtttt",
+        "tttttbbbttttt",
+        "ttttttbbtttt",
+        "tttttttbtttt",
+    ])
+    return [frame1, frame2]
+
+
 # Build hat sprites
 HATS: dict[str, str] = {
     "crown": _hat_crown(),
@@ -834,6 +1165,17 @@ SPRITES: dict[str, list[str]] = {
     "robot": _robot_frames(),
     "tree": _tree_frames(),
     "void_cat": _void_cat_frames(),
+    # Phase 6 species
+    "dolphin": _dolphin_frames(),
+    "orca": _orca_frames(),
+    "chonk": _chonk_frames(),
+    "panda": _panda_frames(),
+    "starspawn": _starspawn_frames(),
+    "basilisk": _basilisk_frames(),
+    "cane_toad": _cane_toad_frames(),
+    "gorby": _gorby_frames(),
+    "tardigrade": _tardigrade_frames(),
+    "mantis_shrimp": _mantis_shrimp_frames(),
 }
 
 SHINY_BORDER = "[bold yellow]✨[/]"

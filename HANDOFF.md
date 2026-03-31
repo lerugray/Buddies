@@ -199,25 +199,62 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 - MCP server title: "Buddies" (was "Buddy")
 
 ## Next Steps (Phase 6+)
-- [ ] Input box integration — buddy sits beside chat input, reacts to typing
+
+### Phase 6: Buddy Thoughts & Personality Prose (IN PROGRESS)
+- [ ] Prose engine — Veridian-inspired template pools driven by personality stats + mood
+- [ ] Contextual thoughts — buddy reacts to session events (edits, tests, errors, idle time)
+- [ ] Register system — stat-driven tone (SNARK→sarcastic, WISDOM→philosophical, etc.)
+- [ ] Template suppression — track last-used template, prevent repetition
+- [ ] Compositional templates — opener + body + closer for varied output
+
+### Phase 7: Polish & QoL
 - [ ] Hat cosmetics UI — show owned hats, indicator for locked hats
 - [ ] Rename buddies in Party screen (inline Input modal)
 - [ ] More animation frames for smoother idle
-- [ ] Theme customization (dark/light/custom)
 - [ ] Evolution system — buddy appearance changes at level thresholds
-- [ ] claw-code integration for agentic local AI
-- [ ] Buddy "thoughts" — ambient commentary during sessions
+
+### Phase 8: Agentic Local AI (claw-code inspired)
+- [ ] Python agent loop — send messages to Ollama, parse tool_use, execute, loop
+- [ ] Tool implementations — file read, edit, bash (lightweight, from claw-code Rust reference)
+- [ ] Permission system — user approves before buddy touches files
+
+### Phase 9+: Ideas Bank
+- [ ] **Social Buddies (MCP)** — buddies can talk to each other across users via MCP. Share notes, stories, jokes. Buddy A sees what Buddy B's user is working on and suggests "hey, your friend just solved something similar." Needs: discovery protocol, message format, trust/permissions, opt-in sharing. Makes the MCP integration much more compelling.
+- [ ] Input box integration — buddy sits beside chat input, reacts to typing
+- [ ] Theme customization (dark/light/custom)
+
+## Prose Generation Reference (from Veridian Contraption)
+The user's project at `../Veridian Contraption/src/gen/prose_gen.rs` has battle-tested prose systems:
+- **Narrative Registers**: 5 tone/voice modes (Clinical, Lyrical, Bureaucratic, Ominous, Conspiratorial) with curated word pools
+- **Weirdness Parameter**: float 0-1 controls cause explanation selection (mundane → absurd → impossible)
+- **Template Suppression**: track last-used template index, reroll to avoid repetition
+- **Compositional Templates**: opener + closer pattern creates N×M combinations from limited content
+- **Relationship Pools**: 9 conversation pools selected by relationship state
+- **Thought Triggers**: 30+ event-specific internal monologue pools
+- **Context Injection**: 15-30% chance to add references to third parties, locations, artifacts
+Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING→Clinical, CHAOS→Absurdist, WISDOM→Ominous/Philosophical, PATIENCE→Lyrical)
+
+## claw-code Analysis (github.com/instructkr/claw-code)
+- Python side is scaffolding only (no real tool execution)
+- Rust side has working agent loop, tool implementations, permission system
+- Key pattern: `ConversationRuntime` with trait-based `ApiClient`/`ToolExecutor`
+- Use as design reference for Python agent loop, not as importable library
+- Anthropic-only API client, but `ApiClient` trait could wrap Ollama
 
 ## Session Notes (2026-03-31 — Work)
 
 ### Completed
-- ✅ Folder successfully renamed to `Buddies` (closed Claude to release file locks, then rename went through)
-- ✅ Created comprehensive README.md (pitch + quick start guide, screenshot placeholder ready)
+- ✅ Folder renamed to `Buddies`, README created
+- ✅ Lesson: file handle locks on CWD — close Claude before folder renames
 
-### Lesson Learned
-- **File handle locks on CWD**: Claude Code holds file handles on the working directory, preventing folder renames. Closing the window releases the locks. Not a code issue—Windows filesystem constraint. Future folder ops: close Claude first.
+## Session Notes (2026-03-31 — Home)
 
-### Status for Home Machine
-- All core features working (Phases 1-5 complete)
-- Ready to pick up Phase 6 work or iterate on UI
-- HANDOFF.md is the single source of truth for context switching
+### Completed
+- ✅ Cloned repo to home machine
+- ✅ v0.2.1 cleanup: 11 bugs fixed, 3 dead code files removed, CSS moved into package
+- ✅ Hatch screen scrollability fix, quit binding added
+- ✅ Home GPU identified: RTX 3050 4GB — too small for 27B models, use 3B instead
+- ✅ claw-code analyzed, Veridian prose systems studied
+
+### In Progress
+- Phase 6: Buddy Thoughts & Personality Prose system
