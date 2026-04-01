@@ -679,9 +679,23 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - `tests/test_mud.py` — 73 MUD engine tests
 - `tests/test_mud_multiplayer.py` — 33 async multiplayer tests
 
+- ✅ **Discoverable Lore System** — Dark Souls-style item lore
+  - 30+ lore entries form a coherent narrative about the Founders of StackHaven
+  - Items tell the story: Founder Chen's rubber duck from the Three-Week Deploy, the regex written at 3AM that nobody can modify because it's perfect, the Founder's Mug still warm because their code is still running
+  - Lore codex command (`lore`) lets players browse collected fragments
+  - Narrative theme: the "curse" of StackHaven is the forgetting of software engineering craft
+- ✅ **Blobber Combat Upgrade (Wizardry VI style)** — more tactical depth
+  - Front/back row: melee classes (Engineer, Berserker, Paladin) auto-front, casters (Rogue, Mage) auto-back
+  - Enemy targeting: 70% front row, 30% back row. Back row takes 25% less melee damage.
+  - Rogue hide+backstab: spend a turn hiding (50% dodge), next attack = 2.5x damage
+  - Status effects: poison (ongoing damage from CHAOS moves), silence (blocks skills from HACK moves), stun (skip turn)
+  - Paladin heal now cures status effects
+  - 246 tests passing
+
 ### Direction
-- Tier 5b Phase 1 complete and polished with async multiplayer!
-- MUD has 17 rooms, 17 NPCs, 6 quests, 40+ items, Dark Souls-style notes/bloodstains/phantoms
+- Tier 5b Phase 1 complete and polished with async multiplayer + lore + tactical combat!
+- MUD has 17 rooms, 17 NPCs, 6 quests, 40+ items, Dark Souls-style notes/bloodstains/phantoms, discoverable lore
+- Blobber combat now has Wizardry VI-style positioning, hide/backstab, and status effects
 - Phase 2 (Full Multiplayer) next — GitHub Issues for shared world state, see other players' notes/bloodstains
 - The world is designed to be expandable: add rooms/NPCs/quests by extending build_starter_* functions
 - Multiple quest chains create progression: QA quest → Archive badge → find incident report → get Oncall Pager
