@@ -10,8 +10,7 @@
 
 Hatch buddies, collect species, earn hats, evolve, and build a team of quirky little creatures that react to how you code. Runs alongside Claude Code, watches your sessions, and actually helps — grading your config, saving tokens, and mapping your codebase.
 
-<!-- Replace with a terminal GIF recording (use ScreenToGif or vhs) -->
-![Buddies TUI](screenshot.jpg)
+<!-- TODO: Add terminal GIF recording (use ScreenToGif or vhs) -->
 
 ## Why
 
