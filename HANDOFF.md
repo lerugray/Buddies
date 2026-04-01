@@ -231,8 +231,20 @@ The key insight: **Buddies should be the maintenance layer for your Claude Code 
 
 Design principle: CLAUDE.md should be a routing file (<150 lines), not a knowledge dump. Buddy enforces this.
 
-### Phase 10+: Ideas Bank
+### Phase 10: Token Guardian & Session Continuity
+Real pain point: user got throttled 20% trying to save session notes when CC warned about 1M tokens. Buddies should prevent this.
+
+- [ ] **Continuous session summary** — Buddy writes a rolling summary to disk in the background (not at end when it's too late). File persists even if CC compacts/clears.
+- [ ] **Token usage early warning** — track context usage via session observer, warn at 50%/70%/90% ("Hey, you're at 70% context, might want to wrap up soon")
+- [ ] **Quick-save keystroke** — one key to dump current session state to a file CC can read back
+- [ ] **Session handoff file** — Buddy writes `.claude/rules/buddy-session-state.md` that auto-loads into next CC session with "here's what we were doing, here's where we left off"
+- [ ] **Smart clear** — when user needs to clear, Buddy has already saved everything. Clear safely, Buddy helps CC pick up right where it left off.
+
+Key insight: Buddies becomes the **memory that survives between sessions**. The continuous background save is critical — can't wait until the user asks to save, because by then it might cost the tokens you're trying to save.
+
+### Phase 11+: Ideas Bank
 - [ ] **Social Buddies (MCP)** — buddies talk to each other across users via MCP. Share notes, stories, suggestions. "Your friend's buddy just helped them fix something similar."
+- [ ] **Local party focus group** — buddies in your party "discuss" a topic, each weighing in based on personality stats. High-DEBUG buddy focuses on technical risks, high-CHAOS suggests wild alternatives, high-WISDOM considers long-term. Like a personal advisory council. Works offline with prose engine — no AI needed.
 - [ ] Input box integration — buddy sits beside chat input, reacts to typing
 - [ ] Theme customization (dark/light/custom)
 - [ ] Buddy achievements and milestone tracking
