@@ -353,10 +353,10 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 - [x] **Games Arcade hub** — ASCII art arcade menu, game selection, XP/mood rewards on completion. [x] keybinding.
 - [x] **Rock-Paper-Scissors** — Best-of-5 tournament. AI driven by personality (CHAOS=random, WISDOM=pattern-tracking, DEBUGGING=counter-strategy, PATIENCE=stubborn favorite). 90+ prose templates with register-flavored trash talk.
 - [x] **Game engine foundation** — GamePersonality blended from all 5 stats, shared card infrastructure (Card/Deck/Hand with ASCII art), game result tracking in DB, 9 new achievements (49 total).
-- [ ] **Blackjack** — Buddy as dealer or co-player. Hit/stand decisions by personality.
+- [x] **Blackjack** — Player vs buddy-dealer. Hit/stand/double. Personality-driven dealer (CHAOS hits when shouldn't, PATIENCE stands early). 20+ prose templates.
 - [ ] **Texas Hold'em** — 2-6 player poker with party buddies. Betting driven by stats.
 - [ ] **Whist** — Partnership trick-taking. You + buddy vs 2 AI buddies.
-- [ ] **JRPG Battles** — Goofy Pokemon-style fights. Coding-themed types (LOGIC/CHAOS/HACK/DEBUG). Moves like "Stack Trace", "rm -rf", "Passive-Aggressive Comment". Enemies: "Wild Segfault", "Rogue Semicolon". Not competitive, just funny.
+- [x] **JRPG Battles** — Goofy Pokemon-style fights. Type triangle (LOGIC/CHAOS/HACK + DEBUG support). 20 moves across 5 stat pools. 10 enemies (Wild Segfault, Escaped Regex, Production Bug, etc.). HP bars, crits, type effectiveness, level scaling.
 - [ ] **Coding Trivia** — Multiple choice, buddy answers alongside you. 100+ questions.
 - [ ] **Pong** — Real-time TUI game at 20 FPS. Buddy controls other paddle based on stats.
 - [ ] **Multiplayer (future)** — Async games via GitHub Issues (same transport as BBS). MCP tool for challenges. Leaderboard on BBS.
@@ -537,31 +537,36 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 
 ## Session Notes (2026-04-01 — Work, Session 3)
 
-### Completed (1 commit)
-- ✅ **Tier 4: Games Arcade foundation** — [x] key opens arcade hub with ASCII art menu
-- ✅ **Rock-Paper-Scissors** — first playable game, best-of-5 tournament
-  - AI picks throws based on personality blend (not just dominant stat)
-  - CHAOS = truly random, WISDOM = pattern tracking, DEBUGGING = counter-strategy
-  - PATIENCE = stubborn favorite throw, SNARK = trash talk between rounds
-  - 90+ register-flavored prose templates (throw, win, lose, draw, streak)
-- ✅ **Game engine foundation** (core/games/ package, 5 files):
-  - GamePersonality derived from all 5 buddy stats, blended with probabilities
-  - Card infrastructure: Card, Deck, Hand with ASCII art + Rich markup rendering
-  - Game prose: template pool + register system matching prose.py pattern
-- ✅ **DB + achievements** — game_results table, store methods (log, stats, streak tracking), 9 new achievements (49 total)
-- ✅ **App wiring** — [x] keybinding, XP/mood rewards on game completion, hat unlock checks, achievement checker updated
+### Completed (3 commits)
+- ✅ **Games Arcade hub** — [x] key, ASCII art menu, responsive header, shows active buddy, batch result forwarding
+- ✅ **Rock-Paper-Scissors** — best-of-5 tournament, personality-driven AI throws, 90+ prose templates
+- ✅ **Blackjack** — player vs buddy-dealer, hit/stand/double, natural blackjack detection
+  - Dealer behavior driven by personality (CHAOS hits when shouldn't, PATIENCE stands early)
+  - 20+ register-flavored prose templates (dealer wins, player wins, push, stands)
+- ✅ **JRPG Battles** — goofy Pokemon-style combat vs 10 coding-themed enemies
+  - Type triangle: LOGIC > CHAOS > HACK > LOGIC + DEBUG (support/heals)
+  - 20 moves across 5 stat pools, derived from buddy's top 2 stats
+  - Enemies: Wild Segfault, Escaped Regex, Legacy Codebase, Production Bug, Flaky Test, etc.
+  - Moves: Stack Trace, rm -rf, Passive-Aggressive Comment, Rubber Duck, Sit and Wait, etc.
+  - HP bars, crits, type effectiveness, heal/buff moves, level-scaled enemies
+- ✅ **Game engine foundation** — GamePersonality from all 5 stats, Card/Deck/Hand, game_results DB table, 9 achievements (49 total)
+- ✅ **UI audit** — standardized help text, responsive layouts, removed dead code, visual separators in battle
 
 ### New files
 - `core/games/__init__.py` — GameType, GameOutcome, GameResult
 - `core/games/engine.py` — GamePersonality, personality_from_state()
 - `core/games/card_common.py` — Card, Deck, Hand, ASCII art rendering
 - `core/games/prose_games.py` — 90+ game commentary templates
-- `core/games/rps.py` — RPSGame engine with personality-driven AI
+- `core/games/rps.py` — RPSGame engine
+- `core/games/blackjack.py` — Blackjack engine with personality dealer
+- `core/games/battle.py` — JRPG battle engine (types, moves, enemies, damage)
 - `screens/games.py` — GamesScreen arcade hub
-- `screens/game_rps.py` — RPSScreen tournament UI
+- `screens/game_rps.py` — RPSScreen
+- `screens/game_blackjack.py` — BlackjackScreen
+- `screens/game_battle.py` — BattleScreen
 
 ### Direction
-- Arcade foundation proven end-to-end (engine → screen → DB → achievements → XP rewards)
-- Next games to build: Blackjack (uses card infrastructure), then Battles (showcase feature)
+- 3 of 7 planned games complete (RPS, Blackjack, Battle)
+- Next: Hold'em, Whist, Trivia, Pong
 - Multiplayer via GitHub Issues planned as future scope (same transport as BBS)
 - User wants games as fun bonus features, not the main focus — keep them goofy
