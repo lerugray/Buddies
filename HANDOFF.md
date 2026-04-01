@@ -406,6 +406,15 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - ✅ 9 new files, many modified
 - ✅ README and HANDOFF fully updated
 
+### TODO for Work Machine
+- **Create a local CLAUDE.md** — it's gitignored, each machine needs its own. Copy the template from home but change the Machine Notes section:
+  ```markdown
+  ## Machine Notes
+  <!-- Local to this machine, not committed -->
+  - Work machine: Intel Iris Xe (integrated graphics, no dedicated GPU)
+  - Use tiny CPU-friendly models for Ollama (e.g., qwen2.5:1.5b) or skip local AI
+  ```
+
 ### Direction
 - Buddies is feature-complete as a "CC maintenance layer" with gamification and model routing
 - Ideas Bank: social buddies, more species, more hats, more animation frames
