@@ -22,6 +22,7 @@ from buddies.screens.game_holdem import HoldemScreen
 from buddies.screens.game_whist import WhistScreen
 from buddies.screens.game_dungeon import DungeonScreen
 from buddies.screens.game_crawl import CrawlScreen
+from buddies.screens.party_select import PartySelectScreen
 
 
 GAME_MENU = """\
@@ -170,8 +171,51 @@ class GamesScreen(Screen):
         )
 
     def action_play_crawl(self):
+        """Open party selection, then launch blobber dungeon with chosen party."""
+        # Build user character from available session data
+        user_state = None
+        try:
+            from buddies.core.user_character import derive_user_stats, create_user_buddy_state
+            # Try to get session stats from app
+            app = self.app
+            observer = getattr(app, "observer", None)
+            messages = getattr(app, "_messages_sent", 0)
+            discussions = getattr(app, "_discussions_started", 0)
+
+            tool_counts = observer.stats.tool_counts if observer else {}
+            edit_count = observer.stats.edit_count if observer else 0
+            files_touched = len(observer.stats.files_touched) if observer else 0
+            event_count = observer.stats.event_count if observer else 0
+
+            user_stats = derive_user_stats(
+                tool_counts=tool_counts,
+                messages_sent=messages,
+                edit_count=edit_count,
+                files_touched=files_touched,
+                event_count=event_count,
+                discussions_started=discussions,
+            )
+            user_state = create_user_buddy_state(name="You", stats=user_stats)
+        except Exception:
+            pass
+
+        all_buddies = [self.buddy_state] + self.party_states
         self.app.push_screen(
-            CrawlScreen(buddy_state=self.buddy_state, party_states=self.party_states),
+            PartySelectScreen(all_buddies=all_buddies, user_state=user_state),
+            callback=self._on_party_selected,
+        )
+
+    def _on_party_selected(self, result) -> None:
+        """Handle party selection result — launch crawl or return to menu."""
+        if result is None or not result:
+            self._show_menu()
+            return
+        # result is list[BuddyState] — the chosen party
+        party = result
+        primary = party[0]
+        others = party[1:] if len(party) > 1 else []
+        self.app.push_screen(
+            CrawlScreen(buddy_state=primary, party_states=others),
             callback=self._on_game_dismissed,
         )
 
