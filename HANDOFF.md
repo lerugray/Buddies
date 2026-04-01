@@ -23,6 +23,7 @@ A tamagotchi-style local AI companion **collection** that runs alongside Claude 
 - **Phase 9** (CC Config Intelligence): DONE — CLAUDE.md health grading, auto-learn rules, config scaffolding
 - **Phase 10** (Token Guardian): DONE — rolling summaries, token warnings, quick-save, session handoff
 - **Polish**: DONE — 6 themes, 33 achievements, species count audit
+- **Obsidian wiki**: [w] key — auto-generated `.buddy-wiki/` vault with species, architecture, decisions, session journals
 - **Hatch screen**: Working — named buddies, seed-based or random, name input on hatch
 - **Party screen**: NEW — switch between buddies, equip hats, hatch new
 - **Hats**: NEW — crown (debug), wizard (wisdom), propeller (chaos), tinyduck (starter)
@@ -101,6 +102,7 @@ buddies/
 │   │   ├── ai_router.py              # Complexity scoring, cost guardrails, routing
 │   │   ├── rule_suggester.py         # Session pattern → config rule suggestions
 │   │   ├── config_intel.py           # CLAUDE.md health, linting, scaffolding, auto-learn
+│   │   ├── obsidian_vault.py         # Obsidian wiki vault generator
 │   │   ├── token_guardian.py         # Rolling summaries, token warnings, session handoff
 │   │   ├── achievements.py          # 33 achievements, checking, tracking
 │   │   └── model_tracker.py         # Model detection, phase classification, mismatch alerts
@@ -110,6 +112,7 @@ buddies/
 │   │   ├── tool_browser.py           # MCP/skills browser screen
 │   │   ├── conversations.py          # Saved conversations browser
 │   │   ├── config_health.py          # Config health dashboard screen
+│   │   ├── wiki.py                   # Obsidian wiki dashboard screen
 │   │   └── achievements.py          # Achievements viewer screen
 │   ├── widgets/
 │   │   ├── buddy_display.py          # Animated sprite + stats + evolution
@@ -316,7 +319,7 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 - [x] **Cross-surface context relay** — [F4] exports session context (topics, files, events, recent chat) to clipboard in a compact format for pasting into claude.ai. Pasting context back into buddy chat (starts with "--- CONTEXT FROM" or is 500+ chars mentioning claude.ai) auto-imports it to the session log. Not a live bridge — just smoothing the manual relay.
 - [x] **Multi-machine awareness** — on startup, Buddy saves hostname to local tracking file per project. Detects when project is used across machines, advises on CLAUDE.md (local/gitignored) vs HANDOFF.md (shared/committed) pattern. Three scenarios: missing CLAUDE.md, CLAUDE.md not gitignored, good setup but new machine. Nudges non-programmers toward the right config sharing pattern.
 - [x] **README health check** — scans README.md for title, description, badges, install, usage, license, screenshots/GIF, collapsible sections. Grades A-F, suggests improvements. Integrated into config health screen [g]. Can scaffold a basic README from project metadata (detects Python/Node/Rust/Go).
-- [ ] **Obsidian wiki integration** — auto-generate and maintain an Obsidian vault per project. Session journals, architecture decision logs, file/module link graphs, species lore pages. Plain markdown with [[wikilinks]]. Session summaries + HANDOFF already produce the raw content. Could use Obsidian MCP server for Claude read/write access.
+- [x] **Obsidian wiki integration** — auto-generate `.buddy-wiki/` Obsidian vault per project. Species lore pages (70), architecture maps with dependency graphs, decision logs, session journals (auto-written on exit). Plain markdown with [[wikilinks]]. TUI dashboard via [w] key with per-section regeneration. Vault is auto-gitignored.
 
 ### Tier 3: Social
 *High value, high effort. Needs real design work on transport, identity, moderation.*

@@ -36,6 +36,7 @@ from buddies.screens.discussion import DiscussionScreen
 from buddies.screens.tool_browser import ToolBrowserScreen
 from buddies.screens.conversations import ConversationsScreen
 from buddies.screens.config_health import ConfigHealthScreen
+from buddies.screens.wiki import WikiScreen
 from buddies.core.conversation import ConversationLog
 from buddies.core.config_intel import ConfigIntelligence, SessionLearner, generate_session_summary
 from buddies.core.token_guardian import TokenGuardian
@@ -44,6 +45,7 @@ from buddies.core.achievements import check_achievements, ACHIEVEMENT_MAP
 from buddies.screens.achievements import AchievementsScreen
 from buddies.core.model_tracker import ModelTracker
 from buddies.core.code_map import write_project_map
+from buddies.core.obsidian_vault import ObsidianVault
 from buddies.core.machine_detect import detect_machine, get_multi_machine_advice
 
 
@@ -68,6 +70,7 @@ class BuddyApp(App):
         Binding("t", "tools", "Tools", show=False),
         Binding("c", "conversations", "Convos", show=False),
         Binding("g", "config_health", "Config", show=False),
+        Binding("w", "wiki", "Wiki", show=False),
         Binding("f1", "quick_save", "Save", show=False),
         Binding("f2", "cycle_theme", "Theme", show=False),
         Binding("f3", "regen_map", "Map", show=False),
@@ -726,6 +729,7 @@ class BuddyApp(App):
         chat.add_system("[bold]Screens[/]")
         chat.add_system("  [p] Party    [d] Discuss   [a] Achievements")
         chat.add_system("  [t] Tools    [c] Convos    [g] Config Health")
+        chat.add_system("  [w] Wiki")
         chat.add_system("[bold]Actions[/]")
         chat.add_system("  [r] Hatch    [F1] Save     [F2] Theme")
         chat.add_system("  [?] Help     [F5] Refresh  [q] Quit")
@@ -832,6 +836,13 @@ class BuddyApp(App):
         self.push_screen(ConfigHealthScreen(), callback=self._on_config_health_dismissed)
 
     async def _on_config_health_dismissed(self, result) -> None:
+        pass
+
+    def action_wiki(self):
+        """Open the Obsidian wiki dashboard."""
+        self.push_screen(WikiScreen(), callback=self._on_wiki_dismissed)
+
+    async def _on_wiki_dismissed(self, result) -> None:
         pass
 
     async def _startup_config_check(self):
@@ -1135,6 +1146,16 @@ class BuddyApp(App):
                 buddy_state=self.buddy_state,
                 convo_messages=convo_msgs,
             )
+        except Exception:
+            pass
+
+        # Obsidian wiki: write session journal if vault exists
+        try:
+            wiki_msgs = [m.to_dict() for m in self.convo_log.get_messages()] if self.convo_log else None
+            vault = ObsidianVault(self.token_guardian.project_path)
+            if vault.vault_path.exists():
+                vault.write_session_journal(self.observer.stats, wiki_msgs)
+                vault.sync_handoff()
         except Exception:
             pass
 
