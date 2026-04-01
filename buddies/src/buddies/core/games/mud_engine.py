@@ -24,6 +24,7 @@ from buddies.core.games.mud_multiplayer import (
     build_note_message, get_template_list, get_subject_list,
     format_note_display, format_bloodstain_display, format_phantom_display,
 )
+from buddies.core.games.mud_transport import MudTransport
 
 
 # ---------------------------------------------------------------------------
@@ -95,6 +96,10 @@ class MudState:
     game_over: bool = False
     # Async multiplayer
     mp_store: MudMultiplayerStore | None = None
+    mp_transport: MudTransport | None = None
+    # Sync stats (shown to player)
+    remote_notes_synced: int = 0
+    remote_stains_synced: int = 0
 
 
 def create_mud_game(party: list[BuddyState]) -> MudState:
@@ -166,6 +171,7 @@ def parse_command(raw: str) -> tuple[str, str]:
         "rate": "rate", "upvote": "rate", "downvote": "rate",
         "notes": "notes", "messages": "notes",
         "bloodstain": "bloodstain", "bloodstains": "bloodstain", "deaths": "bloodstain",
+        "rumors": "rumors", "rumor": "rumors", "news": "rumors", "network": "rumors",
         "quest": "quest", "quests": "quest", "q": "quest",
         "help": "help", "h": "help", "?": "help",
         "map": "map",
@@ -1234,6 +1240,81 @@ def _handle_wait(state: MudState, _arg: str) -> list[str]:
     return ["You wait. Nothing happens. This is fine."]
 
 
+def _handle_rumors(state: MudState, _arg: str) -> list[str]:
+    """Hear rumors of other adventurers from across the network."""
+    if not state.mp_store:
+        return ["[dim]Multiplayer features unavailable.[/dim]"]
+
+    lines = [
+        "\n[bold]🌐 Rumors from the Network[/bold]",
+        f"{'─' * 50}",
+    ]
+
+    # Gather stats about remote/phantom data
+    total_notes = len(state.mp_store.notes)
+    phantom_notes = sum(1 for n in state.mp_store.notes if n.is_phantom)
+    player_notes = total_notes - phantom_notes
+    total_stains = len(state.mp_store.bloodstains)
+    total_phantoms = len(state.mp_store.phantoms)
+
+    # Unique rooms with notes
+    rooms_with_notes = len(set(n.room_id for n in state.mp_store.notes))
+    # Most dangerous room (most bloodstains)
+    room_deaths: dict[str, int] = {}
+    for s in state.mp_store.bloodstains:
+        room_deaths[s.room_id] = room_deaths.get(s.room_id, 0) + 1
+    deadliest = max(room_deaths.items(), key=lambda x: x[1]) if room_deaths else None
+    # Most popular note
+    top_note = max(state.mp_store.notes, key=lambda n: n.rating) if state.mp_store.notes else None
+    # Most feared enemy
+    enemy_kills: dict[str, int] = {}
+    for s in state.mp_store.bloodstains:
+        enemy_kills[s.cause_of_death] = enemy_kills.get(s.cause_of_death, 0) + 1
+    deadliest_enemy = max(enemy_kills.items(), key=lambda x: x[1]) if enemy_kills else None
+
+    lines.append("")
+
+    if state.remote_notes_synced > 0 or state.remote_stains_synced > 0:
+        lines.append(
+            f"[bold cyan]📡 Connected to the network.[/bold cyan] "
+            f"Synced {state.remote_notes_synced} note(s), "
+            f"{state.remote_stains_synced} bloodstain(s) from other adventurers."
+        )
+    else:
+        lines.append("[dim]Local data only — use [bold]sync[/bold] to connect to other adventurers.[/dim]")
+
+    lines.append("")
+    lines.append(f"[yellow]📜 {total_notes} soapstone messages[/yellow] across {rooms_with_notes} rooms")
+    if player_notes > 0:
+        lines.append(f"   ({player_notes} from real adventurers, {phantom_notes} from phantoms)")
+    lines.append(f"[red]💀 {total_stains} bloodstains[/red] mark where adventurers fell")
+    lines.append(f"[dim]👻 {total_phantoms} phantom traces[/dim] linger in the halls")
+
+    if deadliest:
+        room_name = deadliest[0].replace("_", " ").title()
+        lines.append(f"\n[bold red]Most dangerous room:[/bold red] {room_name} ({deadliest[1]} deaths)")
+
+    if deadliest_enemy:
+        lines.append(f"[bold red]Most feared foe:[/bold red] {deadliest_enemy[0]} ({deadliest_enemy[1]} kills)")
+
+    if top_note and top_note.rating > 0:
+        lines.append(f"\n[bold yellow]Most helpful message:[/bold yellow]")
+        lines.append(f"  \"{top_note.message}\" {top_note.rating_text}")
+        lines.append(f"  — {top_note.author_emoji} {top_note.author_name}")
+
+    # Flavor text
+    flavor = [
+        "\n[dim italic]The network hums. Somewhere, another adventurer just left a note.[/dim italic]",
+        "\n[dim italic]You feel a faint connection to adventurers past and present.[/dim italic]",
+        "\n[dim italic]The bloodstains tell stories. Not happy ones, but stories nonetheless.[/dim italic]",
+        "\n[dim italic]In StackHaven, nobody truly adventures alone.[/dim italic]",
+        "\n[dim italic]The phantoms remember what the living have forgotten.[/dim italic]",
+    ]
+    lines.append(random.choice(flavor))
+
+    return lines
+
+
 def _handle_help(state: MudState, _arg: str) -> list[str]:
     """Show available commands."""
     return [
@@ -1265,6 +1346,7 @@ def _handle_help(state: MudState, _arg: str) -> list[str]:
         "  [bold]notes[/bold]           — View notes in this room",
         "  [bold]rate[/bold]            — Rate a note (up/down)",
         "  [bold]bloodstain[/bold]      — View death markers in this room",
+        "  [bold]rumors[/bold]          — Hear what other adventurers are up to",
         "",
         "[bold cyan]Status:[/bold cyan]",
         "  [bold]inventory[/bold] (i)   — Check your items",
@@ -1566,6 +1648,7 @@ COMMAND_HANDLERS = {
     "quest": _handle_quest,
     "map": _handle_map,
     "wait": _handle_wait,
+    "rumors": _handle_rumors,
     "help": _handle_help,
     "attack": _handle_attack,
     "flee": _handle_flee,

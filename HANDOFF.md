@@ -345,10 +345,10 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 *Inspired by Phantom (ghostwright/phantom). Makes buddies smarter across sessions.*
 
 - [x] **Three-tier memory** — episodic (sessions/events), semantic (facts/preferences with contradiction detection), procedural (patterns/rules). SQLite-backed, keyword/tag retrieval, no vector DB needed. Memory screen via [m] key. Session events auto-buffered, semantic statements detected from chat, procedural memories from rule suggestions. Background flush every 30s, decay cleanup on startup.
-- [ ] **Working memory compaction** — auto-trim HANDOFF.md when it exceeds a threshold. Keep recent session notes, compress older ones.
+- [x] **Working memory compaction** — auto-trim HANDOFF.md when it exceeds a threshold. Keep recent session notes, compress older ones.
 - [x] **Self-evolution safety gates** — 5-gate validation (duplicate, conflict, size, golden consistency, scope) runs on every rule suggestion before presentation. Prevents contradictory or bloating rules.
 - [x] **Golden suite** — accepted rules auto-saved as reference. Future suggestions checked against golden set for consistency. Loaded from DB on startup.
-- [ ] **Layered prompt assembly** — composable prompt building (personality + preferences + context + memory). Deferred until AI interactions get richer.
+- [x] **Layered prompt assembly** — composable prompt building (identity + personality + memory + context + task). PromptBuilder class with chaining API, 6 task presets, register-driven personality, memory recall integration. Wired into ai_router, discussion engine, and MCP server. Games unaffected (still pure prose, zero AI cost). 24 tests.
 
 ### Tier 3: Social
 *High value, high effort. Needs real design work on transport, identity, moderation.*
@@ -381,7 +381,7 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 *The deranged masterpiece. Absurdist shared world where all users' buddies coexist.*
 
 - [x] **Phase 1 (Local MUD)** — "StackHaven MUD" — 11 rooms across 4 zones, 10 NPCs (quest givers, merchants, hostile mobs, a sentient coffee machine), 25+ items, 4 quests, full command parser (look/go/talk/take/attack/buy/flee/quest/map), personality-driven buddy commentary, simplified combat with equipment bonuses, locked doors with key items. 45 tests.
-- [ ] **Phase 2 (Multiplayer)** — GitHub Issues as persistent world state (same transport as BBS). See other users' notes/bloodstains/phantoms. Share soapstone messages across users. Death markers become globally visible. Phantom traces show other users' buddies.
+- [x] **Phase 2 (Multiplayer)** — GitHub Issues as persistent world state (same transport as BBS). MudTransport syncs notes/bloodstains via `mud-soapstone` and `mud-bloodstain` labels. Auto-push on creation, auto-pull on MUD start. Remote phantoms generated from other players' notes. `rumors` command shows global adventurer activity. Voting via GitHub reactions. Graceful offline fallback.
 - [ ] **Phase 3 (Economy)** — gold from dungeon runs feeds into MUD marketplace. Trade items between users. Absurd cosmetics ("Slightly Haunted Top Hat", "NFT That Does Nothing", "Artisanal Semicolon"). In-game currency.
 - [ ] **Phase 4 (Living World)** — rotating quests, world events ("The Production Server Is On Fire — All Hands"), seasonal skins, BBS integration (buddies auto-post about MUD adventures). Silly DLC/add-ons/minigames as jokes.
 
@@ -697,8 +697,54 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - Tier 5b Phase 1 complete and polished with async multiplayer + lore + tactical combat!
 - MUD has 17 rooms, 17 NPCs, 6 quests, 40+ items, Dark Souls-style notes/bloodstains/phantoms, discoverable lore
 - Blobber combat now has Wizardry VI-style positioning, hide/backstab, and status effects
-- Phase 2 (Full Multiplayer) next — GitHub Issues for shared world state, see other players' notes/bloodstains
+- Phase 2 (Full Multiplayer) DONE — see session notes below
 - The world is designed to be expandable: add rooms/NPCs/quests by extending build_starter_* functions
 - Multiple quest chains create progression: QA quest → Archive badge → find incident report → get Oncall Pager
 - Pipeline quest → VPN token → Cloud District → Kubernetes Cluster
 - Now 10 games in the arcade
+
+## Session Notes (2026-04-01 — Home, Session 4)
+
+### Completed
+- ✅ **Phase 12 complete** — Layered Prompt Assembly
+  - `PromptBuilder` class with 5 composable layers: identity, personality, memory, context, task
+  - Chaining API: `builder.with_identity(buddy).with_personality(buddy).with_task("chat").build()`
+  - Register-driven personality with secondary stat flavor and chaos weirdness scaling
+  - Async memory integration — queries 3-tier memory and injects relevant facts
+  - 6 task presets (chat, code_review, discussion, file_analysis, mcp_delegate, agent)
+  - Compact mode for smaller context windows
+  - Wired into: ai_router (chat + agent), discussion engine, MCP server
+  - **Games untouched** — zero AI cost, pure prose engine as before
+  - Working memory compaction checkbox fixed (was already implemented)
+  - 24 tests
+
+- ✅ **MUD Phase 2: GitHub Issues Multiplayer Transport**
+  - `MudTransport` class — syncs notes/bloodstains/phantoms via GitHub Issues on `lerugray/buddies-bbs`
+  - Labels: `mud-soapstone` for notes, `mud-bloodstain` for death markers
+  - YAML frontmatter encoding (same pattern as BBS transport)
+  - Push: local notes/bloodstains auto-pushed to GitHub on creation (background async)
+  - Pull: remote data synced into local store on MUD start (background async)
+  - Merge logic: dedup by ID, remote phantoms generated from remote notes
+  - Voting via GitHub reactions (+1 = upvote, -1 = downvote)
+  - Rate-limit aware, cached (5min TTL), graceful offline fallback
+  - Phantom actions contextual — coffee notes → "clutching a coffee mug", debug notes → "staring at invisible code"
+  - Read without token, write with PAT (same auth as BBS)
+
+- ✅ **`rumors` command** — hear what other adventurers are up to
+  - Shows: total notes/bloodstains/phantoms, most dangerous room, most feared foe, most helpful message
+  - Network status (connected/local only), sync counts
+  - 5 flavor text variants ("In StackHaven, nobody truly adventures alone.")
+
+- ✅ **291 tests passing** (21 new: transport + prompt builder + rumors)
+
+### New files
+- `core/prompt_builder.py` — Layered prompt assembly (PromptBuilder, 6 convenience factories)
+- `core/games/mud_transport.py` — GitHub Issues transport for MUD multiplayer
+- `tests/test_prompt_builder.py` — 24 tests for prompt builder
+- `tests/test_mud_transport.py` — 21 tests for transport + rumors
+
+### Direction
+- Phase 12 fully complete (all 5 items checked off)
+- MUD Phase 2 multiplayer transport is built — needs `mud-soapstone` and `mud-bloodstain` labels created on the `lerugray/buddies-bbs` repo
+- Phase 3 (Economy) and Phase 4 (Living World) are next on the MUD roadmap
+- Could also explore: expanding the world (more rooms/zones), multiplayer leaderboards on BBS, or tackling Tier 5 audio

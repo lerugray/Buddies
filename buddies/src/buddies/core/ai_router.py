@@ -15,6 +15,7 @@ from collections import deque
 from buddies.core.ai_backend import AIBackend, AIResponse
 from buddies.core.agent import BuddyAgent
 from buddies.core.buddy_brain import BuddyState
+from buddies.core.prompt_builder import build_chat_prompt, build_agent_prompt
 
 
 @dataclass
@@ -169,7 +170,7 @@ class AIRouter:
 
         if needs_tools and complexity >= 0.3:
             # Use agentic loop with tool calling
-            system_prompt = self._build_system_prompt()
+            system_prompt = self._build_system_prompt(agent_mode=True)
             result = await self.agent.run(query, system_prompt)
 
             if result.error:
@@ -233,27 +234,17 @@ class AIRouter:
         query_lower = query.lower()
         return any(re.search(p, query_lower) for p in tool_indicators)
 
-    def _build_system_prompt(self) -> str:
-        """Build a system prompt that includes buddy's personality."""
-        personality = ""
+    def _build_system_prompt(self, agent_mode: bool = False) -> str:
+        """Build a system prompt using the layered prompt builder."""
         if self.buddy_state:
-            top_stat = max(self.buddy_state.stats, key=self.buddy_state.stats.get)
-            personality_traits = {
-                "debugging": "You're analytical and detail-oriented. You like finding root causes.",
-                "patience": "You're calm and methodical. You explain things step by step.",
-                "chaos": "You're energetic and creative. You like unconventional solutions.",
-                "wisdom": "You're thoughtful and philosophical. You see the bigger picture.",
-                "snark": "You're witty and sarcastic, but always helpful underneath the sass.",
-            }
-            personality = personality_traits.get(top_stat, "")
-
+            if agent_mode:
+                return build_agent_prompt(self.buddy_state)
+            return build_chat_prompt(self.buddy_state)
+        # Fallback when no buddy state available
         return (
-            f"You are Buddy, a helpful AI companion running locally. "
-            f"You assist with coding questions, explanations, and simple tasks. "
-            f"Keep responses concise and practical. "
-            f"If a question is too complex for you, say so honestly — "
-            f"the user can ask Claude for harder tasks. "
-            f"{personality}"
+            "You are Buddy, a helpful AI companion running locally. "
+            "Keep responses concise and practical. "
+            "If a question is too complex for you, say so honestly."
         )
 
     def clear_conversation(self):

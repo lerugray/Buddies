@@ -29,6 +29,7 @@ except ImportError:
 
 from buddies.config import BuddyConfig, get_data_dir
 from buddies.core.hooks import get_events_path
+from buddies.core.prompt_builder import build_mcp_prompt
 from buddies.db.store import BuddyStore
 
 mcp = FastMCP("Buddies")
@@ -45,6 +46,11 @@ async def _get_store() -> BuddyStore:
         _store = BuddyStore(_config.db_path)
         await _store.connect()
     return _store
+
+
+def _get_mcp_prompt() -> str:
+    """Get the system prompt for MCP-delegated AI questions."""
+    return build_mcp_prompt()
 
 
 @mcp.tool()
@@ -193,10 +199,7 @@ async def ask_buddy(question: str) -> str:
 
         response = await backend.chat(
             [{"role": "user", "content": question}],
-            system_prompt=(
-                "You are a helpful coding assistant. Keep responses concise and practical. "
-                "If you're not confident in your answer, say so."
-            ),
+            system_prompt=_get_mcp_prompt(),
         )
 
         if response.error:

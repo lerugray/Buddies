@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING
 
 from buddies.core.buddy_brain import BuddyState, SPECIES_CATALOG
 from buddies.core.prose import ProseEngine, _register, _dominant_stat
+from buddies.core.prompt_builder import build_discussion_prompt, build_review_prompt
 
 if TYPE_CHECKING:
     from buddies.core.ai_backend import AIBackend
@@ -323,7 +324,7 @@ class DiscussionEngine:
             )
             response = await self.ai_backend.chat(
                 [{"role": "user", "content": prompt}],
-                system_prompt="You are a code reviewer. Be concise and specific.",
+                system_prompt=build_review_prompt(buddy),
             )
             if response.error or not response.content:
                 return None
@@ -354,7 +355,7 @@ class DiscussionEngine:
         try:
             response = await self.ai_backend.chat(
                 [{"role": "user", "content": prompt}],
-                system_prompt=f"You are {buddy.name}, a {buddy.species.name} companion. Stay in character. Max 2 sentences.",
+                system_prompt=build_discussion_prompt(buddy),
             )
             if response.error or not response.content:
                 return None
