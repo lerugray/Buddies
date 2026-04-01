@@ -2470,6 +2470,78 @@ def _taco_frames() -> list[str]:
     return [frame1, frame2]
 
 
+def _hat_safety_cone() -> str:
+    """An orange traffic cone — unlocked via dominant snark."""
+    return _build_sprite([
+        "tttttootttttt",
+        "ttttoooottttt",
+        "tttOooooOtttt",
+        "ttOOooooOOttt",
+        "tOOOOOOOOOOt",
+        "ttttttttttttt",
+    ])
+
+
+def _hat_apple() -> str:
+    """A cute red apple with a green leaf — unlocked at level 15."""
+    return _build_sprite([
+        "ttttttggttttt",
+        "tttttGggGtttt",
+        "ttttrrrrrtttt",
+        "ttttrrrrrttt",
+        "tttttrrrtttt",
+        "tttttttttttt",
+    ])
+
+
+def _hat_beanie() -> str:
+    """A cozy knit beanie — unlocked via 50+ patience."""
+    return _build_sprite([
+        "tttttbbttttt",
+        "tttbbbbbbtttt",
+        "ttbBbBbBbBttt",
+        "ttbbbbbbbbtt",
+        "ttttttttttttt",
+        "ttttttttttttt",
+    ])
+
+
+def _hat_antenna() -> str:
+    """Alien antenna with a bouncy ball — found during exploring phase."""
+    return _build_sprite([
+        "tttttggttttt",
+        "ttttteettttt",
+        "ttttteettttt",
+        "ttttteettttt",
+        "ttttttttttttt",
+        "ttttttttttttt",
+    ])
+
+
+def _hat_chef() -> str:
+    """A tall white chef's toque — unlocked after 500+ messages."""
+    return _build_sprite([
+        "ttttwwwwwttt",
+        "tttwwwwwwwtt",
+        "tttwwwwwwwtt",
+        "tttwwwwwwwtt",
+        "ttkkkkkkkkt",
+        "ttttttttttt",
+    ])
+
+
+def _hat_pirate() -> str:
+    """A pirate tricorn — unlocked via dominant snark at level 10+."""
+    return _build_sprite([
+        "tttttwkttttt",
+        "tttkkkkkktt",
+        "ttkkkkkkkktt",
+        "tkkkkkkkkkkt",
+        "tteeeeeeett",
+        "ttttttttttt",
+    ])
+
+
 # Build hat sprites
 HATS: dict[str, str] = {
     "crown": _hat_crown(),
@@ -2482,6 +2554,12 @@ HATS: dict[str, str] = {
     "headphones": _hat_headphones(),
     "flower": _hat_flower(),
     "nightcap": _hat_nightcap(),
+    "safety_cone": _hat_safety_cone(),
+    "apple": _hat_apple(),
+    "beanie": _hat_beanie(),
+    "antenna": _hat_antenna(),
+    "chef": _hat_chef(),
+    "pirate": _hat_pirate(),
 }
 
 

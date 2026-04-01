@@ -12,7 +12,7 @@ A tamagotchi-style AI companion that lives in your terminal and watches your Cla
 - **Party discussions** — buddies talk to each other about topics or files, reacting in-character
 - **Tool browser** — see what MCP servers and skills you have installed
 - **Conversation saving** — auto-saves every chat, browse/rename/load/delete old conversations
-- **10 hats** unlocked by playstyle, stats, milestones, and even boredom
+- **16 hats** unlocked by playstyle, stats, milestones, and even boredom
 - **Evolution system** — 4 stages (Hatchling, Juvenile, Adult, Elder) with visual borders
 - **Mood system** — mood decays over time, affects XP gain and stat growth
 - **Agentic local AI** — buddy can read files, search code, and run commands via Ollama
@@ -111,7 +111,7 @@ python -m buddies.setup_mcp
 
 Your starting species is seeded from your username (same user = same buddy).
 
-## Hats (10)
+## Hats (16)
 
 | Hat | How to Unlock |
 |-----|---------------|
@@ -119,10 +119,16 @@ Your starting species is seeded from your username (same user = same buddy).
 | Crown | Dominant DEBUGGING stat at level 5+ |
 | Wizard | Dominant WISDOM stat at level 5+ |
 | Propeller | Dominant CHAOS stat at level 5+ |
+| Safety Cone | Dominant SNARK stat at level 5+ |
+| Pirate | Dominant SNARK stat at level 10+ |
 | Tophat | Reach level 10 (Adult evolution) |
+| Apple | Reach level 15 |
 | Halo | 50+ PATIENCE stat |
+| Beanie | 50+ PATIENCE stat |
 | Horns | 50+ CHAOS stat |
 | Headphones | Watch 100+ session events |
+| Chef | Send 500+ messages |
+| Antenna | Random discovery during exploring phase |
 | Flower | Random discovery when ecstatic |
 | Nightcap | 10+ minutes of sustained boredom |
 

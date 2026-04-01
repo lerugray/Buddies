@@ -45,7 +45,7 @@ ACHIEVEMENTS: list[Achievement] = [
     # Hat achievements
     Achievement("first_hat", "Haberdashery", "Unlock your first non-starter hat", "🎩", "collection"),
     Achievement("hat_collector_5", "Hat Rack", "Own 5 different hats", "🧢", "collection"),
-    Achievement("all_hats", "Fashion Icon", "Unlock all 10 hats", "👒", "collection"),
+    Achievement("all_hats", "Fashion Icon", "Unlock all 16 hats", "👒", "collection"),
 
     # Social / discussion achievements
     Achievement("first_discussion", "Town Hall", "Start a party discussion", "🗣️", "social"),
@@ -176,7 +176,7 @@ def check_achievements(
     non_starter_hats = all_hats - {"tinyduck"}
     _check("first_hat", len(non_starter_hats) >= 1)
     _check("hat_collector_5", len(all_hats) >= 5)
-    _check("all_hats", len(all_hats) >= 10)
+    _check("all_hats", len(all_hats) >= 16)
 
     # Mood achievements
     if active_buddy:

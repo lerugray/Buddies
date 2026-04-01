@@ -491,7 +491,7 @@ class BuddyApp(App):
             if mood_mod["hat_discovery_chance"] > 0:
                 import random
                 if random.random() < mood_mod["hat_discovery_chance"]:
-                    all_hats = ["crown", "wizard", "propeller", "tophat", "halo", "horns", "flower", "headphones", "nightcap"]
+                    all_hats = ["crown", "wizard", "propeller", "tophat", "halo", "horns", "flower", "headphones", "nightcap", "safety_cone", "apple", "beanie", "antenna", "chef", "pirate"]
                     unowned = [h for h in all_hats if h not in self.buddy_state.hats_owned]
                     if unowned:
                         found = random.choice(unowned)
@@ -502,6 +502,18 @@ class BuddyApp(App):
                     and "headphones" not in self.buddy_state.hats_owned):
                 self.buddy_state.hats_owned.append("headphones")
                 asyncio.create_task(self._notify_hat_found("headphones"))
+            # Chef hat: unlocked after 500+ messages sent
+            if (self._messages_sent >= 500
+                    and "chef" not in self.buddy_state.hats_owned):
+                self.buddy_state.hats_owned.append("chef")
+                asyncio.create_task(self._notify_hat_found("chef"))
+            # Antenna hat: 5% chance during exploring phase
+            if (self.model_tracker.current_phase == "exploring"
+                    and "antenna" not in self.buddy_state.hats_owned):
+                import random
+                if random.random() < 0.05:
+                    self.buddy_state.hats_owned.append("antenna")
+                    asyncio.create_task(self._notify_hat_found("antenna"))
             # Check for hat unlocks after stat boosts
             asyncio.create_task(self._check_and_unlock_hats())
 

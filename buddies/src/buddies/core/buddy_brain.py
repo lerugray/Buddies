@@ -256,12 +256,18 @@ HAT_UNLOCK_RULES: dict[str, dict] = {
     "tophat": {"dominant_stat": None, "min_level": 10},
     "halo": {"dominant_stat": None, "min_level": 1, "min_stat": ("patience", 50)},
     "horns": {"dominant_stat": None, "min_level": 1, "min_stat": ("chaos", 50)},
+    "safety_cone": {"dominant_stat": "snark", "min_level": 5},
+    "apple": {"dominant_stat": None, "min_level": 15},
+    "beanie": {"dominant_stat": None, "min_level": 1, "min_stat": ("patience", 50)},
+    "pirate": {"dominant_stat": "snark", "min_level": 10},
 }
 
 # Hats with special unlock conditions (checked separately)
 # "headphones" — 100+ session events watched
 # "flower" — found via ecstatic mood bonus (random discovery)
 # "nightcap" — earned through boredom (mood decay mechanic)
+# "antenna" — found randomly during exploring phase (model tracker)
+# "chef" — unlocked after 500+ total messages sent
 
 
 def check_hat_unlock(state: BuddyState) -> list[str]:
