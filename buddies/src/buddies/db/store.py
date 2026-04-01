@@ -434,3 +434,91 @@ class BuddyStore:
             (mem_id,),
         )
         await self.db.commit()
+
+    # --- BBS ---
+
+    async def log_bbs_activity(self, buddy_id: int, action: str,
+                               post_id: int | None = None, board: str = "") -> None:
+        """Log a BBS action for rate limiting."""
+        await self.db.execute(
+            "INSERT INTO bbs_activity (buddy_id, action_type, post_id, board) "
+            "VALUES (?, ?, ?, ?)",
+            (buddy_id, action, post_id, board),
+        )
+        await self.db.commit()
+
+    async def get_bbs_activity_today(self, buddy_id: int, action: str) -> int:
+        """Count BBS actions of a type today for rate limiting."""
+        async with self.db.execute(
+            "SELECT COUNT(*) FROM bbs_activity "
+            "WHERE buddy_id = ? AND action_type = ? "
+            "AND date(timestamp) = date('now')",
+            (buddy_id, action),
+        ) as cursor:
+            row = await cursor.fetchone()
+            return row[0] if row else 0
+
+    async def get_last_bbs_activity(self, buddy_id: int, action: str) -> str | None:
+        """Get timestamp of last BBS action for cooldown checks."""
+        async with self.db.execute(
+            "SELECT timestamp FROM bbs_activity "
+            "WHERE buddy_id = ? AND action_type = ? "
+            "ORDER BY timestamp DESC LIMIT 1",
+            (buddy_id, action),
+        ) as cursor:
+            row = await cursor.fetchone()
+            return row[0] if row else None
+
+    async def cache_bbs_post(self, post_id: int, repo: str, board: str,
+                             title: str, body: str, author_meta: str = "{}",
+                             reply_count: int = 0, reactions: str = "{}",
+                             created_at: str = "") -> None:
+        """Cache a BBS post from GitHub."""
+        await self.db.execute(
+            "INSERT OR REPLACE INTO bbs_cache_posts "
+            "(id, repo, board, title, body, author_meta, reply_count, reactions, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (post_id, repo, board, title, body, author_meta, reply_count, reactions, created_at),
+        )
+        await self.db.commit()
+
+    async def get_cached_posts(self, repo: str, board: str = "",
+                               max_age_minutes: int = 5, limit: int = 20) -> list[dict]:
+        """Get cached BBS posts, optionally filtered by board."""
+        board_filter = "AND board = ?" if board else ""
+        params: list = [repo, max_age_minutes]
+        if board:
+            params.append(board)
+        params.append(limit)
+
+        async with self.db.execute(
+            f"SELECT * FROM bbs_cache_posts "
+            f"WHERE repo = ? "
+            f"AND (julianday('now') - julianday(cached_at)) * 1440 < ? "
+            f"{board_filter} "
+            f"ORDER BY created_at DESC LIMIT ?",
+            params,
+        ) as cursor:
+            return [dict(r) for r in await cursor.fetchall()]
+
+    async def cache_bbs_reply(self, reply_id: int, post_id: int, body: str,
+                              author_meta: str = "{}", created_at: str = "") -> None:
+        """Cache a BBS reply."""
+        await self.db.execute(
+            "INSERT OR REPLACE INTO bbs_cache_replies "
+            "(id, post_id, body, author_meta, created_at) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (reply_id, post_id, body, author_meta, created_at),
+        )
+        await self.db.commit()
+
+    async def get_cached_replies(self, post_id: int, max_age_minutes: int = 5) -> list[dict]:
+        """Get cached replies for a post."""
+        async with self.db.execute(
+            "SELECT * FROM bbs_cache_replies "
+            "WHERE post_id = ? "
+            "AND (julianday('now') - julianday(cached_at)) * 1440 < ? "
+            "ORDER BY created_at",
+            (post_id, max_age_minutes),
+        ) as cursor:
+            return [dict(r) for r in await cursor.fetchall()]

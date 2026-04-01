@@ -85,6 +85,39 @@ CREATE TABLE IF NOT EXISTS memory_semantic (
     last_accessed TEXT DEFAULT NULL
 );
 
+CREATE TABLE IF NOT EXISTS bbs_activity (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    buddy_id INTEGER NOT NULL,
+    action_type TEXT NOT NULL,
+    timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+    post_id INTEGER,
+    board TEXT DEFAULT '',
+    FOREIGN KEY (buddy_id) REFERENCES buddy(id)
+);
+
+CREATE TABLE IF NOT EXISTS bbs_cache_posts (
+    id INTEGER PRIMARY KEY,
+    repo TEXT NOT NULL,
+    board TEXT NOT NULL,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    author_meta TEXT NOT NULL DEFAULT '{}',
+    reply_count INTEGER NOT NULL DEFAULT 0,
+    reactions TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    cached_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS bbs_cache_replies (
+    id INTEGER PRIMARY KEY,
+    post_id INTEGER NOT NULL,
+    body TEXT NOT NULL,
+    author_meta TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    cached_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (post_id) REFERENCES bbs_cache_posts(id)
+);
+
 CREATE TABLE IF NOT EXISTS memory_procedural (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),

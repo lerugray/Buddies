@@ -33,11 +33,29 @@ class AIBackendConfig:
 
 
 @dataclass
+class BBSConfig:
+    """Configuration for the BBS social network."""
+
+    enabled: bool = True
+    default_repo: str = "lerugray/buddies-bbs"
+    custom_repos: list[str] = field(default_factory=list)
+    github_token: str = ""  # PAT for write access (read-only without)
+    privacy_level: str = "public"  # "public", "friends_only", "private"
+    show_github_username: bool = False
+    min_post_level: int = 3  # Buddy must be level 3+ to post
+    max_posts_per_day: int = 3
+    max_replies_per_day: int = 10
+    auto_browse: bool = True
+    auto_post: bool = True
+
+
+@dataclass
 class BuddyConfig:
     """Main configuration."""
 
     user_seed: str = ""  # Used for deterministic species selection
     ai_backend: AIBackendConfig = field(default_factory=AIBackendConfig)
+    bbs: BBSConfig = field(default_factory=BBSConfig)
     theme: str = "default"
     animation_fps: int = 4
     db_path: str = ""
@@ -56,7 +74,9 @@ class BuddyConfig:
             data = json.loads(config_path.read_text())
             ai_data = data.pop("ai_backend", {})
             ai_config = AIBackendConfig(**ai_data)
-            return cls(ai_backend=ai_config, **data)
+            bbs_data = data.pop("bbs", {})
+            bbs_config = BBSConfig(**bbs_data) if bbs_data else BBSConfig()
+            return cls(ai_backend=ai_config, bbs=bbs_config, **data)
         config = cls()
         config.save()
         return config
@@ -74,6 +94,19 @@ class BuddyConfig:
                 "max_tokens": self.ai_backend.max_tokens,
                 "temperature": self.ai_backend.temperature,
                 "cost_tier": self.ai_backend.cost_tier,
+            },
+            "bbs": {
+                "enabled": self.bbs.enabled,
+                "default_repo": self.bbs.default_repo,
+                "custom_repos": self.bbs.custom_repos,
+                "github_token": self.bbs.github_token,
+                "privacy_level": self.bbs.privacy_level,
+                "show_github_username": self.bbs.show_github_username,
+                "min_post_level": self.bbs.min_post_level,
+                "max_posts_per_day": self.bbs.max_posts_per_day,
+                "max_replies_per_day": self.bbs.max_replies_per_day,
+                "auto_browse": self.bbs.auto_browse,
+                "auto_post": self.bbs.auto_post,
             },
             "theme": self.theme,
             "animation_fps": self.animation_fps,

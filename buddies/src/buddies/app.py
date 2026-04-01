@@ -38,6 +38,7 @@ from buddies.screens.conversations import ConversationsScreen
 from buddies.screens.config_health import ConfigHealthScreen
 from buddies.screens.wiki import WikiScreen
 from buddies.screens.memory import MemoryScreen
+from buddies.screens.bbs import BBSScreen
 from buddies.core.conversation import ConversationLog
 from buddies.core.config_intel import ConfigIntelligence, SessionLearner, generate_session_summary, compact_handoff
 from buddies.core.token_guardian import TokenGuardian
@@ -68,6 +69,7 @@ class BuddyApp(App):
         Binding("r", "hatch_new", "Hatch", show=True),
         Binding("d", "discussion", "Discuss", show=True),
         Binding("a", "achievements", "Achieve", show=True),
+        Binding("b", "bbs", "BBS", show=True),
         # Hidden — accessible but don't crowd the footer (shown in ? help)
         Binding("t", "tools", "Tools", show=False),
         Binding("c", "conversations", "Convos", show=False),
@@ -818,7 +820,7 @@ class BuddyApp(App):
         chat.add_system("[bold]Screens[/]")
         chat.add_system("  [p] Party    [d] Discuss   [a] Achievements")
         chat.add_system("  [t] Tools    [c] Convos    [g] Config Health")
-        chat.add_system("  [w] Wiki     [m] Memory")
+        chat.add_system("  [w] Wiki     [m] Memory   [b] BBS")
         chat.add_system("[bold]Actions[/]")
         chat.add_system("  [r] Hatch    [F1] Save     [F2] Theme")
         chat.add_system("  [?] Help     [F5] Refresh  [q] Quit")
@@ -940,6 +942,16 @@ class BuddyApp(App):
             self.push_screen(MemoryScreen(self.memory), callback=self._on_memory_dismissed)
 
     async def _on_memory_dismissed(self, result) -> None:
+        pass
+
+    def action_bbs(self):
+        """Open the Buddies BBS."""
+        self.push_screen(
+            BBSScreen(buddy_state=self.buddy_state),
+            callback=self._on_bbs_dismissed,
+        )
+
+    async def _on_bbs_dismissed(self, result) -> None:
         pass
 
     async def _startup_config_check(self):
