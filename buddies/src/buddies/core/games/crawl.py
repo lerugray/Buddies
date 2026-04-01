@@ -193,6 +193,18 @@ CLASS_NAMES = {
 }
 
 
+class StatusEffect(Enum):
+    """Status effects that can afflict party members or enemies."""
+    POISON = "poison"      # Take damage each turn
+    SILENCE = "silence"    # Cannot use class skills
+    STUN = "stun"          # Skip next turn
+
+
+# Front row classes (melee fighters) vs back row (ranged/support)
+FRONT_ROW_CLASSES = {BuddyClass.ENGINEER, BuddyClass.BERSERKER, BuddyClass.PALADIN}
+BACK_ROW_CLASSES = {BuddyClass.ROGUE, BuddyClass.MAGE}
+
+
 @dataclass
 class PartyMember:
     """A buddy in the dungeon party with class role."""
@@ -206,6 +218,10 @@ class PartyMember:
     moves: list[Move]
     defending: bool = False
     analyze_buff: bool = False  # Engineer: next attack +50%
+    # Wizardry VI additions
+    row: str = "front"  # "front" or "back"
+    hidden: bool = False  # Rogue: hiding for backstab
+    status_effects: list[StatusEffect] = field(default_factory=list)
 
     @classmethod
     def from_buddy(cls, state: BuddyState) -> PartyMember:
@@ -223,6 +239,9 @@ class PartyMember:
 
         moves = get_buddy_moves(state)
 
+        # Auto-assign row based on class
+        row = "front" if buddy_class in FRONT_ROW_CLASSES else "back"
+
         return cls(
             buddy_state=state,
             buddy_class=buddy_class,
@@ -230,6 +249,7 @@ class PartyMember:
             hp=hp, max_hp=hp,
             attack=attack, defense=defense,
             moves=moves,
+            row=row,
         )
 
     @property
@@ -675,8 +695,14 @@ class CrawlState:
             return
 
         m = self.party[self.current_member_idx]
+        row_tag = "[dim](front)[/dim]" if m.row == "front" else "[dim](back)[/dim]"
+        status_tag = ""
+        if m.status_effects:
+            status_names = [s.value for s in m.status_effects]
+            status_tag = f" [magenta][{'|'.join(status_names)}][/magenta]"
+        hidden_tag = " [dim](hidden)[/dim]" if m.hidden else ""
         self.action_log.append(
-            f"[bold]{m.emoji} {m.name}'s turn ({m.buddy_class.value}):[/bold]"
+            f"[bold]{m.emoji} {m.name}'s turn ({m.buddy_class.value}) {row_tag}{status_tag}{hidden_tag}:[/bold]"
         )
 
     # -----------------------------------------------------------------------
@@ -689,6 +715,13 @@ class CrawlState:
             return
         m = self.party[self.current_member_idx]
         if not m.is_alive or not self.combat_enemies:
+            return
+
+        # Status check: stunned = skip turn
+        if StatusEffect.STUN in m.status_effects:
+            m.status_effects.remove(StatusEffect.STUN)
+            self.action_log.append(f"  {m.emoji} {m.name} is stunned and can't act!")
+            self._advance_combat_turn()
             return
 
         # Pick target (first alive enemy)
@@ -705,6 +738,12 @@ class CrawlState:
         if m.analyze_buff:
             damage = int(damage * 1.5)
             m.analyze_buff = False
+
+        # Hidden Rogue backstab bonus
+        if m.hidden:
+            damage = int(damage * 2.5)
+            m.hidden = False
+            self.action_log.append(f"  [bold yellow]⚡ BACKSTAB![/bold yellow]")
 
         target.hp = max(0, target.hp - damage)
         self.action_log.append(
@@ -724,6 +763,12 @@ class CrawlState:
             return
         m = self.party[self.current_member_idx]
         if not m.is_alive:
+            return
+
+        # Silenced = can't use skills
+        if StatusEffect.SILENCE in m.status_effects:
+            self.action_log.append(f"  {m.emoji} {m.name} is silenced and can't use skills!")
+            self._advance_combat_turn()
             return
 
         if m.buddy_class == BuddyClass.ENGINEER:
@@ -750,19 +795,15 @@ class CrawlState:
                     self.monsters_defeated += 1
 
         elif m.buddy_class == BuddyClass.ROGUE:
-            # Backstab — guaranteed crit on debuffed/defending enemy
-            target = next((e for e in self.combat_enemies if e.hp > 0), None)
-            if target:
-                move = m.moves[0] if m.moves else Move("Stab", MoveType.HACK, 8, 0.95, "From the shadows.")
-                damage = self._calc_damage(m, target, move)
-                damage = int(damage * 2.0)  # Guaranteed crit
-                target.hp = max(0, target.hp - damage)
-                self.action_log.append(
-                    f"  {m.emoji} {m.name} backstabs for {damage} critical damage!"
-                )
-                if target.hp <= 0:
-                    self.action_log.append(f"  [green]{target.emoji} {target.name} defeated![/green]")
-                    self.monsters_defeated += 1
+            # Hide — spend a turn becoming hidden. Next attack is a 2.5x backstab.
+            if m.hidden:
+                # Already hidden — just attack with backstab bonus
+                self.combat_attack()
+                return
+            m.hidden = True
+            self.action_log.append(
+                f"  {m.emoji} {m.name} slips into the shadows... [dim](next attack: BACKSTAB)[/dim]"
+            )
 
         elif m.buddy_class == BuddyClass.MAGE:
             # AoE — hit all enemies for reduced damage
@@ -777,13 +818,19 @@ class CrawlState:
                         self.monsters_defeated += 1
 
         elif m.buddy_class == BuddyClass.PALADIN:
-            # Heal — restore HP to weakest party member
+            # Heal — restore HP to weakest, cure one status effect
             weakest = min((a for a in self.party if a.is_alive), key=lambda a: a.hp)
             heal = 10 + m.buddy_state.stats.get("patience", 10) // 3
             weakest.hp = min(weakest.max_hp, weakest.hp + heal)
             self.action_log.append(
                 f"  {m.emoji} {m.name} heals {weakest.emoji} {weakest.name} for {heal} HP!"
             )
+            # Cure one status effect
+            if weakest.status_effects:
+                cured = weakest.status_effects.pop(0)
+                self.action_log.append(
+                    f"  [green]{m.emoji} {m.name} cures {weakest.emoji} {weakest.name}'s {cured.value}![/green]"
+                )
 
         m.defending = False
         self._advance_combat_turn()
@@ -844,14 +891,47 @@ class CrawlState:
     def _enemy_turn(self):
         """All enemies attack."""
         self.action_log.append("")
+
+        # Process status effects on party at start of enemy phase
+        for m in self.party:
+            if not m.is_alive:
+                continue
+            if StatusEffect.POISON in m.status_effects:
+                poison_dmg = max(1, 3 + self.floor)
+                m.hp = max(0, m.hp - poison_dmg)
+                self.action_log.append(f"  [magenta]🧪 {m.emoji} {m.name} takes {poison_dmg} poison damage![/magenta]")
+                if m.hp <= 0:
+                    self.action_log.append(f"  [red]{m.emoji} {m.name} falls to poison![/red]")
+                # 30% chance to clear each turn
+                if random.random() < 0.30:
+                    m.status_effects.remove(StatusEffect.POISON)
+                    self.action_log.append(f"  [green]{m.emoji} {m.name} shakes off the poison![/green]")
+            # Silence clears after 1 enemy turn
+            if StatusEffect.SILENCE in m.status_effects:
+                if random.random() < 0.50:
+                    m.status_effects.remove(StatusEffect.SILENCE)
+                    self.action_log.append(f"  [green]{m.emoji} {m.name} can use skills again.[/green]")
+
         alive_party = [m for m in self.party if m.is_alive]
 
         for enemy in self.combat_enemies:
             if enemy.hp <= 0 or not alive_party:
                 continue
 
-            # Pick target
-            target = random.choice(alive_party)
+            # Wizardry VI-style targeting: prefer front row (70/30 split)
+            front = [m for m in alive_party if m.row == "front"]
+            back = [m for m in alive_party if m.row == "back"]
+            if front and back:
+                target = random.choice(front) if random.random() < 0.70 else random.choice(back)
+            elif front:
+                target = random.choice(front)
+            else:
+                target = random.choice(back if back else alive_party)
+
+            # Hidden rogues are harder to hit
+            if target.hidden and random.random() < 0.5:
+                self.action_log.append(f"  {enemy.emoji} {enemy.name} swings at shadows — {target.emoji} {target.name} dodges!")
+                continue
             move = random.choice(enemy.moves) if enemy.moves else Move("Hit", MoveType.CHAOS, 5, 0.85, "Ouch.")
 
             # Accuracy check
@@ -866,10 +946,24 @@ class CrawlState:
             if target.defending:
                 damage = max(1, damage // 2)
 
+            # Back row defense bonus — take 25% less damage from melee
+            if target.row == "back" and move.move_type != MoveType.HACK:
+                damage = max(1, int(damage * 0.75))
+
             target.hp = max(0, target.hp - damage)
             self.action_log.append(
                 f"  {enemy.emoji} {enemy.name} hits {target.emoji} {target.name} for {damage}!"
             )
+
+            # Status effect chance from certain move types
+            if target.is_alive and move.move_type == MoveType.CHAOS and random.random() < 0.20:
+                if StatusEffect.POISON not in target.status_effects:
+                    target.status_effects.append(StatusEffect.POISON)
+                    self.action_log.append(f"  [magenta]🧪 {target.emoji} {target.name} is poisoned![/magenta]")
+            elif target.is_alive and move.move_type == MoveType.HACK and random.random() < 0.15:
+                if StatusEffect.SILENCE not in target.status_effects:
+                    target.status_effects.append(StatusEffect.SILENCE)
+                    self.action_log.append(f"  [magenta]🔇 {target.emoji} {target.name} is silenced![/magenta]")
 
             if target.hp <= 0:
                 self.action_log.append(f"  [red]{target.emoji} {target.name} falls![/red]")
@@ -889,6 +983,11 @@ class CrawlState:
     def _end_combat(self, won: bool):
         """End combat."""
         self.in_combat = False
+        # Clear all status effects and hidden state on combat end
+        for m in self.party:
+            m.status_effects.clear()
+            m.hidden = False
+            m.defending = False
 
         if won:
             gold = random.randint(5, 15) * self.floor
