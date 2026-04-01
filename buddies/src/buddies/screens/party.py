@@ -9,7 +9,7 @@ import asyncio
 import json
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Vertical, Center, ScrollableContainer
+from textual.containers import Vertical, ScrollableContainer
 from textual.widgets import Static, Input, Footer
 from textual.screen import Screen
 
@@ -25,13 +25,10 @@ class PartyScreen(Screen):
 
     CSS = """
     PartyScreen {
-        align: center middle;
         background: $background;
     }
 
     #party-scroll {
-        width: 96%;
-        max-width: 100;
         height: 1fr;
         border: double $primary;
         padding: 1 1;
@@ -98,9 +95,8 @@ class PartyScreen(Screen):
         self._renaming = False
 
     def compose(self) -> ComposeResult:
-        with Center():
-            with ScrollableContainer(id="party-scroll"):
-                with Vertical(id="party-container"):
+        with ScrollableContainer(id="party-scroll"):
+            with Vertical(id="party-container"):
                     yield Static("🐾 BUDDY PARTY 🐾", id="party-title")
                     yield Vertical(id="buddies-list")
                     yield Static(
@@ -154,8 +150,8 @@ class PartyScreen(Screen):
             stage = get_evolution_stage(level)
             stage_str = stage["name"][:4]  # Hatc/Juv/Adul/Elde
 
-            # Buddy name (truncated)
-            buddy_name = buddy.get("name", "Buddy")[:12]
+            # Buddy name
+            buddy_name = buddy.get("name", "Buddy")[:20]
 
             # Hat info
             hat = buddy.get("hat")
@@ -170,11 +166,11 @@ class PartyScreen(Screen):
                     hats_owned = []
             hat_count = len(hats_owned) if isinstance(hats_owned, list) else 0
 
-            # Format: ★ species  name  L5 Juv  🎩x2
+            # Format: ★ species  name  L5 Juv  🎩hat
             text = (
                 f"{is_selected}{is_active}"
-                f"[{color}]{species_name[:8]:<8}[/] "
-                f"{buddy_name:<12} "
+                f"[{color}]{species_name:<14}[/] "
+                f"{buddy_name:<20} "
                 f"L{level:<3}"
                 f"[dim]{stage_str}[/]"
                 f"{hat_str}"

@@ -6,7 +6,7 @@ import asyncio
 from pathlib import Path
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Vertical, Center, ScrollableContainer
+from textual.containers import Vertical, ScrollableContainer
 from textual.widgets import Static, Footer
 from textual.screen import Screen
 
@@ -38,13 +38,10 @@ class ConfigHealthScreen(Screen):
 
     CSS = """
     ConfigHealthScreen {
-        align: center middle;
         background: $background;
     }
 
     #health-scroll {
-        width: 96%;
-        max-width: 120;
         height: 1fr;
         border: double $primary;
         padding: 1 1;
@@ -115,9 +112,8 @@ class ConfigHealthScreen(Screen):
         self._intel: ConfigIntelligence | None = None
 
     def compose(self) -> ComposeResult:
-        with Center():
-            with ScrollableContainer(id="health-scroll"):
-                with Vertical(id="health-container"):
+        with ScrollableContainer(id="health-scroll"):
+            with Vertical(id="health-container"):
                     yield Static("🩺 CONFIG HEALTH 🩺", id="health-title")
                     yield Static("", id="health-grade")
                     yield Static("", id="health-claude-md")

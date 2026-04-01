@@ -14,7 +14,7 @@ import os
 
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Vertical, Center, VerticalScroll
+from textual.containers import Vertical, VerticalScroll
 from textual.widgets import Static, Input, Button
 from textual.screen import Screen
 
@@ -51,13 +51,10 @@ class HatchScreen(Screen):
 
     CSS = """
     HatchScreen {
-        align: center middle;
         background: $background;
     }
 
     #hatch-scroll {
-        width: 80%;
-        max-width: 70;
         height: 1fr;
         border: double $primary;
         padding: 1 1;
@@ -73,6 +70,8 @@ class HatchScreen(Screen):
         text-align: center;
         text-style: bold;
         color: $text;
+        height: 1;
+        margin: 1 0 0 0;
     }
 
     #sprite-preview {
@@ -88,16 +87,17 @@ class HatchScreen(Screen):
     }
 
     #seed-input {
-        margin: 0;
+        margin: 0 1;
     }
 
     #name-input {
-        margin: 0;
+        margin: 0 1;
     }
 
     #button-row {
         align: center middle;
         height: auto;
+        margin: 0 1;
     }
 
     Button {
@@ -114,9 +114,8 @@ class HatchScreen(Screen):
         self._roll_count = 0
 
     def compose(self) -> ComposeResult:
-        with Center():
-            with VerticalScroll(id="hatch-scroll"):
-                with Vertical(id="hatch-container"):
+        with VerticalScroll(id="hatch-scroll"):
+            with Vertical(id="hatch-container"):
                     yield Static("🥚 HATCH A NEW BUDDY 🥚", id="hatch-title")
                     yield Static("", id="sprite-preview")
                     yield Static("", id="species-info")

@@ -9,7 +9,7 @@ from __future__ import annotations
 import asyncio
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Vertical, Center, ScrollableContainer
+from textual.containers import Vertical, ScrollableContainer
 from textual.widgets import Static, Input, Footer
 from textual.screen import Screen
 
@@ -21,13 +21,10 @@ class ToolBrowserScreen(Screen):
 
     CSS = """
     ToolBrowserScreen {
-        align: center middle;
         background: $background;
     }
 
     #tools-scroll {
-        width: 96%;
-        max-width: 120;
         height: 1fr;
         border: double $primary;
         padding: 1 1;
@@ -92,9 +89,8 @@ class ToolBrowserScreen(Screen):
         self.selected_idx = 0
 
     def compose(self) -> ComposeResult:
-        with Center():
-            with ScrollableContainer(id="tools-scroll"):
-                with Vertical(id="tools-container"):
+        with ScrollableContainer(id="tools-scroll"):
+            with Vertical(id="tools-container"):
                     yield Static("🔍 TOOL BROWSER 🔍", id="tools-title")
                     yield Input(
                         placeholder="Type to filter...",
@@ -142,11 +138,11 @@ class ToolBrowserScreen(Screen):
             source_badge = f"[{source_color}]{tool.source}[/]"
 
             # Truncate description
-            desc = tool.description[:55]
+            desc = tool.description[:80]
 
             text = (
                 f"{is_selected}"
-                f"{tool.icon} [bold]{tool.name:<20}[/] "
+                f"{tool.icon} [bold]{tool.name:<25}[/] "
                 f"{source_badge:<10} "
                 f"[dim]{desc}[/]"
                 f"{end_tag}"

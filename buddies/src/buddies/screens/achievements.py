@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Vertical, Center, ScrollableContainer
+from textual.containers import Vertical, ScrollableContainer
 from textual.widgets import Static, Footer
 from textual.screen import Screen
 
@@ -16,13 +16,10 @@ class AchievementsScreen(Screen):
 
     CSS = """
     AchievementsScreen {
-        align: center middle;
         background: $background;
     }
 
     #achv-scroll {
-        width: 96%;
-        max-width: 120;
         height: 1fr;
         border: double $primary;
         padding: 1 1;
@@ -78,9 +75,8 @@ class AchievementsScreen(Screen):
         self.unlocked_ids = unlocked_ids
 
     def compose(self) -> ComposeResult:
-        with Center():
-            with ScrollableContainer(id="achv-scroll"):
-                with Vertical(id="achv-container"):
+        with ScrollableContainer(id="achv-scroll"):
+            with Vertical(id="achv-container"):
                     yield Static("🏆 ACHIEVEMENTS 🏆", id="achv-title")
                     yield Static("", id="achv-progress")
                     yield Vertical(id="achv-list")

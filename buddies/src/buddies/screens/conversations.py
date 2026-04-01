@@ -6,7 +6,7 @@ import asyncio
 from datetime import datetime
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Vertical, Center, ScrollableContainer
+from textual.containers import Vertical, ScrollableContainer
 from textual.widgets import Static, Input, Footer
 from textual.screen import Screen
 
@@ -23,13 +23,10 @@ class ConversationsScreen(Screen):
 
     CSS = """
     ConversationsScreen {
-        align: center middle;
         background: $background;
     }
 
     #convos-scroll {
-        width: 96%;
-        max-width: 120;
         height: 1fr;
         border: double $primary;
         padding: 1 1;
@@ -96,9 +93,8 @@ class ConversationsScreen(Screen):
         self._renaming = False
 
     def compose(self) -> ComposeResult:
-        with Center():
-            with ScrollableContainer(id="convos-scroll"):
-                with Vertical(id="convos-container"):
+        with ScrollableContainer(id="convos-scroll"):
+            with Vertical(id="convos-container"):
                     yield Static("💾 CONVERSATIONS 💾", id="convos-title")
                     yield Static("", id="convos-count")
                     yield Vertical(id="convos-list")
@@ -139,15 +135,15 @@ class ConversationsScreen(Screen):
                 date_str = "??/??"
 
             # Truncate name and preview
-            name = convo.name[:25]
-            preview = convo.preview[:30] if convo.preview else ""
-            buddy = convo.buddy_name[:10] if convo.buddy_name else ""
+            name = convo.name[:35]
+            preview = convo.preview[:50] if convo.preview else ""
+            buddy = convo.buddy_name[:15] if convo.buddy_name else ""
 
             text = (
                 f"{is_selected}"
-                f"[bold]{name:<25}[/] "
+                f"[bold]{name:<35}[/] "
                 f"[dim]{date_str}[/] "
-                f"[cyan]{buddy:<10}[/] "
+                f"[cyan]{buddy:<15}[/] "
                 f"[dim]{convo.message_count:>3} msgs[/] "
                 f"[dim italic]{preview}[/]"
                 f"{end_tag}"
