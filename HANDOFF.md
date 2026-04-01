@@ -642,13 +642,21 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 
 ### New files
 - `core/games/mud_world.py` — World engine (rooms, NPCs, items, quests)
-- `core/games/mud_engine.py` — Command parser, combat, game loop
+- `core/games/mud_engine.py` — Command parser, combat, game loop, world events, room reactions
 - `screens/game_mud.py` — TUI screen with sidebar
-- `tests/test_mud.py` — 45 tests
+- `tests/test_mud.py` — 73 tests
+
+### Completed (continued — same session, 3 commits)
+- ✅ **World Expansion** — 6 new rooms (QA Lab, Testing Grounds, Standup Room, Incident Channel, Archive, Kubernetes Cluster), 7 new NPCs (Priya QA Lead, Todd Scrum Master, Marcus Oncall Engineer, Flaky Test Swarm, Memory Leak, CrashLoopBackoff, Container Registry), 2 new quests (Flaky Hunt, Blameless Post-Mortem), 15+ new items
+- ✅ **Sell command** — sell junk/cosmetics to merchants at half value, prevents selling key/quest items
+- ✅ **Random world events** — 20 events (Slack alerts, deploy sirens, passive-aggressive printers) fire ~20% of the time after commands
+- ✅ **Personality-driven room reactions** — 13 rooms × 5 stats = 65+ unique lines. Buddies react to specific locations based on their dominant stat (CHAOS wants to pull cables, SNARK roasts the root password, WISDOM philosophizes)
+- ✅ **73 MUD tests, 207 total** across the full suite
 
 ### Direction
-- Tier 5b Phase 1 complete! Local MUD is playable
+- Tier 5b Phase 1 complete and polished! Local MUD has 17 rooms, 17 NPCs, 6 quests, 40+ items
 - Phase 2 (Multiplayer) next — GitHub Issues for persistent world state
 - The world is designed to be expandable: add rooms/NPCs/quests by extending build_starter_* functions
-- Boss fight (Technical Debt Dragon) requires finding keys through quests first — progression chain works
+- Multiple quest chains create progression: QA quest → Archive badge → find incident report → get Oncall Pager
+- Pipeline quest → VPN token → Cloud District → Kubernetes Cluster
 - Now 10 games in the arcade
