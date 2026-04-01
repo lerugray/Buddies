@@ -274,6 +274,117 @@ def _buddy_comment(party: list[BuddyState], context: str) -> str | None:
     return random.choice(pool).format(name=buddy.name, emoji=buddy.species.emoji)
 
 
+# Room-specific buddy reactions — personality × location = unique flavor
+ROOM_REACTIONS: dict[str, dict[str, list[str]]] = {
+    "server_room": {
+        "debugging": ["{name}: \"Finally, my element. Look at those status LEDs. Beautiful.\""],
+        "chaos": ["{name}: \"So many blinking lights... what happens if I pull this cable?\"", "{name}: \"BLINKY LIGHTS! I want to touch ALL of them!\""],
+        "snark": ["{name}: \"Ah yes, the room where 'it works on my machine' comes to die.\""],
+        "wisdom": ["{name}: \"The hum of servers... like a digital monastery.\""],
+        "patience": ["{name}: \"It's cold in here. But kind of peaceful.\""],
+    },
+    "root_chamber": {
+        "debugging": ["{name}: \"root access... I can feel the power. And the responsibility.\""],
+        "chaos": ["{name}: \"sudo rm -rf /  ...just kidding. ...unless?\""],
+        "snark": ["{name}: \"hunter2? THAT'S the root password? We deserve to be hacked.\""],
+        "wisdom": ["{name}: \"With great root access comes great sudo responsibility.\""],
+        "patience": ["{name}: \"Let's... be very careful what we type here.\""],
+    },
+    "cloud_district": {
+        "debugging": ["{name}: \"The abstractions here go all the way down. There is no bottom.\""],
+        "chaos": ["{name}: \"Nothing is real up here! I love it! Everything is VIBES!\""],
+        "snark": ["{name}: \"The cloud is just someone else's computer. And they charge by the second.\""],
+        "wisdom": ["{name}: \"Somewhere beneath all this... there's still a computer in a room.\""],
+        "patience": ["{name}: \"It's actually quite serene up here. If you ignore the billing.\""],
+    },
+    "dead_code_garden": {
+        "debugging": ["{name}: \"All this code... perfectly functional. Never called. Tragic.\""],
+        "chaos": ["{name}: \"I bet if we un-commented this one function the whole app would—\" \"NO.\""],
+        "snark": ["{name}: \"'Temporary fix from 2019.' It's been here longer than most employees.\""],
+        "wisdom": ["{name}: \"Even dead code was written with hope. Remember that.\""],
+        "patience": ["{name}: \"It's quiet here. Even the bugs have moved on.\""],
+    },
+    "break_room": {
+        "debugging": ["{name}: \"The fridge... I could optimize the food placement algorithm.\""],
+        "chaos": ["{name}: \"I'm going to microwave fish. I don't care about the consequences.\""],
+        "snark": ["{name}: \"The passive-aggressive notes on the fridge are the real codebase.\""],
+        "wisdom": ["{name}: \"Coffee: the true fuel of all software. Respect the bean.\""],
+        "patience": ["{name}: \"A break room. Finally, somewhere to just... be.\""],
+    },
+    "meeting_room": {
+        "debugging": ["{name}: \"This whiteboard... it's like a stack trace for ideas. All wrong.\""],
+        "chaos": ["{name}: \"WHAT IF we added blockchain? And AI? And a social component? AND—\""],
+        "snark": ["{name}: \"This meeting could have been an email. Or better yet, nothing.\""],
+        "wisdom": ["{name}: \"The ambition on this whiteboard is... aspirational.\""],
+        "patience": ["{name}: \"I'll just sit quietly until this is over.\""],
+    },
+    "qa_lab": {
+        "debugging": ["{name}: \"A QA lab! Where broken things get found before they break worse.\""],
+        "chaos": ["{name}: \"Tests?! I don't need tests! I AM the test! Ship it!\""],
+        "snark": ["{name}: \"848 tests. One failure. And THAT'S the one everyone will remember.\""],
+        "wisdom": ["{name}: \"The test pyramid... a philosophy as much as a practice.\""],
+        "patience": ["{name}: \"Every test is a promise. Let's make sure they're kept.\""],
+    },
+    "testing_grounds": {
+        "debugging": ["{name}: \"This is a controlled environment. Sort of. If you squint.\""],
+        "chaos": ["{name}: \"FLAKY TESTS! My favorite! They're like little chaotic butterflies!\""],
+        "snark": ["{name}: \"The tests don't lie. They just... mislead occasionally.\""],
+        "wisdom": ["{name}: \"A test that sometimes fails is worse than no test at all.\""],
+        "patience": ["{name}: \"These poor test cases. Let's put them to rest.\""],
+    },
+    "standup_room": {
+        "debugging": ["{name}: \"'No blockers.' Everyone says 'no blockers.' Everyone has blockers.\""],
+        "chaos": ["{name}: \"I'm blocked on everything and nothing simultaneously!\""],
+        "snark": ["{name}: \"Standups: where 15 minutes becomes 2 hours of people talking.\""],
+        "wisdom": ["{name}: \"The ritual of the standup... it brings order to chaos. Theoretically.\""],
+        "patience": ["{name}: \"I'll wait. I have all day. Apparently so does this meeting.\""],
+    },
+    "incident_channel": {
+        "debugging": ["{name}: \"SEV1. Time to focus. What are the error logs saying?\""],
+        "chaos": ["{name}: \"EVERYTHING IS ON FIRE THIS IS FINE I'M HAVING A GREAT TIME\""],
+        "snark": ["{name}: \"'Blameless post-mortem.' Sure. And I'm a natural blonde.\""],
+        "wisdom": ["{name}: \"Every incident is a lesson. This one... is a master class.\""],
+        "patience": ["{name}: \"Deep breaths. We'll get through this. One alert at a time.\""],
+    },
+    "archive": {
+        "debugging": ["{name}: \"The First Commit... HTML with inline styles. We've come so far. Sort of.\""],
+        "chaos": ["{name}: \"What happens if I rm -rf the archive? HYPOTHETICALLY.\""],
+        "snark": ["{name}: \"'Won't Fix' filing cabinet? That's not a cabinet, that's a graveyard.\""],
+        "wisdom": ["{name}: \"History sleeps here. And with it, all the lessons we keep not learning.\""],
+        "patience": ["{name}: \"It's peaceful in here. Like a library for broken dreams.\""],
+    },
+    "kubernetes_cluster": {
+        "debugging": ["{name}: \"Container orchestration. It's like herding cats, but the cats are on fire.\""],
+        "chaos": ["{name}: \"SCALE TO INFINITY! SPIN UP ALL THE PODS! THE BILLING CAN'T CATCH ME!\""],
+        "snark": ["{name}: \"'Kubernetes makes things simpler.' That's what they said. They lied.\""],
+        "wisdom": ["{name}: \"The cluster is a living organism. It breathes. It scales. It crashes.\""],
+        "patience": ["{name}: \"Let's just... not touch anything. It's working. Somehow.\""],
+    },
+    "parking_garage": {
+        "debugging": ["{name}: \"The WiFi signal is stronger down here. That's... concerning.\""],
+        "chaos": ["{name}: \"I bet I could hotwire one of these Teslas. For science.\""],
+        "snark": ["{name}: \"Someone is literally living in the parking garage. Peak tech culture.\""],
+        "wisdom": ["{name}: \"Even the parking garage tells a story. A sad, concrete story.\""],
+        "patience": ["{name}: \"Nobody comes down here. It's... kind of nice, actually.\""],
+    },
+}
+
+
+def _room_reaction(party: list[BuddyState], room_id: str) -> str | None:
+    """Get a room-specific buddy reaction (higher priority than generic)."""
+    if not party:
+        return None
+    room_pool = ROOM_REACTIONS.get(room_id)
+    if not room_pool:
+        return None
+    buddy = random.choice(party)
+    dominant = max(buddy.stats, key=buddy.stats.get)
+    lines = room_pool.get(dominant, [])
+    if not lines:
+        return None
+    return random.choice(lines).format(name=buddy.name, emoji=buddy.species.emoji)
+
+
 # ---------------------------------------------------------------------------
 # Random world events — things that happen as you explore
 # ---------------------------------------------------------------------------
@@ -424,10 +535,14 @@ def _handle_go(state: MudState, direction: str) -> list[str]:
 
     lines.extend(_handle_look(state, ""))
 
-    # Buddy commentary
-    comment = _buddy_comment(state.party, "enter_room")
-    if comment and random.random() < 0.4:
-        lines.append(f"\n{comment}")
+    # Buddy commentary — room-specific reactions first, then generic
+    reaction = _room_reaction(state.party, state.current_room)
+    if reaction and random.random() < 0.6:
+        lines.append(f"\n{reaction}")
+    elif random.random() < 0.3:
+        comment = _buddy_comment(state.party, "enter_room")
+        if comment:
+            lines.append(f"\n{comment}")
 
     state.turns += 1
     return lines

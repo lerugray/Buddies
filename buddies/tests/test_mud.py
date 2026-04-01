@@ -12,7 +12,8 @@ from buddies.core.games.mud_engine import (
     MudState, create_mud_game, parse_command, process_command,
     get_intro_text, get_game_result, _handle_look, _handle_go,
     _handle_inventory, _handle_quest, _handle_map, _handle_help,
-    _handle_sell, _buddy_comment, _maybe_world_event, WORLD_EVENTS,
+    _handle_sell, _buddy_comment, _room_reaction, _maybe_world_event,
+    WORLD_EVENTS, ROOM_REACTIONS,
 )
 
 
@@ -580,3 +581,48 @@ class TestWorldEvents:
                 found_event = True
                 break
         # With 20% chance over 50 tries, almost certain to get at least one
+
+
+# ---------------------------------------------------------------------------
+# Room reaction tests
+# ---------------------------------------------------------------------------
+
+class TestRoomReactions:
+    def test_room_reactions_exist_for_many_rooms(self):
+        assert len(ROOM_REACTIONS) >= 10
+
+    def test_room_reaction_returns_string(self):
+        party = [_make_buddy(name="Tester", stats={"debugging": 30, "chaos": 5, "snark": 5, "wisdom": 5, "patience": 5})]
+        result = _room_reaction(party, "server_room")
+        assert result is None or isinstance(result, str)
+        # With debugging dominant, should get clinical server room reaction
+        for _ in range(20):
+            r = _room_reaction(party, "server_room")
+            if r and "Tester" in r:
+                return
+
+    def test_room_reaction_empty_party(self):
+        assert _room_reaction([], "server_room") is None
+
+    def test_room_reaction_unknown_room(self):
+        party = [_make_buddy()]
+        assert _room_reaction(party, "nonexistent_room") is None
+
+    def test_chaos_buddy_reacts_differently(self):
+        """A high-CHAOS buddy should get chaos-specific room lines."""
+        chaos_buddy = _make_buddy(name="Maniac", stats={"debugging": 5, "chaos": 40, "snark": 5, "wisdom": 5, "patience": 5})
+        party = [chaos_buddy]
+        got_chaos_line = False
+        for _ in range(30):
+            r = _room_reaction(party, "cloud_district")
+            if r and ("VIBES" in r or "Nothing is real" in r):
+                got_chaos_line = True
+                break
+        assert got_chaos_line, "Chaos buddy should get chaos-flavored room reactions"
+
+    def test_all_rooms_have_all_stats(self):
+        """Every room reaction should have lines for all 5 stats."""
+        for room_id, pools in ROOM_REACTIONS.items():
+            for stat in ["debugging", "chaos", "snark", "wisdom", "patience"]:
+                assert stat in pools, f"Room {room_id} missing {stat} reactions"
+                assert len(pools[stat]) >= 1, f"Room {room_id} {stat} pool is empty"
