@@ -42,6 +42,7 @@ from buddies.core.token_guardian import TokenGuardian
 from buddies.themes import BUDDY_THEMES, THEME_ORDER, next_theme
 from buddies.core.achievements import check_achievements, ACHIEVEMENT_MAP
 from buddies.screens.achievements import AchievementsScreen
+from buddies.core.model_tracker import ModelTracker
 
 
 CSS_PATH = Path(__file__).parent / "styles" / "buddy.tcss"
@@ -86,6 +87,7 @@ class BuddyApp(App):
         self.convo_log = ConversationLog()
         self.session_learner = SessionLearner()
         self.token_guardian = TokenGuardian()
+        self.model_tracker = ModelTracker()
         self._rules_suggested: list[str] = []
         self._unlocked_achievements: set[str] = set()
         self._messages_sent: int = 0
@@ -185,6 +187,10 @@ class BuddyApp(App):
         # Achievements: load unlocked and start periodic check
         asyncio.create_task(self._load_achievements())
         self._achievement_check_task = asyncio.create_task(self._achievement_check_loop())
+
+        # Phase 11: Model tracker — show initial model and start phase checks
+        self._model_phase_task = asyncio.create_task(self._model_phase_loop())
+        self._update_model_display()
 
     async def _show_ai_status(self):
         ai_available = await self.ai_backend.is_available()
@@ -441,6 +447,22 @@ class BuddyApp(App):
                 monitor.log_event("info", f"Token warning: {int(warning.threshold * 100)}%")
             except Exception:
                 pass
+
+        # Phase 11: Feed event to model tracker for phase detection
+        phase_change = self.model_tracker.observe_event(
+            event.event_type, event.tool_name, event.summary, event.raw_data
+        )
+        if phase_change:
+            self._update_model_display()
+            if phase_change.is_mismatch and phase_change.suggestion:
+                try:
+                    chat = self.query_one("#chat-panel", ChatWindow)
+                    chat.add_message("buddy", f"💡 {phase_change.suggestion}")
+                except Exception:
+                    pass
+        # Update model display if SessionStart brought a new model
+        if event.event_type == "SessionStart":
+            self._update_model_display()
 
         # Animate buddy — speed up during active sessions
         try:
@@ -889,6 +911,35 @@ class BuddyApp(App):
         except Exception:
             pass
 
+    def _update_model_display(self):
+        """Update the session monitor with current model and phase info."""
+        try:
+            monitor = self.query_one("#session-panel", SessionMonitor)
+            info = self.model_tracker.current_model_info
+            phase_info = self.model_tracker.phase_info
+            monitor.update_model(
+                model_name=info["name"] or "unknown",
+                model_color=info["color"],
+                phase=self.model_tracker.current_phase,
+                phase_icon=phase_info.get("icon", ""),
+            )
+        except Exception:
+            pass
+
+    async def _model_phase_loop(self):
+        """Periodically check for work phase changes."""
+        while True:
+            await asyncio.sleep(30)
+            phase_change = self.model_tracker.check_phase()
+            if phase_change:
+                self._update_model_display()
+                if phase_change.is_mismatch and phase_change.suggestion:
+                    try:
+                        chat = self.query_one("#chat-panel", ChatWindow)
+                        chat.add_message("buddy", f"💡 {phase_change.suggestion}")
+                    except Exception:
+                        pass
+
     def action_cycle_theme(self):
         """Cycle through available themes."""
         self._themes_changed += 1
@@ -908,7 +959,7 @@ class BuddyApp(App):
 
     async def on_unmount(self):
         self.observer.stop()
-        for task_name in ('_observer_task', '_rule_check_task', '_idle_thought_task', '_mood_decay_task', '_rolling_summary_task', '_achievement_check_task'):
+        for task_name in ('_observer_task', '_rule_check_task', '_idle_thought_task', '_mood_decay_task', '_rolling_summary_task', '_achievement_check_task', '_model_phase_task'):
             task = getattr(self, task_name, None)
             if task:
                 task.cancel()

@@ -41,6 +41,7 @@ class SessionStats:
     error_count: int = 0
     edit_count: int = 0
     files_touched: set = field(default_factory=set)
+    current_model: str = ""
 
     @property
     def duration_minutes(self) -> float:
@@ -218,6 +219,12 @@ class SessionObserver:
         self.stats.event_count += 1
         self.stats.tokens_estimated += event.tokens_estimated
         self._recent_events.append(event)
+
+        # Capture model from SessionStart events
+        if event.event_type == "SessionStart":
+            model = event.raw_data.get("model", "")
+            if model:
+                self.stats.current_model = model
 
         if event.tool_name:
             self.stats.tool_counts[event.tool_name] += 1

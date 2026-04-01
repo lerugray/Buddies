@@ -66,6 +66,10 @@ def main():
         "session_id": data.get("session_id", ""),
     }
 
+    # SessionStart includes model name — preserve it
+    if event_type == "SessionStart" and "model" in data:
+        event_data["model"] = data["model"]
+
     # For PostToolUse, include result summary
     if event_type == "PostToolUse":
         result = data.get("tool_result", data.get("result", ""))

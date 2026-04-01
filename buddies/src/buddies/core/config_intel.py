@@ -250,6 +250,16 @@ class ConfigIntelligence:
                 "<!-- Key context about this project that Claude should know -->\n"
                 "<!-- Example: 'This is a Python TUI app using Textual framework' -->\n"
             ),
+            "model-routing.md": (
+                "# Model Routing Preferences\n\n"
+                "When choosing which model to use for different tasks:\n\n"
+                "- **Commits, git operations, simple file reads**: prefer Haiku (fast, cheap)\n"
+                "- **Implementation after a plan is established**: prefer Sonnet (capable, moderate cost)\n"
+                "- **Architecture planning, design discussions, complex debugging**: prefer Opus (best quality)\n"
+                "- **Exploring codebase, searching for patterns**: prefer Sonnet\n\n"
+                "If the user seems to be in a different work phase than what the current model is suited for,\n"
+                "suggest switching models with `/model <model-name>`.\n"
+            ),
         }
 
         for filename, content in files.items():

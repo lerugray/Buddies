@@ -26,8 +26,14 @@ class SessionMonitor(Vertical):
         padding: 0 1;
     }
 
+    SessionMonitor #session-model {
+        height: 1;
+        padding: 0 1;
+        text-style: bold;
+    }
+
     SessionMonitor #session-stats {
-        height: 3;
+        height: 2;
         padding: 0 1;
     }
 
@@ -41,9 +47,12 @@ class SessionMonitor(Vertical):
         super().__init__(**kwargs)
         self.total_tokens = 0
         self.session_events = 0
+        self._current_model = ""
+        self._current_phase = ""
 
     def compose(self) -> ComposeResult:
         yield Static("📡 Session Monitor", id="session-header")
+        yield Static("", id="session-model")
         yield Static(self._stats_text(), id="session-stats")
         yield RichLog(id="session-log", wrap=True, highlight=True, markup=True)
 
@@ -52,6 +61,20 @@ class SessionMonitor(Vertical):
             f"Events: [bold]{self.session_events}[/]  "
             f"Tokens: [bold]~{self.total_tokens:,}[/]"
         )
+
+    def update_model(self, model_name: str, model_color: str = "dim",
+                     phase: str = "", phase_icon: str = ""):
+        """Update the model display in the monitor."""
+        self._current_model = model_name
+        self._current_phase = phase
+        try:
+            model_widget = self.query_one("#session-model", Static)
+            parts = [f"[{model_color}]⚡ {model_name}[/]"]
+            if phase and phase_icon:
+                parts.append(f" {phase_icon} [dim]{phase}[/]")
+            model_widget.update("".join(parts))
+        except Exception:
+            pass
 
     def log_event(self, event_type: str, summary: str, tokens: int = 0):
         self.session_events += 1
