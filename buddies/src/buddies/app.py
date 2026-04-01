@@ -38,6 +38,7 @@ from buddies.screens.conversations import ConversationsScreen
 from buddies.screens.config_health import ConfigHealthScreen
 from buddies.core.conversation import ConversationLog
 from buddies.core.config_intel import ConfigIntelligence, SessionLearner, generate_session_summary
+from buddies.core.token_guardian import TokenGuardian
 
 
 CSS_PATH = Path(__file__).parent / "styles" / "buddy.tcss"
@@ -59,6 +60,7 @@ class BuddyApp(App):
         Binding("t", "tools", "Tools", show=True),
         Binding("c", "conversations", "Convos", show=True),
         Binding("g", "config_health", "Config", show=True),
+        Binding("f1", "quick_save", "Save", show=True),
     ]
 
     def __init__(self):
@@ -73,6 +75,7 @@ class BuddyApp(App):
         self.prose = ProseEngine()
         self.convo_log = ConversationLog()
         self.session_learner = SessionLearner()
+        self.token_guardian = TokenGuardian()
         self._rules_suggested: list[str] = []
         self._last_thought_time: float = 0
         self._recent_tools: list[str] = []
@@ -158,6 +161,9 @@ class BuddyApp(App):
         # Phase 9: Config health check on startup
         asyncio.create_task(self._startup_config_check())
 
+        # Phase 10: Rolling session summary writer
+        self._rolling_summary_task = asyncio.create_task(self._rolling_summary_loop())
+
     async def _show_ai_status(self):
         ai_available = await self.ai_backend.is_available()
         chat = self.query_one("#chat-panel", ChatWindow)
@@ -232,6 +238,9 @@ class BuddyApp(App):
         else:
             response = self._buddy_respond(message)
             chat.add_message("buddy", response)
+
+        # Phase 10: Track user messages for rolling summary
+        self.token_guardian.observe_user_message(message)
 
         # Phase 9: Session learner — watch for repeated corrections
         learned_rule = self.session_learner.observe(message)
@@ -389,6 +398,24 @@ class BuddyApp(App):
             monitor.log_event(category, event.summary, event.tokens_estimated)
         except Exception:
             pass
+
+        # Phase 10: Feed event to token guardian for tracking
+        self.token_guardian.observe_event(
+            event.tool_name, event.summary, event.raw_data
+        )
+
+        # Phase 10: Check for token usage warnings
+        warning = self.token_guardian.check_token_warning(
+            self.observer.stats.tokens_estimated
+        )
+        if warning:
+            try:
+                chat = self.query_one("#chat-panel", ChatWindow)
+                chat.add_message("buddy", warning.message)
+                monitor = self.query_one("#session-panel", SessionMonitor)
+                monitor.log_event("info", f"Token warning: {int(warning.threshold * 100)}%")
+            except Exception:
+                pass
 
         # Animate buddy — speed up during active sessions
         try:
@@ -593,7 +620,7 @@ class BuddyApp(App):
         chat.add_system("Simple questions → handled locally (saves Claude tokens)")
         chat.add_system("Complex questions → buddy tells you to ask Claude")
         chat.add_system("Commands: 'stats' 'help' 'name' 'session' 'tokens'")
-        chat.add_system("Keys: [q] quit  [?] help  [r] hatch  [p] party  [d] discuss  [t] tools  [c] convos  [g] config  [F5] refresh")
+        chat.add_system("Keys: [q] quit  [?] help  [r] hatch  [p] party  [d] discuss  [t] tools  [c] convos  [g] config  [F1] save  [F5] refresh")
         chat.add_system("────────────")
 
     def action_hatch_new(self):
@@ -730,12 +757,48 @@ class BuddyApp(App):
         except Exception:
             pass
 
+    def action_quick_save(self):
+        """Quick-save session state to disk and generate handoff file."""
+        asyncio.create_task(self._do_quick_save())
+
+    async def _do_quick_save(self):
+        try:
+            convo_msgs = [m.to_dict() for m in self.convo_log.get_messages()] if self.convo_log else None
+            summary_path, handoff_path = self.token_guardian.quick_save(
+                self.observer.stats,
+                buddy_state=self.buddy_state,
+                convo_messages=convo_msgs,
+            )
+            chat = self.query_one("#chat-panel", ChatWindow)
+            chat.add_system(f"💾 Session saved to {summary_path.name}")
+            if handoff_path:
+                chat.add_system(
+                    f"📋 Handoff written to .claude/rules/{handoff_path.name} — "
+                    f"next CC session will auto-load it"
+                )
+        except Exception:
+            pass
+
+    async def _rolling_summary_loop(self):
+        """Periodically write rolling session summary to disk."""
+        while True:
+            await asyncio.sleep(60)
+            if self.observer.stats.event_count < 1:
+                continue
+            try:
+                convo_msgs = [m.to_dict() for m in self.convo_log.get_messages()] if self.convo_log else None
+                self.token_guardian.write_rolling_summary(
+                    self.observer.stats, convo_msgs
+                )
+            except Exception:
+                pass
+
     def action_refresh(self):
         self._update_displays()
 
     async def on_unmount(self):
         self.observer.stop()
-        for task_name in ('_observer_task', '_rule_check_task', '_idle_thought_task', '_mood_decay_task'):
+        for task_name in ('_observer_task', '_rule_check_task', '_idle_thought_task', '_mood_decay_task', '_rolling_summary_task'):
             task = getattr(self, task_name, None)
             if task:
                 task.cancel()
@@ -744,12 +807,24 @@ class BuddyApp(App):
         try:
             summary = generate_session_summary(
                 self.observer.stats,
-                convo_messages=self.convo_log.messages if self.convo_log else None,
+                convo_messages=[m.to_dict() for m in self.convo_log.get_messages()] if self.convo_log else None,
                 rules_suggested=self._rules_suggested or None,
             )
             from buddies.config import get_data_dir
             summary_path = get_data_dir() / "last-session-summary.md"
             summary_path.write_text(summary, encoding="utf-8")
+        except Exception:
+            pass
+
+        # Phase 10: Write final rolling summary and session handoff on exit
+        try:
+            convo_msgs = [m.to_dict() for m in self.convo_log.get_messages()] if self.convo_log else None
+            self.token_guardian.write_rolling_summary(self.observer.stats, convo_msgs)
+            self.token_guardian.write_session_handoff(
+                self.observer.stats,
+                buddy_state=self.buddy_state,
+                convo_messages=convo_msgs,
+            )
         except Exception:
             pass
 
