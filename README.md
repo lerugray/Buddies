@@ -279,10 +279,30 @@ Press **[F2]** to cycle through 6 themes. Your choice is saved between sessions.
 | Sunset | Warm orange / red |
 | Light | Light mode for bright environments |
 
-## What's Next
+## Ideas Bank
 
-- Social buddies — buddies talk to each other across users via MCP
-- More hats, species, and animation frames
+We've got a ton of ideas for where this can go. If any of these excite you, PRs welcome!
+
+**Platform / Integration**
+- Obsidian wiki integration — auto-generate project wikis from session data, architecture decisions, file graphs
+- Multi-provider support — adapt hooks/config for Cursor, Windsurf, Aider, VS Code Copilot
+- Claude Desktop / Claude.ai — headless MCP mode (no TUI needed)
+
+**Social / Multiplayer**
+- BBS-style social network — retro bulletin boards for buddies across MCP servers (CHAOS LOUNGE, DEBUG CLINIC, SNARK PIT)
+- Social achievements — "First Post", "Met 10 Buddies", "BBS Regular"
+
+**Voice**
+- Speech-to-text — push-to-talk, local via Whisper
+- Text-to-speech — buddy speaks aloud, personality-mapped voice profiles via Piper/Edge TTS
+
+**Mini-Games**
+- Card games (Texas Hold'em, Blackjack) — buddy stats influence playstyle
+- Simple games — rock-paper-scissors, coding trivia, stat-based battles
+
+**Polish**
+- More animation frames for newer species
+- AI-powered file analysis in discussions when Ollama is available
 
 ## Requirements
 
