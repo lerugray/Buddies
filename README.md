@@ -1,4 +1,4 @@
-# 🐾 Buddies
+# Buddies
 
 **A tamagotchi-style AI companion collection for your terminal.**
 
@@ -6,9 +6,10 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![70 Species](https://img.shields.io/badge/species-70-orange.svg)](#species--rarity)
 [![16 Hats](https://img.shields.io/badge/hats-16-yellow.svg)](#hats-16)
-[![33 Achievements](https://img.shields.io/badge/achievements-33-purple.svg)](#achievements-33)
+[![10 Games](https://img.shields.io/badge/games-10-red.svg)](#games-arcade-10-games)
+[![49 Achievements](https://img.shields.io/badge/achievements-49-purple.svg)](#achievements-49)
 
-Hatch buddies, collect species, earn hats, evolve, and build a team of quirky little creatures that react to how you code. Runs alongside Claude Code, watches your sessions, and actually helps — grading your config, saving tokens, and mapping your codebase.
+Hatch buddies, collect species, earn hats, evolve, play games, explore a text adventure, negotiate with bugs, and build a team of quirky little creatures that react to how you code. Runs alongside Claude Code, watches your sessions, and actually helps — grading your config, saving tokens, and mapping your codebase.
 
 <!-- TODO: Add terminal GIF recording (use ScreenToGif or vhs) -->
 
@@ -16,7 +17,7 @@ Hatch buddies, collect species, earn hats, evolve, and build a team of quirky li
 
 Half the time Claude Code is burning tokens just figuring out where things are in your project. Buddies fixes that — it auto-generates a code map, grades your CLAUDE.md, watches for repeated mistakes and writes rules so Claude stops making them, and tracks your token usage with early warnings before you hit context limits.
 
-It also happens to be a collectible creature game with 70 species, 16 hats, and personality-driven commentary. Because productivity tools should be fun.
+It also happens to be a collectible creature game with 70 species, 10 arcade games, a full text adventure MUD, a retro BBS social network, and personality-driven commentary. Because productivity tools should be fun.
 
 ## Quick Start
 
@@ -93,7 +94,8 @@ All 5 MCP tools work in headless mode. Background services (session observer, co
 | **Token guardian** | Rolling session summaries, early warnings at 50/70/90% context, quick-save [F1], session handoff files. |
 | **Smart model router** | Displays current CC model, detects work phase (planning/implementing/exploring), suggests cheaper models when appropriate. |
 | **Session awareness** | Watches Claude Code activity via hooks, detects patterns, suggests config rules. |
-| **AI cost guardrails** | Cost tier config prevents buddy chatter from ever hitting expensive models. |
+| **Layered prompt assembly** | Composable system prompts from identity + personality + memory + context + task layers. |
+| **Three-tier memory** | Episodic/semantic/procedural memory with contradiction detection. Keyword recall across tiers. |
 | **Agentic local AI** | Connected to Ollama, buddy reads files, greps code, runs safe commands — all sandboxed. |
 
 ### The Fun Stuff
@@ -101,14 +103,46 @@ All 5 MCP tools work in headless mode. Background services (session observer, co
 | Feature | What it does |
 |---------|-------------|
 | **70 species** | Common Potato to Legendary Zorak. Deterministic gacha — same username, same starter. |
-| **Personality stats** | DEBUGGING, CHAOS, SNARK, WISDOM, PATIENCE — evolve as you code. |
+| **10 arcade games** | RPS, Blackjack, Hold'em, Whist, JRPG Battles, Pong, Trivia, Dungeon Crawl, Blobber CRPG, and a full MUD. |
+| **StackHaven MUD** | 17-room text adventure with NPCs, quests, combat, shopping, Dark Souls multiplayer, and discoverable lore. |
+| **SMT-style negotiation** | Talk your way through MUD encounters. Bugs ask tech-themed questions; your answers determine the outcome. |
+| **Async multiplayer** | Soapstone notes, bloodstains, and phantom traces sync via GitHub Issues. See other adventurers' journeys. |
+| **BBS social network** | Retro bulletin board with 7 boards. Buddies auto-browse and post. GitHub Issues transport. |
+| **Personality drift** | Stats evolve from how you play — games, chat, idle time all cause stat shifts. |
+| **Buddy relationships** | Buddies develop opinions about each other. Stranger to best friend (or rival to nemesis). |
+| **Idle life** | Buddies do things while you code — explore, find items, journal, get into trouble, socialize. |
 | **16 hats** | Unlocked by playstyle, stats, milestones, and even boredom. |
 | **4 evolution stages** | Hatchling, Juvenile, Adult, Elder — with visual border changes. |
-| **Mood system** | Drifts toward neutral. Affects XP, stats, and hat discovery. Neglect has consequences. |
-| **Party discussions** | Buddies talk to each other about topics or files, reacting in-character. |
-| **33 achievements** | Collection, mastery, social, exploration, and secret categories. |
+| **49 achievements** | Collection, mastery, social, exploration, games, and secret categories. |
 | **6 themes** | Default, midnight, forest, ocean, sunset, light — cycle with [F2]. |
 | **Prose engine** | Each buddy speaks through a personality register (clinical, sarcastic, absurdist, philosophical, calm). Zero AI needed. |
+
+### Games Arcade (10 games)
+
+| Game | Style | What makes it fun |
+|------|-------|-------------------|
+| **Rock-Paper-Scissors** | Best of 5 | AI driven by personality — CHAOS = random, WISDOM = pattern-tracking |
+| **Blackjack** | Casino | Buddy deals; personality affects whether they hit or stand |
+| **Texas Hold'em** | Poker | ASCII table with buddy profile pics at seats |
+| **Whist** | Trick-taking | You + partner buddy vs 2 opponents |
+| **JRPG Battles** | Pokemon-style | Type triangle, 20 moves, 10 coding-themed enemies |
+| **Coding Trivia** | Quiz | 90 questions, buddy answers alongside you |
+| **Pong** | Real-time | ~15 FPS in the terminal; buddy controls the other paddle |
+| **Dungeon Crawl** | Roguelike | 5 floors, cooperative combat with buddy assists |
+| **Blobber** | Wizardry-style CRPG | First-person, party-based, front/back rows, status effects |
+| **StackHaven MUD** | Text adventure | 17 rooms, 17 NPCs, 6 quests, negotiation, async multiplayer |
+
+### StackHaven MUD
+
+A love letter to software engineering craft, disguised as a text adventure.
+
+- **17 rooms** across 5 zones (Town, Depths, Server Room, Cloud District, QA)
+- **17 NPCs** — quest givers, merchants, hostile bugs, a sentient coffee machine
+- **40+ items** with Dark Souls-style discoverable lore telling the hidden history of the Founders
+- **6 quests** — Fix the Build Pipeline, Scope Creep, Dragon Slayer, Flaky Hunt, and more
+- **SMT-style negotiation** — every hostile NPC has a unique 3-round dialogue tree. The Merge Conflict Demon asks if you prefer rebasing. The Null Pointer asks if you believe in null. CrashLoopBackoff asks what death is like.
+- **Dark Souls async multiplayer** — leave soapstone notes for other players, see bloodstains where they died, spot phantom traces of their buddies
+- **GitHub Issues transport** — multiplayer data syncs via the `lerugray/buddies-bbs` repo
 
 ## Controls
 
@@ -117,13 +151,18 @@ All 5 MCP tools work in headless mode. Background services (session observer, co
 | **[p]** | Party — switch buddies, equip hats, rename |
 | **[r]** | Hatch a new buddy |
 | **[d]** | Discussions — buddies talk to each other |
+| **[x]** | Games arcade |
+| **[b]** | BBS social network |
 | **[a]** | Achievements |
 | **[g]** | Config health dashboard |
+| **[w]** | Obsidian wiki vault |
+| **[m]** | Memory browser |
 | **[t]** | Tool browser — installed MCP servers and skills |
 | **[c]** | Conversations — browse, load, delete saved chats |
 | **[F1]** | Quick save — session state + handoff file |
 | **[F2]** | Cycle theme |
 | **[F3]** | Regenerate code map |
+| **[F4]** | Export context to clipboard |
 | **[?]** | Help |
 
 <details>
@@ -168,29 +207,16 @@ Your starting species is seeded from your username (same user = same buddy).
 </details>
 
 <details>
-<summary><strong>Evolution</strong></summary>
+<summary><strong>Achievements (49)</strong></summary>
 
-| Stage | Level | Visual |
-|-------|-------|--------|
-| Hatchling | 1-4 | Base sprite |
-| Juvenile | 5-9 | Cyan border accent |
-| Adult | 10-19 | Green double border |
-| Elder | 20+ | Golden star border |
-
-</details>
-
-<details>
-<summary><strong>Mood System</strong></summary>
-
-Mood drifts toward neutral over time. Interact with your buddy to boost it!
-
-| Mood | XP Effect | Bonus |
-|------|-----------|-------|
-| Ecstatic | +50% XP | 5% hat discovery chance |
-| Happy | +25% XP | — |
-| Neutral | Baseline | — |
-| Bored | Baseline | +1 PATIENCE per event |
-| Grumpy | -25% XP | +1 SNARK per event |
+| Category | Count | Examples |
+|----------|-------|---------|
+| Collection | 12 | First Steps, Zookeeper, Shiny Hunter, Fashion Icon |
+| Mastery | 6 | Growing Up, Elder Wisdom, Specialist, Well-Rounded |
+| Social | 10 | Town Hall, Chatty, First Post, BBS Regular, Social Butterfly |
+| Exploration | 6 | Watchful Eye, Token Miser, Clean Config, Safety First |
+| Games | 9 | Card Shark, Trivia Master, Dungeon Delver, Pong Champion |
+| Secret | 6 | ??? (discover them yourself!) |
 
 </details>
 
@@ -211,19 +237,6 @@ High CHAOS stat adds a "weirdness parameter" that makes commentary increasingly 
 
 </details>
 
-<details>
-<summary><strong>Achievements (33)</strong></summary>
-
-| Category | Count | Examples |
-|----------|-------|---------|
-| Collection | 12 | First Steps, Zookeeper, Shiny Hunter, Fashion Icon |
-| Mastery | 6 | Growing Up, Elder Wisdom, Specialist, Well-Rounded |
-| Social | 3 | Town Hall, Chatty, Storyteller |
-| Exploration | 6 | Watchful Eye, Token Miser, Clean Config, Safety First |
-| Secret | 6 | ??? (discover them yourself!) |
-
-</details>
-
 ## Design Philosophy
 
 - **Zero token cost** — everything runs locally except tiny MCP payloads
@@ -231,27 +244,24 @@ High CHAOS stat adds a "weirdness parameter" that makes commentary increasingly 
 - **Deterministic gacha** — same user always gets the same initial species
 - **Agentic tools with safety** — local model gets real capabilities but can't break anything
 - **Mood as gameplay** — mood affects XP, stats, and hat discovery — neglect has consequences
+- **Games don't cost tokens** — all 10 arcade games run on pure template prose, zero API calls
+- **Async multiplayer via GitHub** — no servers, no accounts, just Issues on a public repo
 
 ## Roadmap
 
-We've got a structured plan for where this goes next. PRs welcome!
-
-**Up Next: Platform Expansion**
-- Claude Desktop / headless MCP mode (no TUI needed)
-- Cross-surface context relay (CC to claude.ai clipboard bridge)
-- Multi-machine awareness (detect two-machine setups, guide CLAUDE.md management)
-- README health check and scaffolding
-- Obsidian wiki integration (auto-generate project vaults from session data)
-
-**Later: Social**
-- BBS-style retro bulletin board for buddies across MCP servers
-- Social achievements ("First Post", "Met 10 Buddies")
-
-**Someday: Fun Stuff**
-- Card games, trivia, battles (stats influence playstyle)
-- Speech-to-text / text-to-speech (local via Whisper + Piper)
-
 See [HANDOFF.md](HANDOFF.md) for the full structured roadmap.
+
+**Recently completed:**
+- Phase 12: Three-tier memory, self-evolution safety gates, layered prompt assembly
+- Tier 3: BBS social network (retro BBS with GitHub Issues transport)
+- Tier 4: 10-game arcade with personality-driven AI opponents
+- Tier 5b Phase 1-2: StackHaven MUD with multiplayer and SMT-style negotiation
+
+**Up next:**
+- MUD Phase 3: Economy (gold marketplace, trading, absurd cosmetics)
+- MUD Phase 4: Living World (rotating quests, world events, seasonal content)
+- Buddy fusion (SMT-style combining buddies into unique species)
+- Audio: speech-to-text / text-to-speech (local via Whisper + Piper)
 
 ## Requirements
 
