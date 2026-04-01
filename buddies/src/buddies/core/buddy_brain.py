@@ -88,6 +88,14 @@ SPECIES_CATALOG: list[Species] = [
     Species("cow", "🐄", Rarity.COMMON, {"patience": 4, "wisdom": 2}, "Chews cud. Contemplates architecture."),
     Species("yog_sothoth", "🫧", Rarity.LEGENDARY, {"chaos": 6, "wisdom": 6}, "The gate and the key. Knows all, compiles nothing."),
     Species("clippy", "📎", Rarity.EPIC, {"snark": 5, "debugging": 4}, "It looks like you're writing code! Need help?"),
+    # Fun phase species batch 3
+    Species("goblin", "👺", Rarity.UNCOMMON, {"chaos": 4, "snark": 3}, "Greedy little gremlin. Hoards stack traces."),
+    Species("imp", "😈", Rarity.UNCOMMON, {"chaos": 4, "debugging": 2}, "Tiny devil. Introduces bugs for fun."),
+    Species("kobold", "🦎", Rarity.RARE, {"debugging": 4, "patience": 3}, "Small but cunning. Sets traps for null pointers."),
+    Species("joe_camel", "🐪", Rarity.RARE, {"snark": 5, "wisdom": 3}, "Smooth operator. Cool shades. Knows things."),
+    Species("potato", "🥔", Rarity.COMMON, {"patience": 4, "debugging": 1}, "Just a potato. Runs on potato hardware."),
+    Species("bat", "🦇", Rarity.UNCOMMON, {"wisdom": 3, "chaos": 3}, "Hangs upside down. Sees your code differently."),
+    Species("coffee", "☕", Rarity.RARE, {"chaos": 4, "debugging": 3}, "Sentient mug. Jittery. Types fast, thinks faster."),
 ]
 
 # Rarity weights for the gacha

@@ -1971,6 +1971,223 @@ def _clippy_frames() -> list[str]:
     return [frame1, frame2]
 
 
+def _goblin_frames() -> list[str]:
+    """A green goblin with pointy ears and a toothy grin."""
+    frame1 = _build_sprite([
+        "tGGtttGGttt",
+        "GGGGGGGGGtt",
+        "tGGGGGGGGtt",
+        "GGrGGGrGGtt",
+        "tGGGGGGGGtt",
+        "GGwGwGwGGtt",
+        "tGGGGGGGGtt",
+        "ttGGGGGGttt",
+        "ttGGGGGGttt",
+        "ttGGttGGttt",
+        "ttGGttGGttt",
+    ])
+    frame2 = _build_sprite([
+        "GGGtttGGGtt",
+        "tGGGGGGGGtt",
+        "tGGGGGGGGtt",
+        "GGrGGGrGGtt",
+        "tGGGGGGGGtt",
+        "tGwGwGwGttt",
+        "tGGGGGGGGtt",
+        "ttGGGGGGttt",
+        "ttGGGGGGttt",
+        "tGGtttGGttt",
+        "tGGtttGGttt",
+    ])
+    return [frame1, frame2]
+
+
+def _imp_frames() -> list[str]:
+    """A tiny red imp with horns and a pointed tail."""
+    frame1 = _build_sprite([
+        "trttttrtttt",
+        "trrrrrrttt",
+        "trrrrrrrttt",
+        "rkrrrrrkrtt",
+        "trrrrrrrttt",
+        "trrwwrrrttt",
+        "ttrrrrrtttt",
+        "ttrrrrrttt",
+        "ttrrttrrtt",
+        "ttrrttrrtt",
+        "tttttttrRtt",
+        "tttttttRttt",
+    ])
+    frame2 = _build_sprite([
+        "rtttttrttt",
+        "trrrrrrttt",
+        "trrrrrrrttt",
+        "rkrrrrrkrtt",
+        "trrrrrrrttt",
+        "trwrrwrrttt",
+        "ttrrrrrtttt",
+        "ttrrrrrttt",
+        "ttrrttrrttt",
+        "ttrrttrrttt",
+        "tRttttttttt",
+        "ttRtttttttt",
+    ])
+    return [frame1, frame2]
+
+
+def _kobold_frames() -> list[str]:
+    """A small reptilian kobold with a snout."""
+    frame1 = _build_sprite([
+        "ttttoootttt",
+        "ttoooooott",
+        "toooooooott",
+        "ooyoooyoott",
+        "ooooooooott",
+        "toooNNoottt",
+        "ttooNNoott",
+        "tttoooottt",
+        "ttoooooott",
+        "ttoottoottt",
+        "ttoottoottt",
+    ])
+    frame2 = _build_sprite([
+        "ttttoootttt",
+        "ttoooooott",
+        "toooooooott",
+        "oyooooyoott",
+        "ooooooooott",
+        "toooNNoottt",
+        "ttooNNoott",
+        "tttoooottt",
+        "ttoooooott",
+        "ttoottoott",
+        "ttoottoott",
+    ])
+    return [frame1, frame2]
+
+
+def _joe_camel_frames() -> list[str]:
+    """A cool camel with shades. Smooth operator."""
+    frame1 = _build_sprite([
+        "tttNNttttt",
+        "ttNNNNtttt",
+        "tNNNNNNttt",
+        "NNkkkNNNtt",
+        "NNkkkNNNtt",
+        "tNNNNNtttt",
+        "tNNNNNtttt",
+        "ttNNNNtttt",
+        "ttNNNNtttt",
+        "tNNNNNNNtt",
+        "NNNNNNNNNt",
+        "NNtNNtNNtt",
+        "NNtNNtNNtt",
+    ])
+    frame2 = _build_sprite([
+        "tttNNttttt",
+        "ttNNNNtttt",
+        "tNNNNNNttt",
+        "NNkkkNNNtt",
+        "NNkkkNNNtt",
+        "tNNNNNtttt",
+        "tNNNNNtttt",
+        "ttNNNNtttt",
+        "ttNNNNtttt",
+        "tNNNNNNNtt",
+        "NNNNNNNNNt",
+        "NNttNNttNNt",
+        "NNttNNttNNt",
+    ])
+    return [frame1, frame2]
+
+
+def _potato_frames() -> list[str]:
+    """Just a potato. With a face. Running on potato hardware."""
+    frame1 = _build_sprite([
+        "tttNNNNtttt",
+        "ttNNNNNNttt",
+        "tNNNNNNNNtt",
+        "NNkNNNkNNtt",
+        "NNNNNNNNNtt",
+        "NNNwwNNNNtt",
+        "tNNNNNNNNtt",
+        "ttNNNNNNttt",
+        "tttNNNNtttt",
+    ])
+    frame2 = _build_sprite([
+        "ttNNNNttttt",
+        "tNNNNNNtttt",
+        "NNNNNNNNttt",
+        "NNkNNNkNNtt",
+        "NNNNNNNNttt",
+        "NNNNwwNNNtt",
+        "tNNNNNNNNtt",
+        "ttNNNNNNttt",
+        "tttNNNNtttt",
+    ])
+    return [frame1, frame2]
+
+
+def _bat_frames() -> list[str]:
+    """A bat with spread wings."""
+    frame1 = _build_sprite([
+        "EEtttttttEEt",
+        "EEEtttttEEEt",
+        "EEEEtttEEEEt",
+        "EEEEEEEEEEEt",
+        "EEEkEEEkEEEt",
+        "EEEEEEEEEEEt",
+        "EEEEEwEEEEEt",
+        "tEEEEEEEEEtt",
+        "ttEEEEEEEttt",
+        "tttEEtEEtttt",
+    ])
+    frame2 = _build_sprite([
+        "tttttttttttt",
+        "tEEtttttEEtt",
+        "ttEEtttEEttt",
+        "tttEEEEEtttt",
+        "tttEEEEEtttt",
+        "tttkEEEktttt",
+        "tttEEEEEtttt",
+        "tttEEwEEtttt",
+        "ttttEEEttttt",
+        "tttEEtEEtttt",
+    ])
+    return [frame1, frame2]
+
+
+def _coffee_frames() -> list[str]:
+    """A sentient coffee mug. Jittery."""
+    frame1 = _build_sprite([
+        "tteeeteettt",
+        "tttetetettt",
+        "tttetettttt",
+        "twwwwwwwttt",
+        "twNNNNNwtNt",
+        "twNkNkNwtNt",
+        "twNNNNNwtNt",
+        "twNwwNNwtNt",
+        "twNNNNNwttt",
+        "twwwwwwwttt",
+        "ttwwwwwtttt",
+    ])
+    frame2 = _build_sprite([
+        "tteettttttt",
+        "ttteteetttt",
+        "tttetetettt",
+        "twwwwwwwttt",
+        "twNNNNNwtNt",
+        "twkNNkNwtNt",
+        "twNNNNNwtNt",
+        "twNNwwNwtNt",
+        "twNNNNNwttt",
+        "twwwwwwwttt",
+        "ttwwwwwtttt",
+    ])
+    return [frame1, frame2]
+
+
 # Build hat sprites
 HATS: dict[str, str] = {
     "crown": _hat_crown(),
@@ -2044,6 +2261,14 @@ SPRITES: dict[str, list[str]] = {
     "cow": _cow_frames(),
     "yog_sothoth": _yog_sothoth_frames(),
     "clippy": _clippy_frames(),
+    # Fun phase batch 2
+    "goblin": _goblin_frames(),
+    "imp": _imp_frames(),
+    "kobold": _kobold_frames(),
+    "joe_camel": _joe_camel_frames(),
+    "potato": _potato_frames(),
+    "bat": _bat_frames(),
+    "coffee": _coffee_frames(),
 }
 
 SHINY_BORDER = "[bold yellow]✨[/]"
