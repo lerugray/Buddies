@@ -30,12 +30,12 @@ class PartyScreen(Screen):
     }
 
     #party-scroll {
-        width: 90%;
-        max-width: 80;
+        width: 96%;
+        max-width: 100;
         height: 1fr;
         border: double $primary;
-        padding: 1 2;
-        margin: 1 2;
+        padding: 1 1;
+        margin: 0 1;
     }
 
     #party-container {

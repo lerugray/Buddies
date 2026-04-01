@@ -54,18 +54,20 @@ class BuddyApp(App):
     CSS_PATH = CSS_PATH
 
     BINDINGS = [
+        # Always visible — core navigation
         Binding("q", "quit", "Quit", show=True),
-        Binding("question_mark", "help", "Help", show=True),
-        Binding("f5", "refresh", "Refresh", show=True),
-        Binding("r", "hatch_new", "Hatch New", show=True),
+        Binding("question_mark", "help", "? Help", show=True),
         Binding("p", "party", "Party", show=True),
+        Binding("r", "hatch_new", "Hatch", show=True),
         Binding("d", "discussion", "Discuss", show=True),
-        Binding("t", "tools", "Tools", show=True),
-        Binding("c", "conversations", "Convos", show=True),
-        Binding("g", "config_health", "Config", show=True),
-        Binding("f1", "quick_save", "Save", show=True),
-        Binding("f2", "cycle_theme", "Theme", show=True),
         Binding("a", "achievements", "Achieve", show=True),
+        # Hidden — accessible but don't crowd the footer (shown in ? help)
+        Binding("t", "tools", "Tools", show=False),
+        Binding("c", "conversations", "Convos", show=False),
+        Binding("g", "config_health", "Config", show=False),
+        Binding("f1", "quick_save", "Save", show=False),
+        Binding("f2", "cycle_theme", "Theme", show=False),
+        Binding("f5", "refresh", "Refresh", show=False),
     ]
 
     def __init__(self):
@@ -640,10 +642,15 @@ class BuddyApp(App):
         chat = self.query_one("#chat-panel", ChatWindow)
         chat.add_system("─── Help ───")
         chat.add_system("Type messages to chat with your buddy")
-        chat.add_system("Simple questions → handled locally (saves Claude tokens)")
-        chat.add_system("Complex questions → buddy tells you to ask Claude")
-        chat.add_system("Commands: 'stats' 'help' 'name' 'session' 'tokens'")
-        chat.add_system("Keys: [q] quit  [?] help  [r] hatch  [p] party  [d] discuss  [t] tools  [c] convos  [g] config  [a] achieve  [F1] save  [F2] theme  [F5] refresh")
+        chat.add_system("Simple → handled locally  |  Complex → ask Claude")
+        chat.add_system("Chat commands: 'stats' 'help' 'name' 'session' 'tokens'")
+        chat.add_system("")
+        chat.add_system("[bold]Screens[/]")
+        chat.add_system("  [p] Party    [d] Discuss   [a] Achievements")
+        chat.add_system("  [t] Tools    [c] Convos    [g] Config Health")
+        chat.add_system("[bold]Actions[/]")
+        chat.add_system("  [r] Hatch    [F1] Save     [F2] Theme")
+        chat.add_system("  [?] Help     [F5] Refresh  [q] Quit")
         chat.add_system("────────────")
 
     def action_hatch_new(self):

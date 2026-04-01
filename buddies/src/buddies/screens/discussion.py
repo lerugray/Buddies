@@ -46,13 +46,13 @@ class DiscussionScreen(Screen):
     #discussion-log {
         height: 1fr;
         border: solid $primary;
-        margin: 0 2;
+        margin: 0 1;
         padding: 1;
     }
 
     #discussion-input {
         dock: bottom;
-        margin: 1 2;
+        margin: 1 1;
     }
 
     #discussion-help {

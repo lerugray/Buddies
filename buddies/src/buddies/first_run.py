@@ -56,12 +56,12 @@ class HatchScreen(Screen):
     }
 
     #hatch-scroll {
-        width: 1fr;
-        max-width: 50;
+        width: 80%;
+        max-width: 70;
         height: 1fr;
         border: double $primary;
-        padding: 1 2;
-        margin: 1 2;
+        padding: 1 1;
+        margin: 0 1;
     }
 
     #hatch-container {

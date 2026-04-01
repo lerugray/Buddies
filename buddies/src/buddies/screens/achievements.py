@@ -21,12 +21,12 @@ class AchievementsScreen(Screen):
     }
 
     #achv-scroll {
-        width: 90%;
-        max-width: 85;
+        width: 96%;
+        max-width: 120;
         height: 1fr;
         border: double $primary;
-        padding: 1 2;
-        margin: 1 2;
+        padding: 1 1;
+        margin: 0 1;
     }
 
     #achv-container {
