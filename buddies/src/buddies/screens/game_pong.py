@@ -83,9 +83,9 @@ class PongScreen(Screen):
         self._taunt_cooldown: int = 0
 
     def compose(self) -> ComposeResult:
-        yield Static("", id="pong-header")
-        yield Static("", id="pong-field")
-        yield Static("", id="pong-commentary")
+        yield Static("🏓 PONG", id="pong-header")
+        yield Static("Loading...", id="pong-field")
+        yield Static(" ", id="pong-commentary")
         yield Static("[dim]W/S or ↑/↓=Move  P=Pause  N=New  Esc=Back[/dim]", id="pong-help")
         yield Footer()
 
