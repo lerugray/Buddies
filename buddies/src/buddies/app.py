@@ -39,7 +39,7 @@ from buddies.screens.config_health import ConfigHealthScreen
 from buddies.screens.wiki import WikiScreen
 from buddies.screens.memory import MemoryScreen
 from buddies.core.conversation import ConversationLog
-from buddies.core.config_intel import ConfigIntelligence, SessionLearner, generate_session_summary
+from buddies.core.config_intel import ConfigIntelligence, SessionLearner, generate_session_summary, compact_handoff
 from buddies.core.token_guardian import TokenGuardian
 from buddies.themes import BUDDY_THEMES, THEME_ORDER, next_theme
 from buddies.core.achievements import check_achievements, ACHIEVEMENT_MAP
@@ -966,6 +966,13 @@ class BuddyApp(App):
                         f"💡 Config grade: {report.overall_grade} — "
                         f"{suggestions_count} suggestions available. Press [bold][g][/] to see them."
                     )
+
+            # Phase 12: Auto-compact HANDOFF.md session notes
+            if compact_handoff():
+                chat.add_message(
+                    "buddy",
+                    "📝 Compacted old session notes in HANDOFF.md to keep it lean."
+                )
         except Exception:
             pass
 

@@ -540,3 +540,100 @@ def generate_session_summary(
         lines.append("")
 
     return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Working Memory Compaction
+# ---------------------------------------------------------------------------
+
+def compact_handoff(project_path: Path | None = None, max_session_notes: int = 2) -> bool:
+    """Compact HANDOFF.md by summarizing old session notes.
+
+    Keeps the most recent `max_session_notes` session blocks verbatim.
+    Older session blocks are compressed to a one-line summary each.
+
+    Returns True if the file was modified, False otherwise.
+    """
+    project = project_path or Path.cwd()
+    handoff_path = project / "HANDOFF.md"
+    if not handoff_path.exists():
+        return False
+
+    content = handoff_path.read_text(encoding="utf-8", errors="replace")
+    lines = content.split("\n")
+
+    # Find all "## Session Notes" sections
+    session_sections: list[dict] = []
+    i = 0
+    while i < len(lines):
+        if lines[i].startswith("## Session Notes"):
+            title = lines[i]
+            start = i
+            i += 1
+            # Find the end of this section (next ## or EOF)
+            while i < len(lines) and not (lines[i].startswith("## ") and i > start):
+                i += 1
+            session_sections.append({
+                "title": title,
+                "start": start,
+                "end": i,
+                "lines": lines[start:i],
+            })
+        else:
+            i += 1
+
+    if len(session_sections) <= max_session_notes:
+        return False  # Nothing to compact
+
+    # Split: old sections to compress, recent sections to keep
+    old_sections = session_sections[:-max_session_notes]
+    keep_sections = session_sections[-max_session_notes:]
+
+    # Summarize old sections into one-liners
+    summaries = []
+    for sec in old_sections:
+        title = sec["title"].lstrip("#").strip()
+        # Count completed items
+        completed = sum(1 for ln in sec["lines"] if "✅" in ln)
+        # Extract key highlights (first 3 completed items, shortened)
+        highlights = []
+        for ln in sec["lines"]:
+            if "✅" in ln and len(highlights) < 3:
+                clean = ln.strip().lstrip("-").strip()
+                clean = clean.replace("✅ ", "").strip()
+                if len(clean) > 60:
+                    clean = clean[:57] + "..."
+                highlights.append(clean)
+        highlight_text = "; ".join(highlights) if highlights else "session work"
+        summaries.append(f"- **{title}** ({completed} items): {highlight_text}")
+
+    # Rebuild the file
+    # 1. Everything before the first session section
+    first_session_start = session_sections[0]["start"]
+    before = lines[:first_session_start]
+
+    # 2. Compressed history section
+    compressed = [
+        "## Session History (Compacted)",
+        "",
+        *summaries,
+        "",
+    ]
+
+    # 3. Recent session sections (verbatim)
+    recent_lines = []
+    for sec in keep_sections:
+        recent_lines.extend(sec["lines"])
+
+    # 4. Everything after the last session section
+    last_session_end = session_sections[-1]["end"]
+    after = lines[last_session_end:]
+
+    new_content = "\n".join(before + compressed + recent_lines + after)
+
+    # Only write if we actually reduced size
+    if len(new_content) >= len(content):
+        return False
+
+    handoff_path.write_text(new_content, encoding="utf-8")
+    return True
