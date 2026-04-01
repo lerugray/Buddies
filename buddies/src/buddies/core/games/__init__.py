@@ -18,6 +18,7 @@ class GameType(Enum):
     TRIVIA = "trivia"
     PONG = "pong"
     DUNGEON = "dungeon"
+    CRAWL = "crawl"
 
 
 class GameOutcome(Enum):
