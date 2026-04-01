@@ -2188,6 +2188,288 @@ def _coffee_frames() -> list[str]:
     return [frame1, frame2]
 
 
+def _dali_clock_frames() -> list[str]:
+    """A melting Salvador Dali clock. Time is subjective."""
+    frame1 = _build_sprite([
+        "tyyyyyyyyttt",
+        "yYYYYYYYyttt",
+        "yYkYYYkYyttt",
+        "yYYYYYYYyttt",
+        "yYYwwYYYyttt",
+        "yYYYYYYYyttt",
+        "tyyyyyyytttt",
+        "tttttyyyyttt",
+        "tttttttyyttt",
+        "tttttttytttt",
+        "ttttttytttt",
+    ])
+    frame2 = _build_sprite([
+        "yyyyyyyyyttt",
+        "yYYYYYYYyttt",
+        "yYYkYkYYyttt",
+        "yYYYYYYYyttt",
+        "yYYwwYYYyttt",
+        "yYYYYYYYyttt",
+        "tyyyyyyyyytt",
+        "ttttttyyyytt",
+        "tttttttyyttt",
+        "ttttttttyttt",
+        "tttttttytttt",
+    ])
+    return [frame1, frame2]
+
+
+def _comrade_frames() -> list[str]:
+    """A hammer and sickle with googly eyes. Seizes the means of compilation."""
+    frame1 = _build_sprite([
+        "tttrrtttttt",
+        "ttrrrrttttt",
+        "tttrrttrrrt",
+        "tttrrtrrRtt",
+        "tttrrrrRttt",
+        "tttwrrwttt",
+        "tttrrRtttt",
+        "ttrrRttttt",
+        "trrRtttttt",
+        "rrRttttttt",
+    ])
+    frame2 = _build_sprite([
+        "ttttrrtttt",
+        "tttrrrrttt",
+        "ttttrrttrrrt",
+        "ttttrrtrrRt",
+        "ttttrrrrRtt",
+        "ttttwrrwttt",
+        "ttttrrRtttt",
+        "tttrrRttttt",
+        "ttrrRtttttt",
+        "trrRttttttt",
+    ])
+    return [frame1, frame2]
+
+
+def _box_frames() -> list[str]:
+    """A cardboard box. ! Nothing to see here."""
+    # Frame 1: just a box
+    frame1 = _build_sprite([
+        "ttttttttttt",
+        "ttttttttttt",
+        "NNNNNNNNNNN",
+        "NNNNkNNNNNt",
+        "NNNNNNNNNNN",
+        "NNNNNNNNNNt",
+        "NNNNNNNNNNt",
+        "NNNNNNNNNNt",
+        "NNNNNNNNNNt",
+        "NNNNNNNNNNN",
+    ])
+    # Frame 2: eyes peeking out!
+    frame2 = _build_sprite([
+        "ttttttttttt",
+        "tttwttwttt",
+        "NNNkNNkNNNt",
+        "NNNNNNNNNNt",
+        "NNNNNNNNNNN",
+        "NNNNNNNNNNt",
+        "NNNNNNNNNNt",
+        "NNNNNNNNNNt",
+        "NNNNNNNNNNt",
+        "NNNNNNNNNNN",
+    ])
+    return [frame1, frame2]
+
+
+def _bac_man_frames() -> list[str]:
+    """A yellow circle that eats dots. Definitely not trademarked."""
+    frame1 = _build_sprite([
+        "tttyyyytttt",
+        "ttyyyyyyttt",
+        "tyyyyyyyyytt",
+        "yyyyyyyyyyy",
+        "yyyyyytttt",
+        "yyyyyttttt",
+        "yyyyyytttt",
+        "yyyyyyyyyyy",
+        "tyyyyyyyyytt",
+        "ttyyyyyyttt",
+        "tttyyyytttt",
+    ])
+    # Frame 2: mouth closed
+    frame2 = _build_sprite([
+        "tttyyyytttt",
+        "ttyyyyyyttt",
+        "tyyyyyyyyytt",
+        "yyyyyyyyyyy",
+        "yyyyyyyyyyy",
+        "yyyyyyyyyyy",
+        "yyyyyyyyyyy",
+        "yyyyyyyyyyy",
+        "tyyyyyyyyytt",
+        "ttyyyyyyttt",
+        "tttyyyytttt",
+    ])
+    return [frame1, frame2]
+
+
+def _coopa_frames() -> list[str]:
+    """A turtle troopa. Walks back and forth."""
+    frame1 = _build_sprite([
+        "ttttttttttt",
+        "tttgggtttt",
+        "ttgGGGGgttt",
+        "tgGGGGGGttt",
+        "tgGGGGGGttt",
+        "ttgGGGgttt",
+        "tttyyyyytt",
+        "ttkyyyykttt",
+        "ttyyyyytttt",
+        "ttyyttyyttt",
+        "ttyyttyyttt",
+    ])
+    frame2 = _build_sprite([
+        "ttttttttttt",
+        "tttgggtttt",
+        "ttgGGGGgttt",
+        "tgGGGGGGttt",
+        "tgGGGGGGttt",
+        "ttgGGGgttt",
+        "tttyyyyytt",
+        "ttkyyyykttt",
+        "ttyyyyytttt",
+        "tyytttyyttt",
+        "tyytttyyttt",
+    ])
+    return [frame1, frame2]
+
+
+def _kilowatt_frames() -> list[str]:
+    """A menacing lightbulb with a knife. Reddy Kilowatt's unhinged cousin."""
+    frame1 = _build_sprite([
+        "tttrrrttttt",
+        "ttyyyyytttt",
+        "tyyyyyyyttt",
+        "tykyyyykttt",
+        "tyyyyyyyttt",
+        "tyywwyyttt",
+        "ttyyyyytt",
+        "tttyyytttt",
+        "ttteyettttt",
+        "tteeteettt",
+        "tteetteett",
+        "ttttttteett",
+    ])
+    frame2 = _build_sprite([
+        "tttrrrttttt",
+        "ttyyyyytttt",
+        "tyyyyyyyttt",
+        "tyykyykytt",
+        "tyyyyyyyttt",
+        "tywwwyyttt",
+        "ttyyyyytt",
+        "tttyyytttt",
+        "ttteyettttt",
+        "tteetteettt",
+        "tteetteettt",
+        "eettttttttt",
+    ])
+    return [frame1, frame2]
+
+
+def _zorak_frames() -> list[str]:
+    """Zorak — evil mantis from Space Ghost. Plays keyboard menacingly."""
+    frame1 = _build_sprite([
+        "tGGtttGGttt",
+        "GGGGGGGGGtt",
+        "GGrGGGrGGtt",
+        "GGGGGGGGGtt",
+        "GGGwwwGGGtt",
+        "tGGGGGGGttt",
+        "GtGGGGGtGtt",
+        "GttGGGttGtt",
+        "tttGGGttttt",
+        "tttGtGttttt",
+        "ttGGtGGtttt",
+    ])
+    frame2 = _build_sprite([
+        "GGGtttGGGtt",
+        "tGGGGGGGGtt",
+        "GGrGGGrGGtt",
+        "GGGGGGGGGtt",
+        "GGwGwGwGGtt",
+        "tGGGGGGGttt",
+        "GtGGGGGtGtt",
+        "GtGGGGGtGtt",
+        "tttGGGttttt",
+        "tttGtGttttt",
+        "tttGtGttttt",
+    ])
+    return [frame1, frame2]
+
+
+def _anchor_frames() -> list[str]:
+    """A nautical anchor. Keeps your code grounded."""
+    frame1 = _build_sprite([
+        "tttteetttt",
+        "ttteeeettt",
+        "tttteetttt",
+        "tttteetttt",
+        "ettteettte",
+        "eetteetteet",
+        "teeeeeeeet",
+        "tteeeeeettt",
+        "tttteetttt",
+        "tttteetttt",
+        "tttteettttt",
+    ])
+    return [frame1, frame1]
+
+
+def _dice_frames() -> list[str]:
+    """A rolling d6. RNG determines your fate."""
+    frame1 = _build_sprite([
+        "twwwwwwwttt",
+        "wkwwwwkwttt",
+        "wwwwwwwwttt",
+        "wwwwkwwwttt",
+        "wwwwwwwwttt",
+        "wkwwwwkwttt",
+        "twwwwwwwttt",
+    ])
+    frame2 = _build_sprite([
+        "twwwwwwwttt",
+        "wwwwwwwwttt",
+        "wwkwwkwwttt",
+        "wwwwwwwwttt",
+        "wwkwwkwwttt",
+        "wwwwwwwwttt",
+        "twwwwwwwttt",
+    ])
+    return [frame1, frame2]
+
+
+def _taco_frames() -> list[str]:
+    """A taco. Holds everything together. Barely."""
+    frame1 = _build_sprite([
+        "tttooooottt",
+        "ttoooooooott",
+        "toggryrgott",
+        "toggryrrgot",
+        "toggryrgott",
+        "ttoooooooott",
+        "tttooooottt",
+    ])
+    frame2 = _build_sprite([
+        "tttooooottt",
+        "ttoooooooott",
+        "torggyrgott",
+        "torrgyrgot",
+        "torggyrgott",
+        "ttoooooooott",
+        "tttooooottt",
+    ])
+    return [frame1, frame2]
+
+
 # Build hat sprites
 HATS: dict[str, str] = {
     "crown": _hat_crown(),
@@ -2269,6 +2551,17 @@ SPRITES: dict[str, list[str]] = {
     "potato": _potato_frames(),
     "bat": _bat_frames(),
     "coffee": _coffee_frames(),
+    # Fun phase batch 3
+    "dali_clock": _dali_clock_frames(),
+    "comrade": _comrade_frames(),
+    "box": _box_frames(),
+    "bac_man": _bac_man_frames(),
+    "coopa": _coopa_frames(),
+    "kilowatt": _kilowatt_frames(),
+    "zorak": _zorak_frames(),
+    "anchor": _anchor_frames(),
+    "dice": _dice_frames(),
+    "taco": _taco_frames(),
 }
 
 SHINY_BORDER = "[bold yellow]✨[/]"

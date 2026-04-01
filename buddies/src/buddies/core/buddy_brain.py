@@ -96,6 +96,17 @@ SPECIES_CATALOG: list[Species] = [
     Species("potato", "🥔", Rarity.COMMON, {"patience": 4, "debugging": 1}, "Just a potato. Runs on potato hardware."),
     Species("bat", "🦇", Rarity.UNCOMMON, {"wisdom": 3, "chaos": 3}, "Hangs upside down. Sees your code differently."),
     Species("coffee", "☕", Rarity.RARE, {"chaos": 4, "debugging": 3}, "Sentient mug. Jittery. Types fast, thinks faster."),
+    # Fun phase species batch 4
+    Species("dali_clock", "🕰", Rarity.RARE, {"wisdom": 4, "chaos": 4}, "Time is melting. Deadlines are a suggestion."),
+    Species("comrade", "☭", Rarity.EPIC, {"chaos": 5, "snark": 4}, "Seizes the means of compilation. Our code."),
+    Species("box", "📦", Rarity.UNCOMMON, {"patience": 5, "debugging": 2}, "! Just a box. Nothing to see here. Move along."),
+    Species("bac_man", "🟡", Rarity.RARE, {"chaos": 4, "patience": 3}, "Wakka wakka. Eats bugs for breakfast."),
+    Species("coopa", "🐢", Rarity.UNCOMMON, {"patience": 3, "debugging": 3}, "Turtle troopa. Kicks shells at bad code."),
+    Species("kilowatt", "💡", Rarity.EPIC, {"chaos": 5, "debugging": 4}, "Menacing lightbulb. Will cut your bad wiring."),
+    Species("zorak", "🦗", Rarity.LEGENDARY, {"snark": 6, "chaos": 5}, "Evil mantis. Plays keyboard. Hates everything."),
+    Species("anchor", "⚓", Rarity.COMMON, {"patience": 4, "wisdom": 2}, "Keeps your code grounded. Steady and reliable."),
+    Species("dice", "🎲", Rarity.UNCOMMON, {"chaos": 4, "wisdom": 2}, "RNG incarnate. Your fate is in its hands."),
+    Species("taco", "🌮", Rarity.COMMON, {"patience": 3, "chaos": 2}, "Holds everything together. Barely."),
 ]
 
 # Rarity weights for the gacha
