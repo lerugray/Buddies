@@ -37,6 +37,7 @@ from buddies.screens.tool_browser import ToolBrowserScreen
 from buddies.screens.conversations import ConversationsScreen
 from buddies.screens.config_health import ConfigHealthScreen
 from buddies.screens.wiki import WikiScreen
+from buddies.screens.memory import MemoryScreen
 from buddies.core.conversation import ConversationLog
 from buddies.core.config_intel import ConfigIntelligence, SessionLearner, generate_session_summary
 from buddies.core.token_guardian import TokenGuardian
@@ -44,6 +45,7 @@ from buddies.themes import BUDDY_THEMES, THEME_ORDER, next_theme
 from buddies.core.achievements import check_achievements, ACHIEVEMENT_MAP
 from buddies.screens.achievements import AchievementsScreen
 from buddies.core.model_tracker import ModelTracker
+from buddies.core.memory import MemoryManager
 from buddies.core.code_map import write_project_map
 from buddies.core.obsidian_vault import ObsidianVault
 from buddies.core.machine_detect import detect_machine, get_multi_machine_advice
@@ -71,6 +73,7 @@ class BuddyApp(App):
         Binding("c", "conversations", "Convos", show=False),
         Binding("g", "config_health", "Config", show=False),
         Binding("w", "wiki", "Wiki", show=False),
+        Binding("m", "memory", "Memory", show=False),
         Binding("f1", "quick_save", "Save", show=False),
         Binding("f2", "cycle_theme", "Theme", show=False),
         Binding("f3", "regen_map", "Map", show=False),
@@ -95,6 +98,7 @@ class BuddyApp(App):
         self.session_learner = SessionLearner()
         self.token_guardian = TokenGuardian()
         self.model_tracker = ModelTracker()
+        self.memory: MemoryManager | None = None
         self._rules_suggested: list[str] = []
         self._unlocked_achievements: set[str] = set()
         self._messages_sent: int = 0
@@ -205,6 +209,12 @@ class BuddyApp(App):
         # Phase 11: Model tracker — show initial model and start phase checks
         self._model_phase_task = asyncio.create_task(self._model_phase_loop())
         self._update_model_display()
+
+        # Phase 12: Three-tier memory system
+        self.memory = MemoryManager(self.store)
+        self.observer.on_event(self._on_memory_event)
+        self._memory_flush_task = asyncio.create_task(self._memory_flush_loop())
+        asyncio.create_task(self._memory_startup_decay())
 
     async def _show_ai_status(self):
         ai_available = await self.ai_backend.is_available()
@@ -331,6 +341,29 @@ class BuddyApp(App):
             )
             self.session_learner.write_rule(learned_rule)
             self._rules_suggested.append(learned_rule)
+            # Also store as procedural memory
+            if self.memory:
+                await self.memory.add_procedural(
+                    trigger_pattern="repeated user correction",
+                    action=learned_rule,
+                    outcome="auto-learned rule",
+                    source="session_learner",
+                )
+
+        # Phase 12: Check for semantic statements in chat
+        if self.memory:
+            semantic = self.memory.check_semantic_statement(message)
+            if semantic:
+                topic, key, value = semantic
+                new_id, old = await self.memory.add_semantic(
+                    topic, key, value, source="user_chat", confidence=0.7,
+                )
+                if old:
+                    chat.add_message(
+                        "buddy",
+                        f"🧠 Updated memory: {key} was '{old['value'][:40]}', "
+                        f"now '{value[:40]}'"
+                    )
 
         # Gain XP for interaction (mood-modified)
         if self.buddy_state:
@@ -600,6 +633,57 @@ class BuddyApp(App):
         except Exception:
             pass
 
+    # ── Phase 12: Memory system callbacks ──
+
+    def _on_memory_event(self, event: SessionEvent):
+        """Buffer session events as episodic memories."""
+        if not self.memory:
+            return
+
+        # Importance by event type
+        importance_map = {
+            "SessionStart": 8, "SessionEnd": 8,
+            "UserPromptSubmit": 6,
+        }
+        tool_importance = {
+            "Edit": 5, "Write": 5, "Agent": 6,
+            "Read": 3, "Grep": 3, "Glob": 3, "Bash": 4,
+        }
+
+        importance = importance_map.get(
+            event.event_type,
+            tool_importance.get(event.tool_name, 4),
+        )
+
+        # Skip low-value noise (reads/globs below threshold)
+        if importance < 4:
+            return
+
+        self.memory.buffer_event(
+            event_type=event.event_type,
+            summary=event.summary,
+            details=event.tool_name or "",
+            importance=importance,
+        )
+
+    async def _memory_flush_loop(self):
+        """Flush buffered memory events every 30 seconds."""
+        while True:
+            await asyncio.sleep(30)
+            if self.memory:
+                try:
+                    await self.memory.flush_buffer()
+                except Exception:
+                    pass
+
+    async def _memory_startup_decay(self):
+        """Run memory decay once at startup to clean old entries."""
+        if self.memory:
+            try:
+                await self.memory.decay()
+            except Exception:
+                pass
+
     def _detect_trigger(self, event: SessionEvent) -> str | None:
         """Detect what kind of thought trigger this event should produce."""
         if event.event_type == "SessionStart":
@@ -729,7 +813,7 @@ class BuddyApp(App):
         chat.add_system("[bold]Screens[/]")
         chat.add_system("  [p] Party    [d] Discuss   [a] Achievements")
         chat.add_system("  [t] Tools    [c] Convos    [g] Config Health")
-        chat.add_system("  [w] Wiki")
+        chat.add_system("  [w] Wiki     [m] Memory")
         chat.add_system("[bold]Actions[/]")
         chat.add_system("  [r] Hatch    [F1] Save     [F2] Theme")
         chat.add_system("  [?] Help     [F5] Refresh  [q] Quit")
@@ -843,6 +927,14 @@ class BuddyApp(App):
         self.push_screen(WikiScreen(), callback=self._on_wiki_dismissed)
 
     async def _on_wiki_dismissed(self, result) -> None:
+        pass
+
+    def action_memory(self):
+        """Open the memory dashboard."""
+        if self.memory:
+            self.push_screen(MemoryScreen(self.memory), callback=self._on_memory_dismissed)
+
+    async def _on_memory_dismissed(self, result) -> None:
         pass
 
     async def _startup_config_check(self):
@@ -1119,7 +1211,7 @@ class BuddyApp(App):
 
     async def on_unmount(self):
         self.observer.stop()
-        for task_name in ('_observer_task', '_rule_check_task', '_idle_thought_task', '_mood_decay_task', '_rolling_summary_task', '_achievement_check_task', '_model_phase_task'):
+        for task_name in ('_observer_task', '_rule_check_task', '_idle_thought_task', '_mood_decay_task', '_rolling_summary_task', '_achievement_check_task', '_model_phase_task', '_memory_flush_task'):
             task = getattr(self, task_name, None)
             if task:
                 task.cancel()
@@ -1158,6 +1250,13 @@ class BuddyApp(App):
                 vault.sync_handoff()
         except Exception:
             pass
+
+        # Phase 12: Final memory flush on exit
+        if self.memory:
+            try:
+                await self.memory.flush_buffer()
+            except Exception:
+                pass
 
         await self.ai_backend.close()
         if self.buddy_state:

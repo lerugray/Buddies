@@ -56,6 +56,49 @@ CREATE TABLE IF NOT EXISTS achievements (
     id TEXT PRIMARY KEY,
     unlocked_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS memory_episodic (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    session_id TEXT NOT NULL DEFAULT '',
+    event_type TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    details TEXT DEFAULT '',
+    tags TEXT NOT NULL DEFAULT '[]',
+    importance INTEGER NOT NULL DEFAULT 5,
+    access_count INTEGER NOT NULL DEFAULT 0,
+    last_accessed TEXT DEFAULT NULL
+);
+
+CREATE TABLE IF NOT EXISTS memory_semantic (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    topic TEXT NOT NULL,
+    key TEXT NOT NULL,
+    value TEXT NOT NULL,
+    source TEXT NOT NULL DEFAULT 'observed',
+    confidence REAL NOT NULL DEFAULT 0.5,
+    tags TEXT NOT NULL DEFAULT '[]',
+    superseded_by INTEGER DEFAULT NULL,
+    access_count INTEGER NOT NULL DEFAULT 0,
+    last_accessed TEXT DEFAULT NULL
+);
+
+CREATE TABLE IF NOT EXISTS memory_procedural (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    trigger_pattern TEXT NOT NULL,
+    action TEXT NOT NULL,
+    outcome TEXT NOT NULL DEFAULT '',
+    success_count INTEGER NOT NULL DEFAULT 0,
+    fail_count INTEGER NOT NULL DEFAULT 0,
+    tags TEXT NOT NULL DEFAULT '[]',
+    source TEXT NOT NULL DEFAULT 'observed',
+    active INTEGER NOT NULL DEFAULT 1,
+    last_applied TEXT DEFAULT NULL
+);
 """
 
 # Migration steps for existing databases (idempotent — safe to run on every startup)

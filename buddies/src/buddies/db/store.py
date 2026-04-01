@@ -191,3 +191,246 @@ class BuddyStore:
             await self.db.commit()
         except Exception:
             pass
+
+    # --- Memory: Episodic ---
+
+    async def add_episodic(self, session_id: str, event_type: str, summary: str,
+                           details: str = "", tags: str = "[]", importance: int = 5) -> int:
+        """Insert an episodic memory. Returns row id."""
+        async with self.db.execute(
+            "INSERT INTO memory_episodic (session_id, event_type, summary, details, tags, importance) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (session_id, event_type, summary, details, tags, importance),
+        ) as cursor:
+            row_id = cursor.lastrowid
+        await self.db.commit()
+        return row_id
+
+    async def query_episodic(self, keyword: str = "", limit: int = 20,
+                             min_importance: int = 1) -> list[dict]:
+        """Query episodic memories by keyword, sorted by importance + recency."""
+        if keyword:
+            async with self.db.execute(
+                "SELECT * FROM memory_episodic "
+                "WHERE importance >= ? AND (summary LIKE ? OR details LIKE ? OR tags LIKE ?) "
+                "ORDER BY importance DESC, created_at DESC LIMIT ?",
+                (min_importance, f"%{keyword}%", f"%{keyword}%", f"%{keyword}%", limit),
+            ) as cursor:
+                return [dict(r) for r in await cursor.fetchall()]
+        else:
+            async with self.db.execute(
+                "SELECT * FROM memory_episodic WHERE importance >= ? "
+                "ORDER BY importance DESC, created_at DESC LIMIT ?",
+                (min_importance, limit),
+            ) as cursor:
+                return [dict(r) for r in await cursor.fetchall()]
+
+    async def get_session_episodic(self, session_id: str) -> list[dict]:
+        """Get all episodic memories for a session."""
+        async with self.db.execute(
+            "SELECT * FROM memory_episodic WHERE session_id = ? ORDER BY created_at",
+            (session_id,),
+        ) as cursor:
+            return [dict(r) for r in await cursor.fetchall()]
+
+    async def count_episodic(self) -> int:
+        async with self.db.execute("SELECT COUNT(*) FROM memory_episodic") as cursor:
+            row = await cursor.fetchone()
+            return row[0] if row else 0
+
+    # --- Memory: Semantic ---
+
+    async def add_semantic(self, topic: str, key: str, value: str,
+                           source: str = "observed", confidence: float = 0.5,
+                           tags: str = "[]") -> int:
+        """Insert a semantic memory. Returns row id."""
+        async with self.db.execute(
+            "INSERT INTO memory_semantic (topic, key, value, source, confidence, tags) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (topic, key, value, source, confidence, tags),
+        ) as cursor:
+            row_id = cursor.lastrowid
+        await self.db.commit()
+        return row_id
+
+    async def get_active_semantic(self, topic: str = "", key: str = "") -> list[dict]:
+        """Get active (non-superseded) semantic memories, optionally filtered."""
+        conditions = ["superseded_by IS NULL"]
+        params: list = []
+        if topic:
+            conditions.append("topic = ?")
+            params.append(topic)
+        if key:
+            conditions.append("key = ?")
+            params.append(key)
+        where = " AND ".join(conditions)
+        async with self.db.execute(
+            f"SELECT * FROM memory_semantic WHERE {where} ORDER BY confidence DESC, updated_at DESC",
+            params,
+        ) as cursor:
+            return [dict(r) for r in await cursor.fetchall()]
+
+    async def query_semantic(self, keyword: str = "", limit: int = 20,
+                             include_superseded: bool = False) -> list[dict]:
+        """Search semantic memories by keyword."""
+        superseded_filter = "" if include_superseded else "AND superseded_by IS NULL "
+        if keyword:
+            async with self.db.execute(
+                f"SELECT * FROM memory_semantic WHERE "
+                f"(topic LIKE ? OR key LIKE ? OR value LIKE ? OR tags LIKE ?) "
+                f"{superseded_filter}"
+                f"ORDER BY confidence DESC, updated_at DESC LIMIT ?",
+                (f"%{keyword}%", f"%{keyword}%", f"%{keyword}%", f"%{keyword}%", limit),
+            ) as cursor:
+                return [dict(r) for r in await cursor.fetchall()]
+        else:
+            async with self.db.execute(
+                f"SELECT * FROM memory_semantic WHERE 1=1 {superseded_filter}"
+                f"ORDER BY confidence DESC, updated_at DESC LIMIT ?",
+                (limit,),
+            ) as cursor:
+                return [dict(r) for r in await cursor.fetchall()]
+
+    async def supersede_semantic(self, old_id: int, new_id: int) -> None:
+        """Mark a semantic memory as superseded by a newer one."""
+        await self.db.execute(
+            "UPDATE memory_semantic SET superseded_by = ? WHERE id = ?",
+            (new_id, old_id),
+        )
+        await self.db.commit()
+
+    async def bump_semantic_confidence(self, mem_id: int, delta: float = 0.1) -> None:
+        """Increase confidence on a semantic memory (cap at 1.0)."""
+        await self.db.execute(
+            "UPDATE memory_semantic SET confidence = MIN(1.0, confidence + ?), "
+            "updated_at = datetime('now') WHERE id = ?",
+            (delta, mem_id),
+        )
+        await self.db.commit()
+
+    async def count_semantic(self, active_only: bool = True) -> int:
+        filt = "WHERE superseded_by IS NULL" if active_only else ""
+        async with self.db.execute(f"SELECT COUNT(*) FROM memory_semantic {filt}") as cursor:
+            row = await cursor.fetchone()
+            return row[0] if row else 0
+
+    async def get_contradictions(self) -> list[dict]:
+        """Get superseded semantic memories (old values that were replaced)."""
+        async with self.db.execute(
+            "SELECT old.*, new.value as new_value, new.id as new_id "
+            "FROM memory_semantic old "
+            "JOIN memory_semantic new ON old.superseded_by = new.id "
+            "ORDER BY old.updated_at DESC",
+        ) as cursor:
+            return [dict(r) for r in await cursor.fetchall()]
+
+    # --- Memory: Procedural ---
+
+    async def add_procedural(self, trigger_pattern: str, action: str,
+                             outcome: str = "", source: str = "observed",
+                             tags: str = "[]") -> int:
+        """Insert a procedural memory. Returns row id."""
+        async with self.db.execute(
+            "INSERT INTO memory_procedural (trigger_pattern, action, outcome, source, tags, success_count) "
+            "VALUES (?, ?, ?, ?, ?, 1)",
+            (trigger_pattern, action, outcome, source, tags),
+        ) as cursor:
+            row_id = cursor.lastrowid
+        await self.db.commit()
+        return row_id
+
+    async def query_procedural(self, keyword: str = "", limit: int = 20,
+                               active_only: bool = True) -> list[dict]:
+        """Search procedural memories."""
+        active_filter = "AND active = 1 " if active_only else ""
+        if keyword:
+            async with self.db.execute(
+                f"SELECT * FROM memory_procedural WHERE "
+                f"(trigger_pattern LIKE ? OR action LIKE ? OR tags LIKE ?) "
+                f"{active_filter}"
+                f"ORDER BY (success_count - fail_count) DESC, updated_at DESC LIMIT ?",
+                (f"%{keyword}%", f"%{keyword}%", f"%{keyword}%", limit),
+            ) as cursor:
+                return [dict(r) for r in await cursor.fetchall()]
+        else:
+            async with self.db.execute(
+                f"SELECT * FROM memory_procedural WHERE 1=1 {active_filter}"
+                f"ORDER BY (success_count - fail_count) DESC, updated_at DESC LIMIT ?",
+                (limit,),
+            ) as cursor:
+                return [dict(r) for r in await cursor.fetchall()]
+
+    async def get_procedural_match(self, trigger: str) -> dict | None:
+        """Find a procedural memory matching a trigger pattern."""
+        async with self.db.execute(
+            "SELECT * FROM memory_procedural WHERE active = 1 AND ? LIKE '%' || trigger_pattern || '%' "
+            "ORDER BY success_count DESC LIMIT 1",
+            (trigger,),
+        ) as cursor:
+            row = await cursor.fetchone()
+            return dict(row) if row else None
+
+    async def record_procedural_outcome(self, proc_id: int, success: bool) -> None:
+        """Record success or failure on a procedural memory."""
+        col = "success_count" if success else "fail_count"
+        await self.db.execute(
+            f"UPDATE memory_procedural SET {col} = {col} + 1, "
+            f"updated_at = datetime('now'), last_applied = datetime('now') WHERE id = ?",
+            (proc_id,),
+        )
+        await self.db.commit()
+
+    async def deactivate_procedural(self, proc_id: int) -> None:
+        """Deactivate a procedural memory."""
+        await self.db.execute(
+            "UPDATE memory_procedural SET active = 0 WHERE id = ?", (proc_id,),
+        )
+        await self.db.commit()
+
+    async def count_procedural(self, active_only: bool = True) -> int:
+        filt = "WHERE active = 1" if active_only else ""
+        async with self.db.execute(f"SELECT COUNT(*) FROM memory_procedural {filt}") as cursor:
+            row = await cursor.fetchone()
+            return row[0] if row else 0
+
+    # --- Memory: Cleanup ---
+
+    async def decay_episodic(self, days_threshold: int = 90) -> int:
+        """Reduce importance of old unaccessed episodic memories. Returns rows deleted."""
+        # Lower importance of old, unaccessed memories
+        await self.db.execute(
+            "UPDATE memory_episodic SET importance = importance - 1 "
+            "WHERE access_count = 0 AND importance > 0 "
+            "AND julianday('now') - julianday(created_at) > ?",
+            (days_threshold,),
+        )
+        # Delete memories with zero or negative importance
+        async with self.db.execute(
+            "DELETE FROM memory_episodic WHERE importance <= 0"
+        ) as cursor:
+            deleted = cursor.rowcount
+        await self.db.commit()
+        return deleted
+
+    async def decay_procedural(self, days_threshold: int = 60) -> int:
+        """Deactivate failed procedural memories. Returns rows deactivated."""
+        async with self.db.execute(
+            "UPDATE memory_procedural SET active = 0 "
+            "WHERE active = 1 AND fail_count > success_count * 2 "
+            "AND (last_applied IS NULL OR julianday('now') - julianday(last_applied) > ?)",
+            (days_threshold,),
+        ) as cursor:
+            deactivated = cursor.rowcount
+        await self.db.commit()
+        return deactivated
+
+    async def bump_access(self, table: str, mem_id: int) -> None:
+        """Increment access_count and set last_accessed for a memory."""
+        if table not in ("memory_episodic", "memory_semantic", "memory_procedural"):
+            return
+        await self.db.execute(
+            f"UPDATE {table} SET access_count = access_count + 1, "
+            f"last_accessed = datetime('now') WHERE id = ?",
+            (mem_id,),
+        )
+        await self.db.commit()

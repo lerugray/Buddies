@@ -24,6 +24,7 @@ A tamagotchi-style local AI companion **collection** that runs alongside Claude 
 - **Phase 10** (Token Guardian): DONE — rolling summaries, token warnings, quick-save, session handoff
 - **Polish**: DONE — 6 themes, 33 achievements, species count audit
 - **Obsidian wiki**: [w] key — auto-generated `.buddy-wiki/` vault with species, architecture, decisions, session journals
+- **Three-tier memory**: [m] key — episodic/semantic/procedural memory with contradiction detection, auto-populated from sessions and chat
 - **Hatch screen**: Working — named buddies, seed-based or random, name input on hatch
 - **Party screen**: NEW — switch between buddies, equip hats, hatch new
 - **Hats**: NEW — crown (debug), wizard (wisdom), propeller (chaos), tinyduck (starter)
@@ -102,6 +103,7 @@ buddies/
 │   │   ├── ai_router.py              # Complexity scoring, cost guardrails, routing
 │   │   ├── rule_suggester.py         # Session pattern → config rule suggestions
 │   │   ├── config_intel.py           # CLAUDE.md health, linting, scaffolding, auto-learn
+│   │   ├── memory.py                 # Three-tier memory (episodic/semantic/procedural)
 │   │   ├── obsidian_vault.py         # Obsidian wiki vault generator
 │   │   ├── token_guardian.py         # Rolling summaries, token warnings, session handoff
 │   │   ├── achievements.py          # 33 achievements, checking, tracking
@@ -113,6 +115,7 @@ buddies/
 │   │   ├── conversations.py          # Saved conversations browser
 │   │   ├── config_health.py          # Config health dashboard screen
 │   │   ├── wiki.py                   # Obsidian wiki dashboard screen
+│   │   ├── memory.py                 # Three-tier memory dashboard
 │   │   └── achievements.py          # Achievements viewer screen
 │   ├── widgets/
 │   │   ├── buddy_display.py          # Animated sprite + stats + evolution
@@ -320,6 +323,15 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 - [x] **Multi-machine awareness** — on startup, Buddy saves hostname to local tracking file per project. Detects when project is used across machines, advises on CLAUDE.md (local/gitignored) vs HANDOFF.md (shared/committed) pattern. Three scenarios: missing CLAUDE.md, CLAUDE.md not gitignored, good setup but new machine. Nudges non-programmers toward the right config sharing pattern.
 - [x] **README health check** — scans README.md for title, description, badges, install, usage, license, screenshots/GIF, collapsible sections. Grades A-F, suggests improvements. Integrated into config health screen [g]. Can scaffold a basic README from project metadata (detects Python/Node/Rust/Go).
 - [x] **Obsidian wiki integration** — auto-generate `.buddy-wiki/` Obsidian vault per project. Species lore pages (70), architecture maps with dependency graphs, decision logs, session journals (auto-written on exit). Plain markdown with [[wikilinks]]. TUI dashboard via [w] key with per-section regeneration. Vault is auto-gitignored.
+
+### Phase 12: Persistent Memory & Self-Evolution
+*Inspired by Phantom (ghostwright/phantom). Makes buddies smarter across sessions.*
+
+- [x] **Three-tier memory** — episodic (sessions/events), semantic (facts/preferences with contradiction detection), procedural (patterns/rules). SQLite-backed, keyword/tag retrieval, no vector DB needed. Memory screen via [m] key. Session events auto-buffered, semantic statements detected from chat, procedural memories from rule suggestions. Background flush every 30s, decay cleanup on startup.
+- [ ] **Working memory compaction** — auto-trim HANDOFF.md when it exceeds a threshold. Keep recent session notes, compress older ones.
+- [ ] **Self-evolution safety gates** — validate rule suggestions against existing rules before auto-applying. Conflict detection, rollback on regression.
+- [ ] **Golden suite** — save successful rule applications as reference examples. Future suggestions checked against the golden set.
+- [ ] **Layered prompt assembly** — composable prompt building (personality + preferences + context + memory). Deferred until AI interactions get richer.
 
 ### Tier 3: Social
 *High value, high effort. Needs real design work on transport, identity, moderation.*
