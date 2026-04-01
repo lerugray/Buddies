@@ -148,6 +148,15 @@ class AIRouter:
             )
 
         # Medium/low complexity → try local AI
+        # Guard: never send chat traffic through expensive models
+        backend_tier = getattr(self.backend.config, "cost_tier", "free")
+        if backend_tier == "expensive":
+            return RoutingDecision(
+                route="buddy_only",
+                complexity_score=complexity,
+                reason="Backend is expensive-tier — using buddy fallback to save tokens",
+            )
+
         if not await self.backend.is_available():
             return RoutingDecision(
                 route="buddy_only",

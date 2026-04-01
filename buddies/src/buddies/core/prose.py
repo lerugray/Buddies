@@ -141,6 +141,58 @@ TEMPLATES: dict[str, list[str]] = {
         "Tests are running. {name} is holding their breath.",
         "Time to see if the code walks the walk.",
     ],
+
+    # --- Discussion mode templates ---
+
+    "discussion_open": [
+        "So... what's everyone thinking about?",
+        "I've been meaning to bring something up.",
+        "Anyone else feel like the codebase has been different lately?",
+        "I have opinions. Strong ones. You've been warned.",
+        "Let me just put this out there.",
+        "*clears throat* I'd like to address the group.",
+        "Alright, let's chat. I'll start.",
+        "You know what I've been thinking about?",
+        "Okay, hot take incoming.",
+        "I've been doing some thinking. Dangerous, I know.",
+        "Since we're all here... might as well talk.",
+        "Permission to speak freely? Too late, I'm already talking.",
+    ],
+
+    "discussion_topic": [
+        "Regarding '{topic}' — I have thoughts.",
+        "'{topic}'? Oh, I definitely have opinions on that.",
+        "Let me weigh in on '{topic}'.",
+        "'{topic}' is interesting. Here's my take.",
+        "I've been thinking about '{topic}' actually.",
+        "On the subject of '{topic}' — hear me out.",
+        "'{topic}'... now THAT'S worth discussing.",
+        "My perspective on '{topic}'? Glad you asked.",
+    ],
+
+    "discussion_file": [
+        "{filename} — {line_count} lines. I have notes.",
+        "I took a look at {filename}. Interesting choices in there.",
+        "{function_count} functions in {filename}. Let me comment.",
+        "So {filename} is a {extension} file with {line_count} lines. Here's what I think.",
+        "I've been staring at {filename}. Some observations.",
+        "{filename}... where do I even begin.",
+        "Let's talk about {filename}. {line_count} lines of... something.",
+        "I reviewed {filename}. I have opinions.",
+    ],
+
+    "discussion_react": [
+        "Interesting point, {previous_speaker}. But consider this —",
+        "I hear what {previous_speaker} is saying, but...",
+        "Building on what {previous_speaker} said —",
+        "Okay but {previous_speaker}, have you thought about —",
+        "That's one way to look at it, {previous_speaker}.",
+        "I respectfully disagree with {previous_speaker} on that.",
+        "What {previous_speaker} said, but also —",
+        "{previous_speaker} makes a fair point. However —",
+        "See, {previous_speaker}, that's exactly the kind of thinking that —",
+        "After hearing {previous_speaker}... I actually changed my mind. Just kidding.",
+    ],
 }
 
 
@@ -282,6 +334,12 @@ class ProseEngine:
             minutes=ctx.get("minutes", 0),
             tool=ctx.get("tool", "something"),
             stage=ctx.get("stage", "evolved"),
+            topic=ctx.get("topic", "this"),
+            filename=ctx.get("filename", "that file"),
+            line_count=ctx.get("line_count", "?"),
+            function_count=ctx.get("function_count", "some"),
+            extension=ctx.get("extension", "code"),
+            previous_speaker=ctx.get("previous_speaker", "them"),
         )
 
         # Maybe add weirdness overlay (replaces text entirely at high chaos)

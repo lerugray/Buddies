@@ -17,23 +17,7 @@ from buddies.db.store import BuddyStore
 from buddies.core.buddy_brain import (
     HAT_UNLOCK_RULES, SPECIES_CATALOG, get_evolution_stage, Rarity,
 )
-
-
-RARITY_STARS = {
-    "common": "★",
-    "uncommon": "★★",
-    "rare": "★★★",
-    "epic": "★★★★",
-    "legendary": "★★★★★",
-}
-
-RARITY_COLORS = {
-    "common": "white",
-    "uncommon": "green",
-    "rare": "cyan",
-    "epic": "magenta",
-    "legendary": "yellow",
-}
+from buddies.widgets.styling import RARITY_COLORS, RARITY_STARS
 
 
 class PartyScreen(Screen):
@@ -99,6 +83,7 @@ class PartyScreen(Screen):
         Binding("enter", "switch_buddy", "Switch", show=True),
         Binding("h", "cycle_hat", "Hat", show=True),
         Binding("n", "rename", "Rename", show=True),
+        Binding("d", "discuss", "Discuss", show=True),
         Binding("delete", "release_buddy", "Release", show=True),
         Binding("plus", "hatch", "Hatch New", show=True),
         Binding("up", "navigate_up", "Up", show=False),
@@ -119,7 +104,7 @@ class PartyScreen(Screen):
                     yield Static("🐾 BUDDY PARTY 🐾", id="party-title")
                     yield Vertical(id="buddies-list")
                     yield Static(
-                        "[dim]↑↓ navigate  enter=switch  h=hat  n=rename  del=release  +=hatch[/]",
+                        "[dim]↑↓ navigate  enter=switch  h=hat  n=rename  d=discuss  del=release  +=hatch[/]",
                         id="party-help",
                     )
         yield Footer()
@@ -334,6 +319,12 @@ class PartyScreen(Screen):
             asyncio.create_task(rename_input.remove())
         except Exception:
             pass
+
+    def action_discuss(self):
+        """Dismiss with signal to open discussion screen."""
+        if self._renaming:
+            return
+        self.dismiss("discuss")
 
     def action_hatch(self):
         """Dismiss with signal to hatch a new buddy."""

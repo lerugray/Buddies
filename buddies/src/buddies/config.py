@@ -29,6 +29,7 @@ class AIBackendConfig:
     api_key: str = ""
     max_tokens: int = 1024
     temperature: float = 0.7
+    cost_tier: str = "free"  # "free" (local), "cheap" (haiku), "expensive" (opus/sonnet)
 
 
 @dataclass
@@ -72,6 +73,7 @@ class BuddyConfig:
                 "api_key": self.ai_backend.api_key,
                 "max_tokens": self.ai_backend.max_tokens,
                 "temperature": self.ai_backend.temperature,
+                "cost_tier": self.ai_backend.cost_tier,
             },
             "theme": self.theme,
             "animation_fps": self.animation_fps,

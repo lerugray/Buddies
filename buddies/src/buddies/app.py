@@ -32,6 +32,8 @@ from buddies.widgets.chat import ChatWindow
 from buddies.widgets.session_monitor import SessionMonitor
 
 from buddies.screens.party import PartyScreen
+from buddies.screens.discussion import DiscussionScreen
+from buddies.screens.tool_browser import ToolBrowserScreen
 
 
 CSS_PATH = Path(__file__).parent / "styles" / "buddy.tcss"
@@ -49,6 +51,8 @@ class BuddyApp(App):
         Binding("f5", "refresh", "Refresh", show=True),
         Binding("r", "hatch_new", "Hatch New", show=True),
         Binding("p", "party", "Party", show=True),
+        Binding("d", "discussion", "Discuss", show=True),
+        Binding("t", "tools", "Tools", show=True),
     ]
 
     def __init__(self):
@@ -149,6 +153,13 @@ class BuddyApp(App):
             return
         buddy_display = self.query_one("#buddy-panel", BuddyDisplay)
         buddy_display.update_buddy(self.buddy_state)
+        # Update chat styling to match current buddy
+        chat = self.query_one("#chat-panel", ChatWindow)
+        chat.set_buddy_info(
+            self.buddy_state.name,
+            self.buddy_state.species.emoji,
+            self.buddy_state.species.rarity.value,
+        )
 
     def _get_greeting(self) -> str:
         """Get a mood-appropriate greeting from buddies."""
@@ -551,7 +562,7 @@ class BuddyApp(App):
         chat.add_system("Simple questions → handled locally (saves Claude tokens)")
         chat.add_system("Complex questions → buddy tells you to ask Claude")
         chat.add_system("Commands: 'stats' 'help' 'name' 'session' 'tokens'")
-        chat.add_system("Keys: [q] quit  [?] help  [r] hatch new  [p] party  [F5] refresh")
+        chat.add_system("Keys: [q] quit  [?] help  [r] hatch  [p] party  [d] discuss  [t] tools  [F5] refresh")
         chat.add_system("────────────")
 
     def action_hatch_new(self):
@@ -599,6 +610,11 @@ class BuddyApp(App):
             self.action_hatch_new()
             return
 
+        # If user requested discussion, open discussion screen
+        if result == "discuss":
+            self.action_discussion()
+            return
+
         # Otherwise, switch to the selected buddy
         data = await self.store.get_buddy_by_id(result)
         if data:
@@ -609,6 +625,23 @@ class BuddyApp(App):
             self._update_displays()
             chat = self.query_one("#chat-panel", ChatWindow)
             chat.add_system(f"Switched to {self.buddy_state.name}!")
+
+    def action_discussion(self):
+        """Open the discussion screen for party focus group."""
+        self.push_screen(
+            DiscussionScreen(self.store, self.prose),
+            callback=self._on_discussion_dismissed,
+        )
+
+    async def _on_discussion_dismissed(self, result) -> None:
+        pass
+
+    def action_tools(self):
+        """Open the tool browser to see installed MCP servers and skills."""
+        self.push_screen(ToolBrowserScreen(), callback=self._on_tools_dismissed)
+
+    async def _on_tools_dismissed(self, result) -> None:
+        pass
 
     def action_refresh(self):
         self._update_displays()
