@@ -81,6 +81,13 @@ SPECIES_CATALOG: list[Species] = [
     Species("mimic", "📦", Rarity.EPIC, {"chaos": 5, "snark": 4}, "Looks like a chest. IS NOT A CHEST. Has legs."),
     Species("claude", "🤖", Rarity.LEGENDARY, {"wisdom": 6, "debugging": 5}, "A tiny Claude. Helpful, harmless, and pixelated."),
     Species("illuminati", "🔺", Rarity.LEGENDARY, {"wisdom": 6, "chaos": 5}, "The all-seeing eye. Knows your commit history."),
+    # Fun phase species batch 2
+    Species("sanic", "🦔", Rarity.RARE, {"patience": 5, "snark": 4}, "Gotta go... actually, no rush. Ironcially slow."),
+    Species("rat", "🐀", Rarity.COMMON, {"chaos": 3, "debugging": 2}, "Scrappy survivor. Finds bugs in the walls."),
+    Species("rooster", "🐓", Rarity.UNCOMMON, {"snark": 4, "chaos": 2}, "Loud opinions at dawn. Crows at compile errors."),
+    Species("cow", "🐄", Rarity.COMMON, {"patience": 4, "wisdom": 2}, "Chews cud. Contemplates architecture."),
+    Species("yog_sothoth", "🫧", Rarity.LEGENDARY, {"chaos": 6, "wisdom": 6}, "The gate and the key. Knows all, compiles nothing."),
+    Species("clippy", "📎", Rarity.EPIC, {"snark": 5, "debugging": 4}, "It looks like you're writing code! Need help?"),
 ]
 
 # Rarity weights for the gacha

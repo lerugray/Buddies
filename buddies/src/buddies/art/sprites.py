@@ -1775,6 +1775,202 @@ def _jellyfish_frames() -> list[str]:
     return [frame1, frame2]
 
 
+def _sanic_frames() -> list[str]:
+    """A blue hedgehog. Ironically not fast at all."""
+    frame1 = _build_sprite([
+        "tttttbbbttt",
+        "ttttbbbbbtt",
+        "tttbbbbbbbt",
+        "ttbbbbbbbbt",
+        "ttbbkbbkbbt",
+        "ttbbnnnbbbt",
+        "ttbbnnkbbbt",
+        "tttbbbbbtt",
+        "BBBtbbbtBBt",
+        "tBBtbbbtBBt",
+        "ttttbbtbbtt",
+        "ttttbbbbtt",
+    ])
+    frame2 = _build_sprite([
+        "tttttbbbttt",
+        "ttttbbbbbtt",
+        "tttbbbbbbbt",
+        "ttbbbbbbbbt",
+        "ttbkbbbkbbt",
+        "ttbbnnnbbbt",
+        "ttbbnknbbbt",
+        "tttbbbbbtt",
+        "BBBtbbbtBBt",
+        "tBBtbbbtBt",
+        "tttbbttbbtt",
+        "tttbbttbbtt",
+    ])
+    return [frame1, frame2]
+
+
+def _rat_frames() -> list[str]:
+    """A sneaky little rat."""
+    frame1 = _build_sprite([
+        "teetteettt",
+        "teeeeeettt",
+        "teeeeeeet",
+        "ekeeekeet",
+        "teeeeeeet",
+        "teeeneet",
+        "tteeeeett",
+        "ttteeeettt",
+        "tteetteett",
+        "tteetteett",
+        "ttpttttptt",
+    ])
+    frame2 = _build_sprite([
+        "teetteettt",
+        "teeeeeettt",
+        "teeeeeeet",
+        "ekeeekeet",
+        "teeeeeeet",
+        "teeeneet",
+        "tteeeeett",
+        "ttteeeettt",
+        "tteetteettt",
+        "tteetteettt",
+        "ttptttpttt",
+    ])
+    return [frame1, frame2]
+
+
+def _rooster_frames() -> list[str]:
+    """A proud rooster with a red comb."""
+    frame1 = _build_sprite([
+        "tttrrttttt",
+        "ttrrrtttt",
+        "ttrrNNtttt",
+        "tNNNNNNttt",
+        "NNkNNkNNtt",
+        "NNNNNNNNtt",
+        "NNoNNNNNtt",
+        "tNNNNNNttt",
+        "ttNNNNtttt",
+        "gNNNNNNgtt",
+        "gNNttNNgtt",
+        "toottoott",
+    ])
+    frame2 = _build_sprite([
+        "tttrrttttt",
+        "ttrrrtttt",
+        "ttrrNNtttt",
+        "tNNNNNNttt",
+        "NNkNNkNNtt",
+        "NNNNNNNNtt",
+        "NNoNNNNNtt",
+        "tNNNNNNttt",
+        "ttNNNNtttt",
+        "gNNNNNNgtt",
+        "ggNttNggtt",
+        "tootttoott",
+    ])
+    return [frame1, frame2]
+
+
+def _cow_frames() -> list[str]:
+    """A spotted cow."""
+    frame1 = _build_sprite([
+        "ttwtttwtttt",
+        "twwwwwwwttt",
+        "twwwwwwwttt",
+        "wkwEwkwwtt",
+        "wwwwwwwwtt",
+        "wwnnnwwwtt",
+        "twwwwwwwttt",
+        "ttEwwEwwttt",
+        "tEwwwwEwttt",
+        "twwwwwwwttt",
+        "twwttwwttt",
+        "twwttwwttt",
+    ])
+    frame2 = _build_sprite([
+        "twttttwttt",
+        "twwwwwwwttt",
+        "twwwwwwwttt",
+        "wkwEwkwwtt",
+        "wwwwwwwwtt",
+        "wwnnnwwwtt",
+        "twwwwwwwttt",
+        "ttEwwEwwttt",
+        "tEwwwwEwttt",
+        "twwwwwwwttt",
+        "ttwwtwwttt",
+        "ttwwtwwttt",
+    ])
+    return [frame1, frame2]
+
+
+def _yog_sothoth_frames() -> list[str]:
+    """Yog-Sothoth — a cluster of glowing spheres. The gate and the key."""
+    frame1 = _build_sprite([
+        "ttttPPtttt",
+        "tttPPPPttt",
+        "ttPPPPPttt",
+        "tPpPPpPPtt",
+        "PPPPPPPPPt",
+        "PPpPPPpPtt",
+        "tPPPPPPPPt",
+        "PPPpPPPPPt",
+        "PPPPPPpPPt",
+        "tPPPPPPPtt",
+        "ttPPPPPttt",
+        "tttPPttttt",
+    ])
+    frame2 = _build_sprite([
+        "tttPPttttt",
+        "tttPPPPttt",
+        "ttPPPPPPtt",
+        "tPPpPPpPtt",
+        "tPPPPPPPPt",
+        "PPPPPpPPPt",
+        "PPpPPPPPPt",
+        "tPPPPpPPtt",
+        "PPPpPPPPPt",
+        "tPPPPPPPtt",
+        "tttPPPtttt",
+        "ttttPPtttt",
+    ])
+    return [frame1, frame2]
+
+
+def _clippy_frames() -> list[str]:
+    """A derpy paperclip with googly eyes. 'It looks like you're coding!'"""
+    frame1 = _build_sprite([
+        "ttteeeettt",
+        "tteetteett",
+        "teettteettt",
+        "eettttteet",
+        "eewtewteet",
+        "eektektet",
+        "eetttteet",
+        "teewwweettt",
+        "tteetteett",
+        "teettteettt",
+        "teettttttt",
+        "tteeetttt",
+    ])
+    frame2 = _build_sprite([
+        "ttteeeettt",
+        "tteetteett",
+        "teettteettt",
+        "eettttteet",
+        "eetwetweet",
+        "eektetkeet",
+        "eetttteet",
+        "teewwweettt",
+        "tteetteett",
+        "teettteettt",
+        "teettttttt",
+        "tteeetttt",
+    ])
+    return [frame1, frame2]
+
+
 # Build hat sprites
 HATS: dict[str, str] = {
     "crown": _hat_crown(),
@@ -1842,6 +2038,12 @@ SPRITES: dict[str, list[str]] = {
     "moth": _moth_frames(),
     "snail": _snail_frames(),
     "jellyfish": _jellyfish_frames(),
+    "sanic": _sanic_frames(),
+    "rat": _rat_frames(),
+    "rooster": _rooster_frames(),
+    "cow": _cow_frames(),
+    "yog_sothoth": _yog_sothoth_frames(),
+    "clippy": _clippy_frames(),
 }
 
 SHINY_BORDER = "[bold yellow]✨[/]"
