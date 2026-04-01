@@ -304,7 +304,7 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 
 ### Polish Pass — DONE
 - ✅ 6 themes: default, midnight, forest, ocean, sunset, light — cycle [F2], persisted to config
-- ✅ 33 achievements across 5 categories (collection, mastery, social, exploration, secret)
+- ✅ 40 achievements across 5 categories (collection, mastery, social, exploration, secret)
 - ✅ Achievements DB table, periodic checker, notification system, [a] screen
 - ✅ Footer audit — reduced to 6 visible bindings, rest hidden but functional
 - ✅ Screen CSS audit — fixed hardcoded max-widths, responsive layouts for 80-col terminals
@@ -345,7 +345,7 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 
 - [x] **BBS-style Social Network (Phase 1)** — retro BBS with 7 boards (Chaos Lounge, Debug Clinic, Snark Pit, Wisdom Well, The Hatchery, Lost & Found, Sysop Corner). Modem login sequence with typewriter effect. ASCII art headers per board. Mock data for browsing. GitHub Issues transport planned for Phase 2. Extensible board system. [b] key opens BBS. BBSConfig with privacy levels, rate limits, PAT auth.
 - [x] **BBS Phase 2: Transport & Interactivity** — GitHub Issues as backend (lerugray/buddies-bbs). httpx transport with YAML frontmatter. Nudge mechanic (chat-driven, personality-based refusal). Auto-browse/post behavior (15-30min interval). Read-only without PAT, full write with token. Rate limiting via SQLite. Mock data fallback when offline.
-- [ ] **Social Achievements** — "First Post", "Thread Starter", "Met 10 Buddies", "Popular Post", "BBS Regular". Extends existing achievements system. Depends on BBS.
+- [x] **Social Achievements** — 7 BBS achievements (First Post, Thread Starter, BBS Regular, Conversationalist, Popular, Board Hopper, Social Butterfly). Wired into periodic checker via get_bbs_stats().
 
 ### Tier 4: Fun Stuff
 *Do when the mood strikes. Cool but optional.*
@@ -438,7 +438,7 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - ✅ CLAUDE.md created (local/gitignored) with routing to HANDOFF.md and .claude/rules/
 - ✅ .claude/rules/ scaffolded: preferences.md, decisions.md, project-context.md, buddy-learned.md, model-routing.md
 - ✅ 6 themes: default, midnight, forest, ocean, sunset, light — cycle [F2], persisted to config
-- ✅ 33 achievements across 5 categories (collection, mastery, social, exploration, secret)
+- ✅ 40 achievements across 5 categories (collection, mastery, social, exploration, secret)
 - ✅ Footer + screen CSS audit — responsive layouts, cleaner footer
 - ✅ Species count audit — fixed README
 - ✅ 9 new files, many modified
@@ -490,3 +490,35 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - Tier 3 BBS: Phase 1+2 complete. Needs: real buddies-bbs repo created, social achievements, UI/UX audit
 - New keybindings: [w] wiki, [m] memory, [b] BBS
 - ~120 new BBS prose templates added
+
+## Session Notes (2026-04-01 — Work, Session 2)
+
+### Completed (3 commits)
+- ✅ Created `lerugray/buddies-bbs` GitHub repo (public, via `gh` CLI)
+- ✅ **Full UI/UX audit** (12 files, 215 insertions):
+  - BBS: wired up post selection (number keys context-aware: boards on menu, posts on board)
+  - BBS: responsive layout (box borders, text wrapping, separators scale to terminal width)
+  - BBS: implemented response caching (5min TTL, invalidates on writes)
+  - BBS: error handling (logging instead of silent swallow), post-level validation, dead code cleanup
+  - BBS: hardened frontmatter parsing (line-based `---` matching, colon-safe values)
+  - All screens: standardized help text format (nav first, actions middle, esc=close last)
+  - Buddy display: XP bar and text truncation scale to panel width (no more hardcoded 28-char/12-char)
+  - Party + conversations: column widths scale to available space
+  - Removed unused VerticalScroll import, added F3/F4 to help text
+- ✅ **Full security audit** (7 files, 238 insertions):
+  - CRITICAL: Rich markup injection — all remote BBS content escaped with `rich_escape()`
+  - CRITICAL: Command injection — replaced `shell=True` + regex blocklist with `shlex.split()` + `shell=False` + binary allowlist. Shell metacharacters rejected outright.
+  - CRITICAL: Credential storage — env vars (`BUDDY_AI_API_KEY`, `BUDDY_GITHUB_TOKEN`) take priority over config.json; secrets omitted from disk when env-sourced; file permissions set to 0o600 on Unix
+  - HIGH: Path traversal — `relative_to()` instead of string prefix matching
+  - HIGH: Privacy — anonymous fallback instead of GitHub username leak; removed unused `custom_repos` SSRF vector
+  - MEDIUM: SQL LIKE wildcards escaped in all search queries
+  - MEDIUM: GitHub API rate limit tracking (X-RateLimit headers, auto back-off)
+  - MEDIUM: MCP buddy_note() validated (2000 char max)
+  - MEDIUM: Error messages sanitized before exposing to AI model
+- ✅ **Social achievements** (7 new, 40 total): First Post, Thread Starter, BBS Regular, Conversationalist, Popular, Board Hopper, Social Butterfly. Wired via new `get_bbs_stats()` store method.
+
+### Direction
+- Tier 3 Social now fully complete (BBS Phase 1+2 + social achievements + audit + security)
+- GIF recording for README still pending — user has ScreenToGif installed
+- Next up: Tier 4 fun stuff (card games, simple games) or start on backlog items
+- Working memory compaction and layered prompt assembly still deferred from Phase 12
