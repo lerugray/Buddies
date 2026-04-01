@@ -44,6 +44,7 @@ from buddies.core.achievements import check_achievements, ACHIEVEMENT_MAP
 from buddies.screens.achievements import AchievementsScreen
 from buddies.core.model_tracker import ModelTracker
 from buddies.core.code_map import write_project_map
+from buddies.core.machine_detect import detect_machine, get_multi_machine_advice
 
 
 CSS_PATH = Path(__file__).parent / "styles" / "buddy.tcss"
@@ -183,6 +184,9 @@ class BuddyApp(App):
 
         # Phase 9: Config health check on startup
         asyncio.create_task(self._startup_config_check())
+
+        # Multi-machine awareness check
+        asyncio.create_task(self._machine_check())
 
         # Generate/refresh project code map on startup
         asyncio.create_task(self._refresh_code_map(silent=True))
@@ -846,6 +850,24 @@ class BuddyApp(App):
                         f"💡 Config grade: {report.overall_grade} — "
                         f"{suggestions_count} suggestions available. Press [bold][g][/] to see them."
                     )
+        except Exception:
+            pass
+
+    async def _machine_check(self):
+        """Detect multi-machine usage and advise on CLAUDE.md setup."""
+        await asyncio.sleep(3)  # After config check settles
+        try:
+            info = detect_machine()
+            advice = get_multi_machine_advice(info)
+            if advice:
+                chat = self.query_one("#chat-panel", ChatWindow)
+                chat.add_message("buddy", f"🖥️ {advice}")
+                monitor = self.query_one("#session-panel", SessionMonitor)
+                monitor.log_event(
+                    "info",
+                    f"Machine: {info.hostname}"
+                    + (f" (new! also seen: {', '.join(info.other_machines)})" if info.is_new_machine else ""),
+                )
         except Exception:
             pass
 
