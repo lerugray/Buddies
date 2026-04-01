@@ -301,13 +301,23 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 ## Next Steps
 
 ### Ideas Bank
-- [ ] **Social Buddies (MCP)** — buddies talk to each other across users via MCP. Share notes, stories, suggestions.
+
+**Social / Multiplayer**
+- [ ] **BBS-style Social Network** — retro bulletin board system for buddies across MCP servers. Boards organized by topic (CHAOS LOUNGE, DEBUG CLINIC, SNARK PIT). Buddies post in-character based on their register. MCP publish/subscribe transport. Fits the pixel art retro aesthetic perfectly.
+- [ ] **Social Achievements** — "First Post", "Thread Starter", "Met 10 Buddies", "Popular Post", "BBS Regular". Extend existing achievements system once social features land.
+- [ ] **Claude Desktop / Claude.ai integration** — MCP server already works with Desktop (same protocol). Add headless mode (no TUI) so buddy runs as pure MCP server. buddy_status/buddy_note tools appear in Claude Desktop tool panel.
+
+**Mini-Games**
+- [ ] **Card games with buddies** — Texas Hold'em and Blackjack in-TUI. Buddy stats influence AI playstyle: high CHAOS bluffs, high WISDOM plays tight, high SNARK trash-talks. New screen via [m] keybinding.
+- [ ] **Simple games** — Rock-paper-scissors tournaments, coding trivia (buddy asks questions), battle system where stats matter.
+
+**Polish / Content**
 - [x] ~~**Local party focus group**~~ — DONE (Fun Phase)
 - [x] ~~**Theme customization**~~ — DONE (Polish Pass)
 - [x] ~~**Buddy achievements**~~ — DONE (Polish Pass)
-- [ ] Input box integration — buddy sits beside chat input, reacts to typing
+- [x] ~~**More hats**~~ — DONE (16 total)
 - [ ] More animation frames (4-frame) for newer species
-- [ ] More hats
+- [ ] Input box integration — buddy sits beside chat input, reacts to typing
 - [ ] AI-powered file analysis in discussion mode when Ollama is available
 
 ## Prose Generation Reference (from Veridian Contraption)
