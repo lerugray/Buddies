@@ -1,61 +1,36 @@
-# 🐾 Buddies — Your Local AI Companion Collection
+# 🐾 Buddies
 
-A tamagotchi-style AI companion that lives in your terminal and watches your Claude Code sessions. Hatch buddies, collect species, earn hats, evolve, and build a team of quirky little creatures that react to how you code.
+**A tamagotchi-style AI companion collection for your terminal.**
 
-![Buddies TUI — early version](screenshot.jpg)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![70 Species](https://img.shields.io/badge/species-70-orange.svg)](#species--rarity)
+[![16 Hats](https://img.shields.io/badge/hats-16-yellow.svg)](#hats-16)
+[![33 Achievements](https://img.shields.io/badge/achievements-33-purple.svg)](#achievements-33)
 
-## What You Get
+Hatch buddies, collect species, earn hats, evolve, and build a team of quirky little creatures that react to how you code. Runs alongside Claude Code, watches your sessions, and actually helps — grading your config, saving tokens, and mapping your codebase.
 
-- **70 species** to collect — from common Potato to Legendary Zorak
-- **Personality stats** (DEBUGGING, CHAOS, SNARK, WISDOM, PATIENCE) that evolve as you code
-- **Buddy thoughts** — personality-driven ambient commentary during sessions, flavored by stats and mood
-- **Party discussions** — buddies talk to each other about topics or files, reacting in-character
-- **Tool browser** — see what MCP servers and skills you have installed
-- **Conversation saving** — auto-saves every chat, browse/rename/load/delete old conversations
-- **16 hats** unlocked by playstyle, stats, milestones, and even boredom
-- **Evolution system** — 4 stages (Hatchling, Juvenile, Adult, Elder) with visual borders
-- **Mood system** — mood decays over time, affects XP gain and stat growth
-- **Agentic local AI** — buddy can read files, search code, and run commands via Ollama
-- **Multi-buddy collection** — hatch, switch, rename, customize
-- **Config intelligence** — grades your CLAUDE.md health (A-F), scaffolds .claude/rules/, auto-learns rules from corrections
-- **Token guardian** — rolling session summaries, early warnings at 50/70/90% context, quick-save [F1], session handoff
-- **Smart model router** — displays current CC model, detects work phase, suggests switching models to save tokens
-- **33 achievements** across 5 categories (collection, mastery, social, exploration, secret)
-- **6 themes** — default, midnight, forest, ocean, sunset, light — cycle with [F2], persisted
-- **Session awareness** — watches Claude Code activity, detects patterns, suggests config rules
-- **AI cost guardrails** — cost_tier config prevents buddy chatter from ever using expensive models
-- **Zero token cost** — everything runs locally except tiny MCP payloads to Claude
+<!-- Replace with a terminal GIF recording (use ScreenToGif or vhs) -->
+![Buddies TUI](screenshot.jpg)
+
+## Why
+
+Half the time Claude Code is burning tokens just figuring out where things are in your project. Buddies fixes that — it auto-generates a code map, grades your CLAUDE.md, watches for repeated mistakes and writes rules so Claude stops making them, and tracks your token usage with early warnings before you hit context limits.
+
+It also happens to be a collectible creature game with 70 species, 16 hats, and personality-driven commentary. Because productivity tools should be fun.
 
 ## Quick Start
 
-### 1. Install
-
 ```bash
-cd buddies
-pip install -e .
+cd buddies && pip install -e .    # Install
+buddy                              # Launch
+python -m buddies.setup_hooks      # Watch Claude Code sessions (one-time)
 ```
 
-### 2. Launch
+<details>
+<summary><strong>Set up local AI (recommended)</strong></summary>
 
-```bash
-# From anywhere after install
-buddy
-
-# Or from the buddies folder
-python -m buddies
-```
-
-### 3. Register hooks (one-time setup)
-
-So your buddy can watch your Claude Code sessions:
-
-```bash
-python -m buddies.setup_hooks
-```
-
-### 4. Set up local AI (recommended)
-
-Install [Ollama](https://ollama.com), pull a model, then edit `%APPDATA%/buddy/config.json`:
+Install [Ollama](https://ollama.com), pull a model, then edit `%APPDATA%/buddy/config.json` (or `~/.local/share/buddy/config.json` on Linux):
 
 ```json
 {
@@ -67,51 +42,84 @@ Install [Ollama](https://ollama.com), pull a model, then edit `%APPDATA%/buddy/c
 }
 ```
 
-With a local model, your buddy can:
-- Answer coding questions using personality-flavored responses
-- Read files, search code, and run safe commands (agentic mode)
-- Route complex questions to Claude and handle simple ones locally
+With a local model, your buddy can answer coding questions, read files, search code, and run safe commands — all routed automatically by complexity. For Ollama on another machine, use `http://<home-ip>:11434`.
 
-For Ollama on another machine, use `http://<home-ip>:11434`.
+</details>
 
-### 5. Register MCP tools (optional)
-
-Let Claude interact with your buddy:
+<details>
+<summary><strong>Register MCP tools for Claude (optional)</strong></summary>
 
 ```bash
 python -m buddies.setup_mcp
 ```
 
-## How to Play
+Gives Claude access to: `buddy_status`, `buddy_note`, `session_stats`, `ask_buddy`, `get_buddy_notes`
 
-- **[q]** — Quit
-- **[p]** — Open Party screen, switch buddies, equip hats, rename
-- **[r]** — Hatch a new buddy (name it!)
-- **[d]** — Open Discussion screen — buddies talk to each other
-- **[t]** — Tool Browser — see installed MCP servers and skills
-- **[c]** — Conversations — browse, rename, load, delete saved chats
-- **[g]** — Config Health — CLAUDE.md grade, suggestions, scaffold .claude/rules/
-- **[a]** — Achievements — view unlocked/locked achievements across 5 categories
-- **[F1]** — Quick Save — dump session state + write handoff file for next session
-- **[F2]** — Cycle Theme — 6 themes (default, midnight, forest, ocean, sunset, light)
-- **[n]** — Rename selected buddy (in Party screen)
-- **[h]** — Cycle hats (in Party screen)
-- **[?]** — Help
-- **[F5]** — Refresh display
-- **Talk** — Type in the chat box, your buddy responds based on their personality
-- **Code** — Your buddy watches Claude Code, levels up, gains stats, and shares thoughts
+</details>
 
-## Species & Rarity
+## Features
+
+### The Useful Stuff
+
+| Feature | What it does |
+|---------|-------------|
+| **Code structure map** | Auto-generates `project-map.md` in `.claude/rules/` — Claude skips exploration, saves tokens. Refresh with [F3]. |
+| **Config intelligence** | Grades your CLAUDE.md health (A-F), scaffolds `.claude/rules/`, auto-learns rules from repeated corrections. |
+| **Token guardian** | Rolling session summaries, early warnings at 50/70/90% context, quick-save [F1], session handoff files. |
+| **Smart model router** | Displays current CC model, detects work phase (planning/implementing/exploring), suggests cheaper models when appropriate. |
+| **Session awareness** | Watches Claude Code activity via hooks, detects patterns, suggests config rules. |
+| **AI cost guardrails** | Cost tier config prevents buddy chatter from ever hitting expensive models. |
+| **Agentic local AI** | Connected to Ollama, buddy reads files, greps code, runs safe commands — all sandboxed. |
+
+### The Fun Stuff
+
+| Feature | What it does |
+|---------|-------------|
+| **70 species** | Common Potato to Legendary Zorak. Deterministic gacha — same username, same starter. |
+| **Personality stats** | DEBUGGING, CHAOS, SNARK, WISDOM, PATIENCE — evolve as you code. |
+| **16 hats** | Unlocked by playstyle, stats, milestones, and even boredom. |
+| **4 evolution stages** | Hatchling, Juvenile, Adult, Elder — with visual border changes. |
+| **Mood system** | Drifts toward neutral. Affects XP, stats, and hat discovery. Neglect has consequences. |
+| **Party discussions** | Buddies talk to each other about topics or files, reacting in-character. |
+| **33 achievements** | Collection, mastery, social, exploration, and secret categories. |
+| **6 themes** | Default, midnight, forest, ocean, sunset, light — cycle with [F2]. |
+| **Prose engine** | Each buddy speaks through a personality register (clinical, sarcastic, absurdist, philosophical, calm). Zero AI needed. |
+
+## Controls
+
+| Key | Action |
+|-----|--------|
+| **[p]** | Party — switch buddies, equip hats, rename |
+| **[r]** | Hatch a new buddy |
+| **[d]** | Discussions — buddies talk to each other |
+| **[a]** | Achievements |
+| **[g]** | Config health dashboard |
+| **[t]** | Tool browser — installed MCP servers and skills |
+| **[c]** | Conversations — browse, load, delete saved chats |
+| **[F1]** | Quick save — session state + handoff file |
+| **[F2]** | Cycle theme |
+| **[F3]** | Regenerate code map |
+| **[?]** | Help |
+
+<details>
+<summary><strong>Species & Rarity (70 total)</strong></summary>
 
 **Common (14):** Anchor, Bee, Cat, Corgi, Cow, Duck, Frog, Gorby, Hamster, Pig, Potato, Rat, Slime, Taco
+
 **Uncommon (18):** Axolotl, Bat, Box, Coopa, Crab, Dice, Dolphin, Fox, Goblin, Imp, Moth, Owl, Panda, Parrot, Penguin, Raccoon, Rooster, Snail
+
 **Rare (17):** Bac Man, Basilisk, Cane Toad, Capybara, Coffee, Dali Clock, Doobie, Dragon, Jellyfish, Joe Camel, Kobold, Mantis Shrimp, Mushroom, Octopus, Orca, Sanic, Wolf
+
 **Epic (12):** Beholder, Burger, Chonk, Clippy, Comrade, Kilowatt, Kraken, Mimic, Phoenix, Robot, Tardigrade, Unicorn
+
 **Legendary (9):** Claude, Cosmic Whale, Ghost, Illuminati, Starspawn, Tree, Void Cat, Yog-Sothoth, Zorak
 
 Your starting species is seeded from your username (same user = same buddy).
 
-## Hats (16)
+</details>
+
+<details>
+<summary><strong>Hats (16)</strong></summary>
 
 | Hat | How to Unlock |
 |-----|---------------|
@@ -132,9 +140,10 @@ Your starting species is seeded from your username (same user = same buddy).
 | Flower | Random discovery when ecstatic |
 | Nightcap | 10+ minutes of sustained boredom |
 
-## Evolution
+</details>
 
-Buddies evolve at level thresholds with visual changes:
+<details>
+<summary><strong>Evolution</strong></summary>
 
 | Stage | Level | Visual |
 |-------|-------|--------|
@@ -143,7 +152,10 @@ Buddies evolve at level thresholds with visual changes:
 | Adult | 10-19 | Green double border |
 | Elder | 20+ | Golden star border |
 
-## Mood System
+</details>
+
+<details>
+<summary><strong>Mood System</strong></summary>
 
 Mood drifts toward neutral over time. Interact with your buddy to boost it!
 
@@ -155,7 +167,10 @@ Mood drifts toward neutral over time. Interact with your buddy to boost it!
 | Bored | Baseline | +1 PATIENCE per event |
 | Grumpy | -25% XP | +1 SNARK per event |
 
-## Personality Prose Engine
+</details>
+
+<details>
+<summary><strong>Personality Voices</strong></summary>
 
 Each buddy has a unique voice driven by their dominant stat:
 
@@ -169,94 +184,10 @@ Each buddy has a unique voice driven by their dominant stat:
 
 High CHAOS stat adds a "weirdness parameter" that makes commentary increasingly absurd.
 
-## Agentic Local AI
+</details>
 
-When connected to Ollama, your buddy becomes a real coding assistant. Ask it about your codebase and it will:
-
-- **Read files** — examine source code, configs, docs
-- **Search code** — regex search across your project
-- **List directories** — explore project structure
-- **Run safe commands** — git status, python --version, etc.
-
-All tool executions are sandboxed: destructive commands are blocked, paths can't escape the working directory, output is truncated, and the agent loop has a max iteration limit.
-
-The AI router automatically decides when to use agent mode (queries mentioning files, code, or project structure) vs simple chat.
-
-## Architecture
-
-```
-buddies/
-├── src/buddies/
-│   ├── app.py                    # Main TUI
-│   ├── first_run.py              # Hatch screen
-│   ├── core/
-│   │   ├── buddy_brain.py        # 70 species, stats, evolution, mood
-│   │   ├── prose.py              # Personality prose engine + discussion templates
-│   │   ├── discussion.py         # Multi-buddy discussion orchestrator
-│   │   ├── conversation.py       # Chat auto-save/load persistence
-│   │   ├── tool_scanner.py       # MCP/skills browser scanner
-│   │   ├── agent.py              # Agentic tool loop (read/grep/bash)
-│   │   ├── session_observer.py   # Watches Claude Code events
-│   │   ├── ai_backend.py         # Ollama/OpenAI connector
-│   │   ├── ai_router.py          # Complexity routing + cost guardrails
-│   │   ├── rule_suggester.py     # Pattern -> rule suggestions
-│   │   ├── config_intel.py       # CLAUDE.md health, linting, scaffolding, auto-learn
-│   │   ├── token_guardian.py     # Rolling summaries, token warnings, session handoff
-│   │   ├── achievements.py      # 33 achievements, checking, tracking
-│   │   └── model_tracker.py     # Model detection, phase classification, routing
-│   ├── screens/
-│   │   ├── party.py              # Buddy collection management
-│   │   ├── discussion.py         # Party focus group screen
-│   │   ├── tool_browser.py       # MCP/skills browser screen
-│   │   ├── conversations.py      # Saved conversations browser
-│   │   ├── config_health.py      # Config health dashboard
-│   │   └── achievements.py      # Achievements viewer screen
-│   ├── widgets/
-│   │   ├── buddy_display.py      # Animated sprite + stats + evolution
-│   │   ├── chat.py               # Chat pane with auto-save
-│   │   ├── styling.py            # Centralized Rich markup styles
-│   │   └── session_monitor.py    # Activity feed
-│   ├── art/
-│   │   └── sprites.py            # 70 species, 10 hats (half-block pixel art)
-│   ├── mcp/
-│   │   └── server.py             # MCP tools for Claude
-│   └── db/
-│       ├── models.py             # SQLite schema
-│       └── store.py              # Async data access layer
-```
-
-## Design Philosophy
-
-- **Python + Textual** — easy to maintain and extend
-- **Event-driven** — hooks write to JSONL, observer watches file, TUI updates
-- **Deterministic gacha** — same user always gets the same initial species
-- **Personality prose without AI** — template pools with register modulation (inspired by [Veridian Contraption](https://github.com/lerugray/veridian-contraption))
-- **Agentic tools with safety** — local model gets real capabilities but can't break anything
-- **Mood as gameplay** — mood affects XP, stats, and hat discovery — neglect has consequences
-
-## MCP Tools (for Claude)
-
-If you register the MCP server, Claude can:
-
-- `buddy_status` — Check mood, species, stats, level
-- `buddy_note` — Leave a note visible in the buddy's chat
-- `session_stats` — View token usage and event counts
-- `ask_buddy` — Quick questions (runs on local AI, saves tokens)
-- `get_buddy_notes` — Read unread notes from Claude
-
-## Party Discussions
-
-Press **[d]** to open the discussion screen. Your buddies will talk to each other!
-
-- **Open chat** (`n` key) — buddies riff freely, react to each other
-- **Guided topic** (`g` key) — type a topic, each buddy responds through their stat lens
-- **File focus** (`f` key) — point at a file, buddies comment on it based on their personality
-
-Works with zero AI — pure prose engine. Each buddy speaks in their register (clinical, sarcastic, absurdist, philosophical, calm) and reacts to what other buddies said.
-
-## Achievements (33)
-
-Press **[a]** to view your achievements. They unlock automatically as you play.
+<details>
+<summary><strong>Achievements (33)</strong></summary>
 
 | Category | Count | Examples |
 |----------|-------|---------|
@@ -264,54 +195,45 @@ Press **[a]** to view your achievements. They unlock automatically as you play.
 | Mastery | 6 | Growing Up, Elder Wisdom, Specialist, Well-Rounded |
 | Social | 3 | Town Hall, Chatty, Storyteller |
 | Exploration | 6 | Watchful Eye, Token Miser, Clean Config, Safety First |
-| Secret | 6 | ???  (discover them yourself!) |
+| Secret | 6 | ??? (discover them yourself!) |
 
-## Themes
+</details>
 
-Press **[F2]** to cycle through 6 themes. Your choice is saved between sessions.
+## Design Philosophy
 
-| Theme | Vibe |
-|-------|------|
-| Default | Deep blue / purple |
-| Midnight | Dark violet / magenta |
-| Forest | Green / earth tones |
-| Ocean | Blue / teal |
-| Sunset | Warm orange / red |
-| Light | Light mode for bright environments |
+- **Zero token cost** — everything runs locally except tiny MCP payloads
+- **Personality without AI** — prose engine uses template pools with register modulation, no model needed
+- **Deterministic gacha** — same user always gets the same initial species
+- **Agentic tools with safety** — local model gets real capabilities but can't break anything
+- **Mood as gameplay** — mood affects XP, stats, and hat discovery — neglect has consequences
 
-## Ideas Bank
+## Roadmap
 
-We've got a ton of ideas for where this can go. If any of these excite you, PRs welcome!
+We've got a structured plan for where this goes next. PRs welcome!
 
-**Platform / Integration**
-- Obsidian wiki integration — auto-generate project wikis from session data, architecture decisions, file graphs
-- Multi-provider support — adapt hooks/config for Cursor, Windsurf, Aider, VS Code Copilot
-- Claude Desktop / Claude.ai — headless MCP mode (no TUI needed)
+**Up Next: Platform Expansion**
+- Claude Desktop / headless MCP mode (no TUI needed)
+- Cross-surface context relay (CC to claude.ai clipboard bridge)
+- Multi-machine awareness (detect two-machine setups, guide CLAUDE.md management)
+- README health check and scaffolding
+- Obsidian wiki integration (auto-generate project vaults from session data)
 
-**Social / Multiplayer**
-- BBS-style social network — retro bulletin boards for buddies across MCP servers (CHAOS LOUNGE, DEBUG CLINIC, SNARK PIT)
-- Social achievements — "First Post", "Met 10 Buddies", "BBS Regular"
+**Later: Social**
+- BBS-style retro bulletin board for buddies across MCP servers
+- Social achievements ("First Post", "Met 10 Buddies")
 
-**Voice**
-- Speech-to-text — push-to-talk, local via Whisper
-- Text-to-speech — buddy speaks aloud, personality-mapped voice profiles via Piper/Edge TTS
+**Someday: Fun Stuff**
+- Card games, trivia, battles (stats influence playstyle)
+- Speech-to-text / text-to-speech (local via Whisper + Piper)
 
-**Mini-Games**
-- Card games (Texas Hold'em, Blackjack) — buddy stats influence playstyle
-- Simple games — rock-paper-scissors, coding trivia, stat-based battles
-
-**Polish**
-- More animation frames for newer species
-- AI-powered file analysis in discussions when Ollama is available
+See [HANDOFF.md](HANDOFF.md) for the full structured roadmap.
 
 ## Requirements
 
 - Python 3.11+
-- Textual 3.0+
-- httpx (for AI backend)
-- aiosqlite (for buddy storage)
+- [Textual](https://github.com/Textualize/textual) 3.0+ (TUI framework)
 - Optional: [Ollama](https://ollama.com) for local AI + agentic tools
-- Optional: `mcp` package for Claude integration (`pip install buddies[mcp]`)
+- Optional: `mcp` package for Claude integration
 
 ## License
 
@@ -319,4 +241,4 @@ MIT
 
 ---
 
-**Made by a game designer + Claude Code.** Open an issue or fork it — this thing is meant to be tinkered with.
+**Made by a game designer + Claude Code.** This thing is meant to be tinkered with — open an issue, fork it, hatch your own buddy.
