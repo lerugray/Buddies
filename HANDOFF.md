@@ -367,6 +367,16 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 - [ ] **Speech-to-text input** — push-to-talk hotkey ([F3]) transcribes user speech into chat. Local via whisper.cpp/faster-whisper.
 - [ ] **Text-to-speech output** — buddy speaks responses aloud. Local via piper-tts or edge-tts. Map personality registers to voice profiles.
 
+### Tier 5b: MUD-Style MMORPG
+*The deranged masterpiece. Absurdist shared world where all users' buddies coexist.*
+
+- [ ] **Phase 1 (Local MUD)** — rooms, movement (look/examine/go), NPC dialogue, items, solo quests. Playable offline as a text adventure your buddies inhabit. Reuses blobber movement, combat, classes, personality. NPCs are coding tropes ("The Sysadmin Who Never Logs Off", "The Intern With Root Access").
+- [ ] **Phase 2 (Multiplayer)** — GitHub Issues as persistent world state (same transport as BBS). See other users' buddies in rooms. Async messaging — leave notes in rooms, others find them later. Not real-time, which is more MUD-authentic.
+- [ ] **Phase 3 (Economy)** — gold from dungeon runs feeds into MUD marketplace. Trade items between users. Absurd cosmetics ("Slightly Haunted Top Hat", "NFT That Does Nothing", "Artisanal Semicolon"). In-game currency.
+- [ ] **Phase 4 (Living World)** — rotating quests, world events ("The Production Server Is On Fire — All Hands"), seasonal skins, BBS integration (buddies auto-post about MUD adventures). Silly DLC/add-ons/minigames as jokes.
+
+*Key insight: every system we've built feeds into this — blobber (combat/classes), BBS (transport), personality drift (evolution), idle life (background activity), relationships (social), user character (you in the world). The absurdist tone means jank is the aesthetic.*
+
 ### Backlog
 *Valuable but premature. Revisit once Buddies is great on Claude Code first.*
 
@@ -596,10 +606,18 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - ✅ **Idle Life** — buddies do things while you code. 50+ event templates across 5 categories (explore, find items, journal, trouble, social). Events appear in session monitor. Social events between party buddies.
 - ✅ **Buddy Relationships** — buddies develop opinions about each other based on stat compatibility and shared activities. Relationship types: stranger→acquaintance→friend→best friend, or rival→nemesis. Affects discussion dynamics.
 
+- ✅ **Blobber Dungeon** — first-person ASCII wireframe CRPG. 16x16 procedural grid, BSP room generation, fog of war minimap. 5 class archetypes from stats. Turn-based multi-party combat reusing battle.py. Traps, treasures, mysteries, skill checks, boss fights.
+- ✅ **Party Selection Screen** — pick 1-4 members before entering blobber. Shows class, stats, HP, ATK, DEF. Missing roles highlighted.
+- ✅ **User Character** — press U in party select to add yourself. Stats derived from actual session behavior (Edit→DEBUGGING, Agent→WISDOM, Bash→CHAOS, chat→PATIENCE). Class assigned from dominant derived stat.
+- ✅ **Buddy Dialogue in Blobber** — 30+ class-flavored lines across 6 contexts. Engineers analyze, Berserkers taunt, Rogues quip, Mages ponder, Paladins rally.
+- ✅ **Test Suite** — 112 tests (100 pass, 4 skip). Covers all 9 game engines, all renderers, TUI screen mounts, import verification, species/achievement counts. Textual Pilot for UI testing.
+
 ### Direction
-- All 8 arcade games complete! (RPS, Blackjack, Battle, Pong, Trivia, Hold'em, Whist, Dungeon)
-- Three new core systems: personality drift, idle life, relationships
-- User setting up Claude Desktop with computer use for visual testing — this is cross-project infrastructure, not a Buddies feature
+- All 9 arcade games complete! (RPS, Blackjack, Battle, Pong, Trivia, Hold'em, Whist, Dungeon, Blobber)
+- Four new core systems: personality drift, idle life, relationships, user character
+- MUD-style MMORPG added to roadmap (Tier 5b) — the big vision. All existing systems feed into it.
+- Test suite established and catching real bugs
+- User setting up Claude Desktop with computer use for visual testing — cross-project infrastructure
 - Multiplayer via GitHub Issues planned as future scope (same transport as BBS)
 - User wants games as fun bonus features, not the main focus — keep them goofy
 - User setting up Claude Desktop with computer use for visual testing — this is cross-project infrastructure, not a Buddies feature
