@@ -2,10 +2,17 @@
 
 from __future__ import annotations
 
+import os
+import stat
 import aiosqlite
 from pathlib import Path
 
 from buddies.db.models import SCHEMA, MIGRATIONS
+
+
+def _escape_like(keyword: str) -> str:
+    """Escape SQL LIKE wildcards so user input is treated as literal text."""
+    return keyword.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
 class BuddyStore:
@@ -25,6 +32,13 @@ class BuddyStore:
             self._db = await aiosqlite.connect(self.db_path)
         except aiosqlite.OperationalError as e:
             raise RuntimeError(f"Failed to connect to database at {self.db_path}: {e}")
+
+        # Restrict database file to owner-only on Unix
+        if os.name != "nt":
+            try:
+                os.chmod(self.db_path, stat.S_IRUSR | stat.S_IWUSR)
+            except OSError:
+                pass
 
         self._db.row_factory = aiosqlite.Row
         try:
@@ -210,11 +224,12 @@ class BuddyStore:
                              min_importance: int = 1) -> list[dict]:
         """Query episodic memories by keyword, sorted by importance + recency."""
         if keyword:
+            kw = f"%{_escape_like(keyword)}%"
             async with self.db.execute(
                 "SELECT * FROM memory_episodic "
-                "WHERE importance >= ? AND (summary LIKE ? OR details LIKE ? OR tags LIKE ?) "
+                "WHERE importance >= ? AND (summary LIKE ? ESCAPE '\\' OR details LIKE ? ESCAPE '\\' OR tags LIKE ? ESCAPE '\\') "
                 "ORDER BY importance DESC, created_at DESC LIMIT ?",
-                (min_importance, f"%{keyword}%", f"%{keyword}%", f"%{keyword}%", limit),
+                (min_importance, kw, kw, kw, limit),
             ) as cursor:
                 return [dict(r) for r in await cursor.fetchall()]
         else:
@@ -275,12 +290,13 @@ class BuddyStore:
         """Search semantic memories by keyword."""
         superseded_filter = "" if include_superseded else "AND superseded_by IS NULL "
         if keyword:
+            kw = f"%{_escape_like(keyword)}%"
             async with self.db.execute(
                 f"SELECT * FROM memory_semantic WHERE "
-                f"(topic LIKE ? OR key LIKE ? OR value LIKE ? OR tags LIKE ?) "
+                f"(topic LIKE ? ESCAPE '\\' OR key LIKE ? ESCAPE '\\' OR value LIKE ? ESCAPE '\\' OR tags LIKE ? ESCAPE '\\') "
                 f"{superseded_filter}"
                 f"ORDER BY confidence DESC, updated_at DESC LIMIT ?",
-                (f"%{keyword}%", f"%{keyword}%", f"%{keyword}%", f"%{keyword}%", limit),
+                (kw, kw, kw, kw, limit),
             ) as cursor:
                 return [dict(r) for r in await cursor.fetchall()]
         else:
@@ -344,12 +360,13 @@ class BuddyStore:
         """Search procedural memories."""
         active_filter = "AND active = 1 " if active_only else ""
         if keyword:
+            kw = f"%{_escape_like(keyword)}%"
             async with self.db.execute(
                 f"SELECT * FROM memory_procedural WHERE "
-                f"(trigger_pattern LIKE ? OR action LIKE ? OR tags LIKE ?) "
+                f"(trigger_pattern LIKE ? ESCAPE '\\' OR action LIKE ? ESCAPE '\\' OR tags LIKE ? ESCAPE '\\') "
                 f"{active_filter}"
                 f"ORDER BY (success_count - fail_count) DESC, updated_at DESC LIMIT ?",
-                (f"%{keyword}%", f"%{keyword}%", f"%{keyword}%", limit),
+                (kw, kw, kw, limit),
             ) as cursor:
                 return [dict(r) for r in await cursor.fetchall()]
         else:

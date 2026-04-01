@@ -92,8 +92,13 @@ async def buddy_note(message: str) -> str:
     Args:
         message: The note to leave for the user
     """
+    # Validate message length to prevent abuse
+    if not message or not message.strip():
+        return "Error: message cannot be empty."
+    if len(message) > 2000:
+        return "Error: message too long (max 2000 characters)."
     store = await _get_store()
-    await store.add_note(source="Claude", message=message)
+    await store.add_note(source="Claude", message=message[:2000])
     return f"Note saved! Your buddy will show it to the user."
 
 

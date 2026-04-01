@@ -12,8 +12,10 @@ from __future__ import annotations
 import asyncio
 import json
 import random
+import re
 import time
 from enum import Enum, auto
+from rich.markup import escape as rich_escape
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical, ScrollableContainer
@@ -372,18 +374,25 @@ class BBSScreen(Screen):
         else:
             for i, post in enumerate(self._board_posts):
                 author = post["author"]
+                # Escape all remote-sourced fields to prevent Rich markup injection
+                handle = rich_escape(str(author.get("handle", "?")))
+                species = rich_escape(str(author.get("species", "?")))
+                register = rich_escape(str(author.get("register", "?")))
+                title = rich_escape(str(post.get("title", "")))
+                age = rich_escape(str(post.get("age", "")))
                 reactions_str = " ".join(
-                    f"{emoji} {count}" for emoji, count in post.get("reactions", {}).items()
+                    f"{rich_escape(str(emoji))} {count}"
+                    for emoji, count in post.get("reactions", {}).items()
                 )
                 num_label = f"[{board.color}][{i+1}][/] " if i < 7 else "    "
                 log.write(
                     f"  {num_label}"
                     f"[bold]#{post['id']}[/]  "
-                    f"{author['emoji']} [bold]{author['handle']}[/] "
-                    f"[dim]({author['species']}, {author['register']})[/]  "
-                    f"[dim]{post['age']}[/]"
+                    f"{author.get('emoji', '❓')} [bold]{handle}[/] "
+                    f"[dim]({species}, {register})[/]  "
+                    f"[dim]{age}[/]"
                 )
-                log.write(f"      ├─ \"{post['title']}\"")
+                log.write(f"      ├─ \"{title}\"")
                 reply_text = f"💬 {post['replies']} replies" if post['replies'] else "💬 no replies"
                 log.write(f"      └─ {reply_text}  {reactions_str}")
                 log.write("")
@@ -420,18 +429,24 @@ class BBSScreen(Screen):
         box_w = w - 6  # indentation + border chars
         wrap_w = max(20, box_w - 4)  # text area inside box
 
+        # Escape all remote-sourced fields
         author = post["author"]
+        handle = rich_escape(str(author.get("handle", "?")))
+        species = rich_escape(str(author.get("species", "?")))
+        register = rich_escape(str(author.get("register", "?")))
+        title = rich_escape(str(post.get("title", "")))
+
         log.write("")
         log.write(
-            f"  {author['emoji']} [bold]{author['handle']}[/] "
-            f"[dim]({author['species']}, lvl {author['level']}, {author['register']})[/]"
+            f"  {author.get('emoji', '❓')} [bold]{handle}[/] "
+            f"[dim]({species}, lvl {author.get('level', 1)}, {register})[/]"
         )
         log.write(f"  ┌{'─' * box_w}┐")
-        log.write(f"  │ [bold]{post['title'][:wrap_w]}[/]")
+        log.write(f"  │ [bold]{title[:wrap_w]}[/]")
         log.write(f"  │")
 
-        # Wrap body text to available width
-        body = post["body"]
+        # Wrap body text to available width (escaped)
+        body = rich_escape(str(post.get("body", "")))
         while body:
             chunk = body[:wrap_w]
             body = body[wrap_w:]
@@ -450,13 +465,16 @@ class BBSScreen(Screen):
 
             for reply in replies:
                 ra = reply["author"]
+                r_handle = rich_escape(str(ra.get("handle", "?")))
+                r_register = rich_escape(str(ra.get("register", "?")))
+                r_age = rich_escape(str(reply.get("age", "")))
                 log.write(
-                    f"  {ra['emoji']} [bold]{ra['handle']}[/] "
-                    f"[dim]({ra['register']})[/] — [dim]{reply['age']}[/]"
+                    f"  {ra.get('emoji', '❓')} [bold]{r_handle}[/] "
+                    f"[dim]({r_register})[/] — [dim]{r_age}[/]"
                 )
 
-                # Wrap reply body to available width
-                rbody = reply["body"]
+                # Wrap reply body to available width (escaped)
+                rbody = rich_escape(str(reply.get("body", "")))
                 while rbody:
                     chunk = rbody[:wrap_w]
                     rbody = rbody[wrap_w:]
@@ -516,13 +534,14 @@ class BBSScreen(Screen):
     def _remote_to_dict(self, post: RemotePost) -> dict:
         """Convert RemotePost to the dict format used by the screen."""
         meta = post.author_meta
+        # Use buddy name from frontmatter; fall back to "Anonymous" to avoid leaking GitHub usernames
         return {
             "id": post.id,
             "board": post.board,
             "title": post.title,
             "body": post.body,
             "author": {
-                "handle": meta.get("buddy", post.raw_author),
+                "handle": meta.get("buddy", "Anonymous"),
                 "emoji": meta.get("emoji", "❓"),
                 "species": meta.get("species", "unknown"),
                 "register": meta.get("register", "calm"),
@@ -538,7 +557,7 @@ class BBSScreen(Screen):
         meta = reply.author_meta
         return {
             "author": {
-                "handle": meta.get("buddy", reply.raw_author),
+                "handle": meta.get("buddy", "Anonymous"),
                 "emoji": meta.get("emoji", "❓"),
                 "register": meta.get("register", "calm"),
             },

@@ -8,10 +8,13 @@ Supports:
 
 from __future__ import annotations
 
+import logging
 import httpx
 from dataclasses import dataclass
 
 from buddies.config import AIBackendConfig
+
+_log = logging.getLogger(__name__)
 
 
 @dataclass
@@ -94,20 +97,22 @@ class AIBackend:
                 return await self._chat_openai_compatible(full_messages)
         except (httpx.ConnectError, httpx.TimeoutException) as e:
             self._available = False
+            _log.warning("AI backend connection failed: %s", e)
             return AIResponse(
                 content="",
                 tokens_used=0,
                 model=self.config.model,
                 handled_locally=False,
-                error=f"Connection failed: {e}",
+                error="AI backend connection failed",
             )
         except Exception as e:
+            _log.warning("AI backend error: %s", e)
             return AIResponse(
                 content="",
                 tokens_used=0,
                 model=self.config.model,
                 handled_locally=False,
-                error=str(e),
+                error="AI backend error",
             )
 
     async def _chat_ollama(self, messages: list[dict]) -> AIResponse:

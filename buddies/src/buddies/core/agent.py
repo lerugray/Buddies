@@ -18,13 +18,17 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 import re
+import shlex
 import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from buddies.core.ai_backend import AIBackend, AIResponse
+
+log = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -106,48 +110,32 @@ TOOL_DEFINITIONS = [
     },
 ]
 
-# Commands that are safe for the buddy to run
-SAFE_COMMAND_PATTERNS = [
-    r"^ls\b",
-    r"^dir\b",
-    r"^cat\b",
-    r"^head\b",
-    r"^tail\b",
-    r"^wc\b",
-    r"^find\b",
-    r"^git\s+(status|log|diff|branch|show|blame)\b",
-    r"^python\s+--version",
-    r"^python\s+-c\b",
-    r"^pip\s+(list|show|freeze)\b",
-    r"^echo\b",
-    r"^pwd\b",
-    r"^whoami\b",
-    r"^date\b",
-    r"^type\b",
-    r"^which\b",
-    r"^where\b",
-]
+# Allowlist: command binary -> set of allowed subcommands (None = any args OK)
+# Only the first token (the binary) is checked. No shell metacharacters allowed.
+ALLOWED_COMMANDS = {
+    "ls": None,
+    "dir": None,
+    "cat": None,
+    "head": None,
+    "tail": None,
+    "wc": None,
+    "find": None,
+    "echo": None,
+    "pwd": None,
+    "whoami": None,
+    "date": None,
+    "type": None,
+    "which": None,
+    "where": None,
+    "python": {"--version", "-c"},
+    "python3": {"--version", "-c"},
+    "pip": {"list", "show", "freeze"},
+    "pip3": {"list", "show", "freeze"},
+    "git": {"status", "log", "diff", "branch", "show", "blame", "rev-parse"},
+}
 
-# Explicitly blocked patterns
-BLOCKED_PATTERNS = [
-    r"\brm\b",
-    r"\bdel\b",
-    r"\brmdir\b",
-    r"\bmkdir\b",
-    r"\bmv\b",
-    r"\bcp\b",
-    r"\bgit\s+(push|reset|checkout|clean|rebase)\b",
-    r"\bchmod\b",
-    r"\bchown\b",
-    r"\bsudo\b",
-    r"\bformat\b",
-    r"\bdd\b",
-    r"\b>\b",  # redirect/overwrite
-    r"\bpip\s+install\b",
-    r"\bnpm\s+install\b",
-    r"\bcurl\b",
-    r"\bwget\b",
-]
+# Shell metacharacters that indicate injection attempts
+SHELL_METACHARACTERS = set(";|&`$(){}!><\n\r")
 
 
 # ---------------------------------------------------------------------------
@@ -164,10 +152,12 @@ class ToolResult:
 
 def _resolve_path(path: str, working_dir: str) -> Path:
     """Resolve a path relative to working directory, blocking traversal."""
-    resolved = Path(working_dir) / path
-    resolved = resolved.resolve()
-    # Ensure we don't escape the working directory
-    if not str(resolved).startswith(str(Path(working_dir).resolve())):
+    resolved = (Path(working_dir) / path).resolve()
+    base = Path(working_dir).resolve()
+    # Use relative_to() — raises ValueError if resolved is outside base
+    try:
+        resolved.relative_to(base)
+    except ValueError:
         raise ValueError(f"Path escapes working directory: {path}")
     return resolved
 
@@ -185,8 +175,13 @@ def execute_tool(name: str, arguments: dict, working_dir: str) -> ToolResult:
             return _exec_run_command(arguments, working_dir)
         else:
             return ToolResult(name=name, output=f"Unknown tool: {name}", success=False)
-    except Exception as e:
+    except ValueError as e:
+        # Expected errors (path traversal, etc.) — safe to expose message
         return ToolResult(name=name, output=f"Error: {e}", success=False)
+    except Exception:
+        # Unexpected errors — don't leak internals to the AI model
+        log.exception("Tool execution error in %s", name)
+        return ToolResult(name=name, output="An internal error occurred.", success=False)
 
 
 def _exec_read_file(args: dict, working_dir: str) -> ToolResult:
@@ -257,30 +252,54 @@ def _exec_grep_search(args: dict, working_dir: str) -> ToolResult:
 
 
 def _exec_run_command(args: dict, working_dir: str) -> ToolResult:
-    command = args["command"].strip()
+    command_str = args["command"].strip()
 
-    # Check blocked patterns first
-    for blocked in BLOCKED_PATTERNS:
-        if re.search(blocked, command):
-            return ToolResult(
-                name="run_command",
-                output=f"Command blocked for safety: {command}",
-                success=False,
-            )
-
-    # Check if command matches safe patterns
-    is_safe = any(re.search(p, command) for p in SAFE_COMMAND_PATTERNS)
-    if not is_safe:
+    # Reject any shell metacharacters — no pipes, redirects, chaining
+    if any(c in command_str for c in SHELL_METACHARACTERS):
         return ToolResult(
             name="run_command",
-            output=f"Command not in safe list: {command}. Only read-only commands are allowed.",
+            output="Command contains shell metacharacters (pipes, redirects, etc) which are not allowed.",
             success=False,
         )
 
+    # Parse into tokens safely (no shell interpretation)
+    try:
+        tokens = shlex.split(command_str)
+    except ValueError as e:
+        return ToolResult(
+            name="run_command",
+            output=f"Could not parse command: {e}",
+            success=False,
+        )
+
+    if not tokens:
+        return ToolResult(name="run_command", output="Empty command", success=False)
+
+    # Extract the binary name (strip path — only allow known commands)
+    binary = Path(tokens[0]).name.lower()
+
+    if binary not in ALLOWED_COMMANDS:
+        return ToolResult(
+            name="run_command",
+            output=f"Command '{binary}' is not in the allowed list. Only read-only commands are permitted.",
+            success=False,
+        )
+
+    # Check subcommand restrictions (e.g., git only allows status/log/diff/...)
+    allowed_subs = ALLOWED_COMMANDS[binary]
+    if allowed_subs is not None and len(tokens) > 1:
+        subcommand = tokens[1]
+        if subcommand not in allowed_subs:
+            return ToolResult(
+                name="run_command",
+                output=f"'{binary} {subcommand}' is not allowed. Allowed: {', '.join(sorted(allowed_subs))}",
+                success=False,
+            )
+
     try:
         result = subprocess.run(
-            command,
-            shell=True,
+            tokens,
+            shell=False,
             capture_output=True,
             text=True,
             timeout=30,
@@ -297,6 +316,8 @@ def _exec_run_command(args: dict, working_dir: str) -> ToolResult:
         return ToolResult(name="run_command", output=output or "(no output)")
     except subprocess.TimeoutExpired:
         return ToolResult(name="run_command", output="Command timed out (30s limit)", success=False)
+    except FileNotFoundError:
+        return ToolResult(name="run_command", output=f"Command not found: {binary}", success=False)
 
 
 # ---------------------------------------------------------------------------
@@ -411,7 +432,8 @@ class BuddyAgent:
             else:
                 return await self._openai_with_tools(full_messages)
         except Exception as e:
-            return _ToolResponse(content="", tool_calls=[], error=str(e))
+            log.warning("Agent chat error: %s", e)
+            return _ToolResponse(content="", tool_calls=[], error="AI backend communication error")
 
     async def _ollama_with_tools(self, messages: list[dict]) -> "_ToolResponse":
         """Ollama chat with tool calling support."""

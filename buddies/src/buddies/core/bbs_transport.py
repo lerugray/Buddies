@@ -71,6 +71,27 @@ class BBSTransport:
         self._available: bool | None = None
         self._write_available: bool | None = None
         self._cache: dict[str, _CacheEntry] = {}
+        self._rate_limit_remaining: int = 999
+        self._rate_limit_reset: float = 0.0
+
+    def _update_rate_limit(self, resp: httpx.Response) -> None:
+        """Track GitHub API rate limit from response headers."""
+        remaining = resp.headers.get("X-RateLimit-Remaining")
+        reset = resp.headers.get("X-RateLimit-Reset")
+        if remaining is not None:
+            self._rate_limit_remaining = int(remaining)
+        if reset is not None:
+            self._rate_limit_reset = float(reset)
+        if self._rate_limit_remaining <= 10:
+            log.warning("GitHub API rate limit low: %d remaining", self._rate_limit_remaining)
+
+    def _check_rate_limit(self) -> bool:
+        """Return False if we should back off due to rate limiting."""
+        if self._rate_limit_remaining <= 5:
+            if time.time() < self._rate_limit_reset:
+                log.warning("GitHub API rate limited — backing off until reset")
+                return False
+        return True
 
     def _cache_get(self, key: str):
         """Return cached value if still valid, else None."""
@@ -163,6 +184,9 @@ class BBSTransport:
         if cached is not None:
             return cached
 
+        if not self._check_rate_limit():
+            return []
+
         params = {
             "state": "open",
             "sort": "created",
@@ -178,6 +202,7 @@ class BBSTransport:
                 f"{GITHUB_API}/repos/{repo}/issues",
                 params=params,
             )
+            self._update_rate_limit(resp)
             if resp.status_code != 200:
                 return []
 
@@ -196,10 +221,13 @@ class BBSTransport:
     async def get_post(self, post_id: int, repo: str = "") -> RemotePost | None:
         """Get a single post by issue number."""
         repo = repo or self.config.default_repo
+        if not self._check_rate_limit():
+            return None
         try:
             resp = await self._client.get(
                 f"{GITHUB_API}/repos/{repo}/issues/{post_id}"
             )
+            self._update_rate_limit(resp)
             if resp.status_code != 200:
                 return None
             issue = resp.json()
@@ -219,11 +247,15 @@ class BBSTransport:
         if cached is not None:
             return cached
 
+        if not self._check_rate_limit():
+            return []
+
         try:
             resp = await self._client.get(
                 f"{GITHUB_API}/repos/{repo}/issues/{post_id}/comments",
                 params={"per_page": 50},
             )
+            self._update_rate_limit(resp)
             if resp.status_code != 200:
                 return []
 
