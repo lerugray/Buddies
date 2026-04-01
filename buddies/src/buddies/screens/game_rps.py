@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Vertical
 from textual.widgets import Static, Footer, RichLog
 from textual.screen import Screen
 
@@ -82,7 +81,7 @@ class RPSScreen(Screen):
         log.write(f"[bold]Best of 5 vs {self.buddy_state.species.emoji} {self.buddy_state.name}[/bold]")
         log.write(pick_game_line(GAME_START, self.buddy_state))
         log.write("")
-        log.write("[dim]Press [bold]1[/bold]=Rock  [bold]2[/bold]=Paper  [bold]3[/bold]=Scissors[/dim]")
+        log.write("[dim][bold]1[/bold]=Rock  [bold]2[/bold]=Paper  [bold]3[/bold]=Scissors  |  [bold]N[/bold]=New  [bold]Esc[/bold]=Back[/dim]")
         log.write("")
         self._update_score()
 
@@ -117,8 +116,6 @@ class RPSScreen(Screen):
         # Result
         if rnd.outcome == GameOutcome.WIN:
             log.write(f"  [green bold]You win this round![/green bold]")
-            # Check if buddy had a streak that was broken
-            buddy_streak = self.game.get_buddy_streak()
         elif rnd.outcome == GameOutcome.LOSE:
             line = pick_game_line(RPS_WIN, self.buddy_state, choice=rnd.buddy_choice.value)
             log.write(f"  [red]{self.buddy_state.name} wins![/red] {line}")
@@ -147,7 +144,7 @@ class RPSScreen(Screen):
             log.write("")
             log.write(f"[dim]Final: You {self.game.player_wins} — {self.game.buddy_wins} {self.buddy_state.name}[/dim]")
             xp = self._result.xp_for_outcome
-            log.write(f"[dim]+{xp} XP  |  Press [bold]N[/bold] for new game, [bold]Esc[/bold] to leave[/dim]")
+            log.write(f"[dim]+{xp} XP  |  [bold]N[/bold]=New game  [bold]Esc[/bold]=Back[/dim]")
 
     def action_throw_rock(self):
         self._play(RPSChoice.ROCK)

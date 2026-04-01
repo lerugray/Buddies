@@ -1082,48 +1082,57 @@ class BuddyApp(App):
         )
 
     async def _on_games_dismissed(self, result) -> None:
-        """Handle game result — award XP, adjust mood, log result."""
+        """Handle game results — award XP, adjust mood, log each result."""
         if result is None:
             return
         from buddies.core.games import GameResult
-        if not isinstance(result, GameResult):
+
+        # Arcade returns a list of results (one per game played)
+        results = result if isinstance(result, list) else [result]
+
+        for game_result in results:
+            if not isinstance(game_result, GameResult):
+                continue
+            await self._process_game_result(game_result)
+
+    async def _process_game_result(self, result) -> None:
+        """Process a single game result — XP, mood, DB, notifications."""
+        if not self.buddy_state:
             return
 
-        # Award XP and mood
-        if self.buddy_state:
-            xp = result.xp_for_outcome
-            mood = result.mood_for_outcome
-            leveled = self.buddy_state.gain_xp(xp)
-            self.buddy_state.adjust_mood(mood)
-            self._update_displays()
+        xp = result.xp_for_outcome
+        mood = result.mood_for_outcome
+        leveled = self.buddy_state.gain_xp(xp)
+        self.buddy_state.adjust_mood(mood)
+        self._update_displays()
 
-            # Notify
-            try:
-                chat = self.query_one("#chat-panel", ChatWindow)
-                outcome_str = result.outcome.value.upper()
-                chat.add_system(
-                    f"🕹️ {result.game_type.value.upper()}: {outcome_str} "
-                    f"(+{xp} XP, mood {'+' if mood >= 0 else ''}{mood})"
-                )
-                if leveled:
-                    chat.add_system(f"⬆️ Level up! Now level {self.buddy_state.level}!")
-            except Exception:
-                pass
+        # Notify
+        try:
+            chat = self.query_one("#chat-panel", ChatWindow)
+            outcome_str = result.outcome.value.upper()
+            chat.add_system(
+                f"🕹️ {result.game_type.value.upper()}: {outcome_str} "
+                f"(+{xp} XP, mood {'+' if mood >= 0 else ''}{mood})"
+            )
+            if leveled:
+                chat.add_system(f"⬆️ Level up! Now level {self.buddy_state.level}!")
+        except Exception:
+            pass
 
-            # Log to DB
-            try:
-                await self.store.log_game_result(
-                    game_type=result.game_type.value,
-                    buddy_id=result.buddy_id,
-                    result=result.outcome.value,
-                    score=json.dumps(result.score),
-                    xp_earned=result.xp_for_outcome,
-                )
-            except Exception:
-                pass
+        # Log to DB
+        try:
+            await self.store.log_game_result(
+                game_type=result.game_type.value,
+                buddy_id=result.buddy_id,
+                result=result.outcome.value,
+                score=json.dumps(result.score),
+                xp_earned=result.xp_for_outcome,
+            )
+        except Exception:
+            pass
 
-            # Check hat unlocks after XP gain
-            await self._check_and_unlock_hats()
+        # Check hat unlocks after XP gain
+        await self._check_and_unlock_hats()
 
     async def _init_bbs(self):
         """Initialize BBS transport and auto-activity in background."""
