@@ -12,7 +12,7 @@ from buddies.core.games.mud_engine import (
     MudState, create_mud_game, parse_command, process_command,
     get_intro_text, get_game_result, _handle_look, _handle_go,
     _handle_inventory, _handle_quest, _handle_map, _handle_help,
-    _buddy_comment,
+    _handle_sell, _buddy_comment, _maybe_world_event, WORLD_EVENTS,
 )
 
 
@@ -200,7 +200,8 @@ class TestMudEngine:
 
     def test_go_invalid(self):
         state = _make_game()
-        lines = _handle_go(state, "west")
+        # Lobby has no south exit
+        lines = _handle_go(state, "south")
         assert state.current_room == "lobby"  # Didn't move
         assert "no exit" in lines[0].lower()
 
@@ -402,3 +403,180 @@ class TestBuddyCommentary:
                 return
         # Commentary uses buddy name
         # (It's random so we just verify it works without error)
+
+
+# ---------------------------------------------------------------------------
+# Expanded world tests
+# ---------------------------------------------------------------------------
+
+class TestExpandedWorld:
+    def test_new_rooms_exist(self):
+        state = _make_game()
+        new_rooms = ["qa_lab", "testing_grounds", "standup_room", "incident_channel", "archive", "kubernetes_cluster"]
+        for room_id in new_rooms:
+            assert room_id in state.rooms, f"Missing room: {room_id}"
+
+    def test_new_npcs_exist(self):
+        state = _make_game()
+        new_npcs = ["qa_lead", "flaky_test_swarm", "scrum_master", "oncall_engineer", "memory_leak", "pod_person", "k8s_merchant"]
+        for npc_id in new_npcs:
+            assert npc_id in state.npcs, f"Missing NPC: {npc_id}"
+
+    def test_new_quests_exist(self):
+        state = _make_game()
+        assert "flaky_hunt" in state.quests
+        assert "incident_report" in state.quests
+
+    def test_qa_lab_reachable(self):
+        state = _make_game()
+        # lobby → west → qa_lab
+        _handle_go(state, "west")
+        assert state.current_room == "qa_lab"
+
+    def test_testing_grounds_reachable(self):
+        state = _make_game()
+        _handle_go(state, "west")  # lobby → qa_lab
+        _handle_go(state, "north")  # qa_lab → testing_grounds
+        assert state.current_room == "testing_grounds"
+
+    def test_standup_reachable(self):
+        state = _make_game()
+        _handle_go(state, "north")  # lobby → town_square
+        _handle_go(state, "north")  # town_square → meeting_room
+        _handle_go(state, "east")  # meeting_room → standup_room
+        assert state.current_room == "standup_room"
+
+    def test_incident_channel_reachable(self):
+        state = _make_game()
+        # Need server key → skip locked, give key
+        state.inventory.add_item(state.items["server_key"])
+        state.current_room = "repository_depths"
+        _handle_go(state, "north")  # → server_room
+        assert state.current_room == "server_room"
+        _handle_go(state, "north")  # → incident_channel
+        assert state.current_room == "incident_channel"
+
+    def test_archive_locked(self):
+        state = _make_game()
+        state.current_room = "incident_channel"
+        lines = _handle_go(state, "east")
+        assert state.current_room == "incident_channel"  # Still locked
+        assert "locked" in "\n".join(lines).lower()
+
+    def test_archive_unlockable(self):
+        state = _make_game()
+        state.current_room = "incident_channel"
+        state.inventory.add_item(state.items["war_room_badge"])
+        _handle_go(state, "east")
+        assert state.current_room == "archive"
+
+    def test_kubernetes_reachable(self):
+        state = _make_game()
+        state.current_room = "cloud_district"
+        _handle_go(state, "north")
+        assert state.current_room == "kubernetes_cluster"
+
+    def test_all_room_exits_valid(self):
+        """Every exit destination in the expanded world must be a valid room."""
+        state = _make_game()
+        for room in state.rooms.values():
+            for ex in room.exits:
+                assert ex.destination in state.rooms, \
+                    f"Room {room.id} exit {ex.direction} → {ex.destination} not found"
+
+    def test_flaky_hunt_quest_flow(self):
+        state = _make_game()
+        state.current_room = "qa_lab"
+        # Talk to QA lead to start quest
+        process_command(state, "talk priya")
+        assert state.quests["flaky_hunt"].status == QuestStatus.ACTIVE
+
+    def test_server_key_in_server_room(self):
+        """Server key should be findable to unlock the server room door."""
+        state = _make_game()
+        assert "server_key" in state.rooms["server_room"].items
+
+
+# ---------------------------------------------------------------------------
+# Sell command tests
+# ---------------------------------------------------------------------------
+
+class TestSellCommand:
+    def test_sell_no_merchant(self):
+        state = _make_game()
+        state.current_room = "lobby"  # No merchant here
+        lines = _handle_sell(state, "anything")
+        assert "no merchant" in "\n".join(lines).lower()
+
+    def test_sell_shows_sellable(self):
+        state = _make_game()
+        state.current_room = "break_room"  # Coffee Machine is merchant
+        # Add a junk item
+        state.inventory.add_item(state.items["deprecated_manual"])
+        lines = _handle_sell(state, "")
+        text = "\n".join(lines)
+        assert "Sellable" in text
+        assert "Deprecated" in text
+
+    def test_sell_item(self):
+        state = _make_game()
+        state.current_room = "break_room"
+        junk = state.items["deprecated_manual"]
+        state.inventory.add_item(junk)
+        initial_gold = state.inventory.gold
+        lines = _handle_sell(state, "deprecated")
+        assert not state.inventory.has_item("deprecated_manual")
+        assert state.inventory.gold > initial_gold
+
+    def test_sell_half_value(self):
+        state = _make_game()
+        state.current_room = "break_room"
+        junk = Item("test_junk", "Test Junk", "Junk", ItemType.JUNK, value=10)
+        state.inventory.add_item(junk)
+        initial_gold = state.inventory.gold
+        _handle_sell(state, "test junk")
+        assert state.inventory.gold == initial_gold + 5  # Half of 10
+
+    def test_sell_prevents_quest_items(self):
+        state = _make_game()
+        state.current_room = "break_room"
+        state.inventory.add_item(state.items["merge_conflict"])
+        lines = _handle_sell(state, "merge conflict")
+        assert state.inventory.has_item("merge_conflict")  # Not sold
+        assert "important" in "\n".join(lines).lower()
+
+    def test_sell_prevents_key_items(self):
+        state = _make_game()
+        state.current_room = "break_room"
+        state.inventory.add_item(state.items["server_key"])
+        lines = _handle_sell(state, "server")
+        assert state.inventory.has_item("server_key")  # Not sold
+
+
+# ---------------------------------------------------------------------------
+# World events tests
+# ---------------------------------------------------------------------------
+
+class TestWorldEvents:
+    def test_world_events_exist(self):
+        assert len(WORLD_EVENTS) >= 15
+
+    def test_maybe_world_event_returns_string_or_none(self):
+        # Run many times to test both paths
+        results = [_maybe_world_event() for _ in range(100)]
+        got_none = any(r is None for r in results)
+        got_str = any(r is not None for r in results)
+        assert got_none, "Should sometimes return None"
+        assert got_str, "Should sometimes return an event"
+
+    def test_world_events_fire_on_commands(self):
+        """World events should appear in command output sometimes."""
+        state = _make_game()
+        found_event = False
+        for _ in range(50):
+            lines = process_command(state, "wait")
+            text = "\n".join(lines)
+            if "ANNOUNCEMENT" in text or "💬" in text or "You hear" in text or "You step" in text:
+                found_event = True
+                break
+        # With 20% chance over 50 tries, almost certain to get at least one

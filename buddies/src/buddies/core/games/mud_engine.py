@@ -142,6 +142,7 @@ def parse_command(raw: str) -> tuple[str, str]:
         "attack": "attack", "fight": "attack", "kill": "attack", "hit": "attack",
         "inventory": "inventory", "inv": "inventory", "i": "inventory",
         "buy": "buy", "shop": "buy", "purchase": "buy",
+        "sell": "sell",
         "quest": "quest", "quests": "quest", "q": "quest",
         "help": "help", "h": "help", "?": "help",
         "map": "map",
@@ -271,6 +272,46 @@ def _buddy_comment(party: list[BuddyState], context: str) -> str | None:
     if not pool:
         return None
     return random.choice(pool).format(name=buddy.name, emoji=buddy.species.emoji)
+
+
+# ---------------------------------------------------------------------------
+# Random world events — things that happen as you explore
+# ---------------------------------------------------------------------------
+
+WORLD_EVENTS = [
+    # Company-wide announcements
+    "[dim italic]📢 ANNOUNCEMENT: The snack drawer has been restocked. This is not a drill.[/dim italic]",
+    "[dim italic]📢 ANNOUNCEMENT: Please stop microwaving fish in the break room. You know who you are.[/dim italic]",
+    "[dim italic]📢 ANNOUNCEMENT: The parking garage WiFi is now faster than the office WiFi. This is 'by design.'[/dim italic]",
+    "[dim italic]📢 ANNOUNCEMENT: Reminder that 'works on my machine' is not a valid deploy strategy.[/dim italic]",
+    "[dim italic]📢 ANNOUNCEMENT: The CI/CD pipeline is paused for 'maintenance.' It's actually just resting.[/dim italic]",
+
+    # Slack-like interruptions
+    "[dim italic]💬 #general: does anyone know why the staging server is playing music?[/dim italic]",
+    "[dim italic]💬 #random: who left a rubber duck in the server room? ...actually, leave it. uptime improved 3%.[/dim italic]",
+    "[dim italic]💬 #engineering: whoever force-pushed to main, please report to Gerald. bring snacks. you'll need them.[/dim italic]",
+    "[dim italic]💬 #incidents: false alarm, the fire was metaphorical[/dim italic]",
+    "[dim italic]💬 #standup: standup is postponed because we're in a meeting about having too many meetings[/dim italic]",
+
+    # Strange occurrences
+    "[dim italic]You hear a distant deploy siren. Someone whispers 'not on a Friday...'[/dim italic]",
+    "[dim italic]The lights flicker. Somewhere, a database query takes 30 seconds instead of 30 milliseconds.[/dim italic]",
+    "[dim italic]A Post-It note drifts past. It reads: 'TODO: remove this TODO'[/dim italic]",
+    "[dim italic]You step on a cable. Three services go down. You carefully step off. They come back up.[/dim italic]",
+    "[dim italic]A notification pops up on a nearby screen: 'Your free trial of functioning code has expired.'[/dim italic]",
+    "[dim italic]You see someone sprinting with a laptop. They yell 'THE DEMO IS IN FIVE MINUTES' as they pass.[/dim italic]",
+    "[dim italic]A printer somewhere prints a single page that says 'HELP' and then jams.[/dim italic]",
+    "[dim italic]You hear a distant keyboard being furiously typed on. Then silence. Then a very quiet 'oh no.'[/dim italic]",
+    "[dim italic]An intern walks past carrying a production database backup on a USB stick. In a ziplock bag.[/dim italic]",
+    "[dim italic]The office plants look healthier than the production servers. The correlation is unclear.[/dim italic]",
+]
+
+
+def _maybe_world_event() -> str | None:
+    """~20% chance of a random world event occurring."""
+    if random.random() < 0.20:
+        return random.choice(WORLD_EVENTS)
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -726,6 +767,51 @@ def _handle_buy(state: MudState, target: str) -> list[str]:
     return [f"The shop doesn't have '{target}'."]
 
 
+def _handle_sell(state: MudState, target: str) -> list[str]:
+    """Sell an item to a merchant."""
+    room = state.rooms[state.current_room]
+
+    # Check for merchant
+    merchant = None
+    for nid in room.npcs:
+        npc = state.npcs.get(nid)
+        if npc and not npc.defeated and npc.disposition == NPCDisposition.MERCHANT:
+            merchant = npc
+            break
+
+    if not merchant:
+        return ["There's no merchant here to sell to."]
+
+    if not target:
+        # Show sellable items
+        sellable = [i for i in state.inventory.items if i.value > 0 and i.item_type not in (ItemType.KEY, ItemType.QUEST)]
+        if not sellable:
+            return ["You don't have anything worth selling."]
+        lines = [f"\n[bold]💰 Sellable Items[/bold]", f"{'─' * 40}"]
+        for item in sellable:
+            sell_price = max(1, item.value // 2)
+            lines.append(f"  {item.emoji} {item.name} — [yellow]{sell_price}g[/yellow]")
+        lines.append(f"\n[dim]Type [bold]sell <item name>[/bold] to sell. Items sell for half value.[/dim]")
+        return lines
+
+    # Sell specific item
+    target_lower = target.lower()
+    for item in state.inventory.items:
+        if target_lower in item.name.lower():
+            if item.item_type in (ItemType.KEY, ItemType.QUEST):
+                return [f"You can't sell the {item.name}. It's too important."]
+            sell_price = max(1, item.value // 2)
+            state.inventory.remove_item(item.id)
+            state.inventory.gold += sell_price
+            state.gold_earned += sell_price
+            return [
+                f"[green]Sold: {item.emoji} {item.name} for {sell_price}g[/green]",
+                f"[yellow]Gold: {state.inventory.gold}g[/yellow]",
+            ]
+
+    return [f"You don't have '{target}' to sell."]
+
+
 def _handle_quest(state: MudState, _arg: str) -> list[str]:
     """Show active and completed quests."""
     lines = ["\n[bold]📋 Quest Log[/bold]", f"{'─' * 40}"]
@@ -759,9 +845,9 @@ def _handle_map(state: MudState, _arg: str) -> list[str]:
     lines = ["\n[bold]🗺️ Map of StackHaven[/bold]", f"{'─' * 50}"]
 
     # Simple text map
-    zone_emoji = {"town": "🏢", "depths": "📚", "server_room": "🖥️", "cloud": "☁️"}
+    zone_emoji = {"town": "🏢", "depths": "📚", "server_room": "🖥️", "cloud": "☁️", "qa": "🔍"}
 
-    for zone_name in ["town", "depths", "server_room", "cloud"]:
+    for zone_name in ["town", "depths", "server_room", "cloud", "qa"]:
         zone_rooms = [r for r in state.rooms.values() if r.zone == zone_name]
         if not zone_rooms:
             continue
@@ -808,6 +894,7 @@ def _handle_help(state: MudState, _arg: str) -> list[str]:
         "",
         "[bold cyan]Commerce:[/bold cyan]",
         "  [bold]buy[/bold]             — Browse/buy from merchants",
+        "  [bold]sell[/bold]            — Sell items to merchants (half value)",
         "",
         "[bold cyan]Status:[/bold cyan]",
         "  [bold]inventory[/bold] (i)   — Check your items",
@@ -1084,6 +1171,7 @@ COMMAND_HANDLERS = {
     "use": _handle_use,
     "inventory": _handle_inventory,
     "buy": _handle_buy,
+    "sell": _handle_sell,
     "quest": _handle_quest,
     "map": _handle_map,
     "wait": _handle_wait,
@@ -1107,7 +1195,13 @@ def process_command(state: MudState, raw_input: str) -> list[str]:
 
     handler = COMMAND_HANDLERS.get(cmd)
     if handler:
-        return handler(state, arg)
+        result = handler(state, arg)
+        # Random world events after non-meta commands
+        if cmd not in ("help", "inventory", "quest", "map") and not state.combat:
+            event = _maybe_world_event()
+            if event:
+                result.append(f"\n{event}")
+        return result
 
     return [f"Unknown command: '{cmd}'. Type [bold]help[/bold] for options."]
 

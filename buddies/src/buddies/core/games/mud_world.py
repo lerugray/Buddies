@@ -276,6 +276,28 @@ def build_starter_items() -> dict[str, Item]:
         Item("slightly_haunted_tophat", "Slightly Haunted Top Hat", "It whispers deprecated APIs at night.", ItemType.COSMETIC, 100, emoji="🎩"),
         Item("artisanal_semicolon", "Artisanal Semicolon", "Hand-crafted. Organic. Gluten-free. ;", ItemType.COSMETIC, 50, emoji="✨"),
         Item("nft_nothing", "NFT That Does Nothing", "You own this nothing. On the blockchain.", ItemType.COSMETIC, 1, emoji="🖼️"),
+
+        # --- New: QA Lab items ---
+        Item("flaky_test", "Captured Flaky Test", "It passes sometimes. Fails sometimes. Nobody knows why. Schrödinger's assertion.", ItemType.JUNK, 4, emoji="🦋"),
+        Item("test_pyramid", "Miniature Test Pyramid", "A tiny desk ornament. The bottom says UNIT, the middle says INTEGRATION, the top says E2E. Someone has drawn a huge blob labeled 'MANUAL' next to it.", ItemType.JUNK, 6, emoji="🔺"),
+        Item("green_checkmark", "The Eternal Green Checkmark", "A glowing green ✓ that never goes red. Suspicious.", ItemType.COSMETIC, 75, emoji="✅"),
+
+        # --- New: Standup items ---
+        Item("blockers_list", "Infinite Blockers List", "A scroll that unrolls forever. Every item says 'Waiting on review.'", ItemType.JUNK, 3, emoji="📋"),
+        Item("standup_timer", "Standup Timer", "Set to 15 minutes. It's been 45. Nobody notices.", ItemType.WEAPON, 10, attack_bonus=4, emoji="⏱️"),
+
+        # --- New: Incident items ---
+        Item("pager", "The Oncall Pager", "It vibrates with the anxiety of a thousand production incidents.", ItemType.WEAPON, 30, attack_bonus=8, emoji="📟"),
+        Item("incident_report", "Blameless Incident Report", "Technically blameless. The footnotes tell a different story.", ItemType.QUEST, 0, emoji="📊"),
+        Item("war_room_badge", "War Room Badge", "Grants access to the Archive. Smells like stale coffee and regret.", ItemType.KEY, 0, unlocks="archive", emoji="🪪"),
+
+        # --- New: K8s items ---
+        Item("yaml_scroll", "Infinite YAML Scroll", "The indentation goes 47 levels deep. Looking at it gives you a headache.", ItemType.JUNK, 7, emoji="📃"),
+        Item("helm_chart", "Helm Chart of Protection", "A mystical chart that deploys defenses. 50% chance of working.", ItemType.ARMOR, 35, defense_bonus=5, emoji="⛑️"),
+
+        # --- New: Archive items ---
+        Item("founders_mug", "Founder's Coffee Mug", "From the original garage days. Still has coffee in it. The coffee has become sentient.", ItemType.COSMETIC, 200, emoji="🏆"),
+        Item("first_commit", "The First Commit", "A framed printout: 'initial commit'. The code is... HTML with inline styles.", ItemType.QUEST, 0, emoji="📜"),
     ]}
 
 
@@ -482,6 +504,145 @@ def build_starter_npcs(items: dict[str, Item]) -> dict[str, NPC]:
         },
     )
 
+    # --- New: QA Lab NPCs ---
+    npcs["qa_lead"] = NPC(
+        id="qa_lead",
+        name="Priya",
+        title="QA Lead Who Has Seen Things",
+        description="Priya has a thousand-yard stare and a spreadsheet with 4,000 test cases. She's found bugs in software that hasn't been written yet. Her desk has a sign: 'I don't find bugs. I find features you didn't know you had.'",
+        disposition=NPCDisposition.QUEST_GIVER,
+        emoji="🔍",
+        dialogue={
+            "greeting": DialogueLine(
+                "\"Oh, a visitor. Let me guess — you think your code works? That's adorable. Listen, we've got a Flaky Test infestation in the Testing Grounds. Those things multiply when you're not looking. Take this timer — it's been weaponized — and go clear them out. Bring me back proof.\"",
+                starts_quest="flaky_hunt",
+                gives_item="standup_timer",
+            ),
+            "quest_active": DialogueLine(
+                "\"Still hunting flakies? They hide in the conditional branches. Check the Testing Grounds.\"",
+                condition="quest:flaky_hunt:active",
+            ),
+            "quest_complete": DialogueLine(
+                "\"You actually caught one? Most people just mark them as 'skip' and move on. Here — you've earned this badge. It'll get you into the Archive.\"",
+                condition="quest:flaky_hunt:complete_ready",
+                completes_quest="flaky_hunt",
+                gives_item="war_room_badge",
+            ),
+            "idle": DialogueLine(
+                "\"I've been running this test suite for 6 hours. Three tests are flaky. I will find them. I will fix them.\"",
+            ),
+        },
+    )
+
+    npcs["flaky_test_swarm"] = NPC(
+        id="flaky_test_swarm",
+        name="Flaky Test Swarm",
+        title="Schrödinger's Assertions",
+        description="A shimmering swarm of test cases that alternate between ✓ and ✗ as you watch. They pass on your machine. They fail in CI. They're mocking you. Literally — they're full of mocks.",
+        disposition=NPCDisposition.HOSTILE,
+        emoji="🦋",
+        hp=30, max_hp=30, attack=7, defense=2,
+        loot=["flaky_test"],
+        dialogue={
+            "combat": DialogueLine("\"Expected: PASS. Received: PAIN.\""),
+        },
+    )
+
+    # --- New: Standup Room NPCs ---
+    npcs["scrum_master"] = NPC(
+        id="scrum_master",
+        name="Todd",
+        title="Scrum Master of Ceremonies",
+        description="Todd has a certification for every agile methodology that exists and several that don't. His lanyard is weighed down with badges. He speaks exclusively in sprint metaphors. His stand-up lasted 2 hours yesterday and he called it 'efficient.'",
+        disposition=NPCDisposition.FRIENDLY,
+        emoji="🏃",
+        dialogue={
+            "greeting": DialogueLine(
+                "\"Welcome to the standup! What's your status? Actually, don't tell me — tell the BOARD. The board knows all. The board sees all. ...Anyway, I'm blocked on nothing because I AM the process. Here, take these meeting notes. They're... mostly accurate.\"",
+                gives_item="blockers_list",
+            ),
+            "idle": DialogueLine(
+                "\"Let's take this offline. Actually, let's take it to a breakout. Actually, let's schedule a meeting to discuss when to have the breakout. I'll send a calendar invite.\"",
+            ),
+        },
+    )
+
+    # --- New: Incident Channel NPCs ---
+    npcs["oncall_engineer"] = NPC(
+        id="oncall_engineer",
+        name="Marcus",
+        title="The Oncall Engineer (Day 5 of 7)",
+        description="Marcus hasn't slept in what he claims is 'only' three days. His screen shows 47 open PagerDuty alerts, 12 Slack threads marked urgent, and one Spotify playlist titled 'Songs To Debug To'. He vibrates slightly. It might be caffeine. It might be rage.",
+        disposition=NPCDisposition.QUEST_GIVER,
+        emoji="😰",
+        dialogue={
+            "greeting": DialogueLine(
+                "\"OH THANK GOD SOMEONE ELSE IS HERE. Listen — I need to find the Incident Report from the last outage. I KNOW I wrote it. It's somewhere in the Archive but I can't leave this desk or the alerts will eat me alive. If you can find it and bring it back, I will give you my pager. Not because I'm generous — because I want it gone.\"",
+                starts_quest="incident_report",
+            ),
+            "quest_active": DialogueLine(
+                "\"The report should be in the Archive. It's labeled 'blameless' but between you and me, section 4.2 has some OPINIONS.\"",
+                condition="quest:incident_report:active",
+            ),
+            "quest_complete": DialogueLine(
+                "\"THE REPORT! Oh sweet closure. Take the pager. TAKE IT. I never want to see it again.\"",
+                condition="quest:incident_report:complete_ready",
+                completes_quest="incident_report",
+                gives_item="pager",
+            ),
+            "idle": DialogueLine(
+                "\"Alert: CPU at 99%. Alert: Memory at 98%. Alert: Marcus's sanity at 2%.\"",
+            ),
+        },
+    )
+
+    npcs["memory_leak"] = NPC(
+        id="memory_leak",
+        name="The Memory Leak",
+        title="Ever-Growing Entity",
+        description="It started as a small oversight. An event listener that was never removed. A cache that was never cleared. Now it fills the Incident Channel like a fog, consuming everything it touches. It's bigger every time you look at it.",
+        disposition=NPCDisposition.HOSTILE,
+        emoji="🫧",
+        hp=40, max_hp=40, attack=6, defense=4,
+        loot=["energy_drink"],
+        dialogue={
+            "combat": DialogueLine("\"I GROW. I CONSUME. I NEVER FREE(). YOU CANNOT GARBAGE COLLECT ME.\""),
+        },
+    )
+
+    # --- New: Kubernetes Cluster NPCs ---
+    npcs["pod_person"] = NPC(
+        id="pod_person",
+        name="CrashLoopBackoff",
+        title="The Pod That Won't Stay Down",
+        description="A Kubernetes pod that keeps restarting in an infinite loop. Every time it dies, it comes back slightly different. It's been restarting for so long that it's developed a personality. Several, actually, since each restart is a different version.",
+        disposition=NPCDisposition.HOSTILE,
+        emoji="🔄",
+        hp=20, max_hp=20, attack=5, defense=6,
+        loot=["yaml_scroll"],
+        dialogue={
+            "combat": DialogueLine("\"restart count: 847. reason: OOMKilled. mood: VENGEFUL.\""),
+        },
+    )
+
+    npcs["k8s_merchant"] = NPC(
+        id="k8s_merchant",
+        name="The Container Registry",
+        title="Automated Vendor of Questionable Images",
+        description="A vending machine-like entity that dispenses Docker images. Some are official. Some are 'latest'. Some haven't been updated since 2019. All sales are final.",
+        disposition=NPCDisposition.MERCHANT,
+        emoji="🐳",
+        shop_items=["helm_chart", "energy_drink", "coffee", "kevlar_vest"],
+        dialogue={
+            "greeting": DialogueLine(
+                "\"PULL REQUEST ACCEPTED. BROWSING CATALOG... I HAVE IMAGES FROM MANY REGISTRIES. SOME ARE EVEN SCANNED FOR VULNERABILITIES. WOULD YOU LIKE TO DEPLOY A PURCHASE?\"",
+            ),
+            "buy": DialogueLine(
+                "\"IMAGE PULLED. TAG: latest. THIS IS EITHER A GREAT DECISION OR A TERRIBLE ONE. NO WAY TO KNOW UNTIL PRODUCTION.\"",
+            ),
+        },
+    )
+
     return npcs
 
 
@@ -498,6 +659,7 @@ def build_starter_rooms() -> dict[str, Room]:
         exits=[
             RoomExit("north", "town_square", "Through the glass doors to the open-plan office."),
             RoomExit("east", "break_room", "A door marked 'BREAK ROOM' with coffee stains as a trail."),
+            RoomExit("west", "qa_lab", "A door with a red/green traffic light above it. Currently yellow."),
             RoomExit("down", "parking_garage", "Stairs leading down to the parking garage."),
         ],
         ambient=[
@@ -579,6 +741,7 @@ def build_starter_rooms() -> dict[str, Room]:
         short_description="The meeting room. Brenda is adding more requirements to the whiteboard.",
         exits=[
             RoomExit("south", "town_square", "Escape back to the open-plan office."),
+            RoomExit("east", "standup_room", "A door covered in sticky notes and sprint velocity charts."),
         ],
         npcs=["product_manager"],
         ambient=[
@@ -664,9 +827,10 @@ def build_starter_rooms() -> dict[str, Room]:
         exits=[
             RoomExit("south", "repository_depths", "Back to the Repository Depths."),
             RoomExit("east", "root_chamber", "A blast door with a keypad.", locked=True, key_item="root_password"),
+            RoomExit("north", "incident_channel", "A door with flashing red lights and muffled screaming."),
         ],
         npcs=["regex_golem"],
-        items=["stack_overflow_printout"],
+        items=["stack_overflow_printout", "server_key"],
         ambient=[
             "A server's fan spins up. Then another. Then all of them. Then silence.",
             "LED status: green green green RED green green green... green.",
@@ -704,6 +868,7 @@ def build_starter_rooms() -> dict[str, Room]:
         short_description="The Cloud District. Everything floats. Nothing is certain.",
         exits=[
             RoomExit("down", "town_square", "The elevator back to reality."),
+            RoomExit("north", "kubernetes_cluster", "A gateway pulsing with orchestration energy."),
         ],
         items=["artisanal_semicolon", "nft_nothing"],
         ambient=[
@@ -735,6 +900,133 @@ def build_starter_rooms() -> dict[str, Room]:
         ],
         emoji="🅿️",
         zone="town",
+    )
+
+    # === ZONE: QA Lab ===
+    rooms["qa_lab"] = Room(
+        id="qa_lab",
+        name="The QA Testing Lab",
+        description="A room divided into two halves by a line of tape on the floor. One half is pristine — labeled 'STAGING'. The other is on fire (metaphorically, mostly). That's 'PRODUCTION'. Priya the QA Lead sits at the border, watching both sides simultaneously. Test results scroll across a wall of monitors: green, green, red, green, FLAKY, green.",
+        short_description="The QA Lab. One side staging, one side production. The tape holds the line.",
+        exits=[
+            RoomExit("east", "lobby", "Back to the lobby."),
+            RoomExit("north", "testing_grounds", "A corridor with a sign: 'TESTING GROUNDS — EXPECT FAILURES'"),
+        ],
+        npcs=["qa_lead"],
+        items=["test_pyramid"],
+        ambient=[
+            "A test turns red. Priya's eye twitches. It turns green again. She doesn't relax.",
+            "The PRODUCTION side of the room makes a noise like a garbage disposal eating silverware.",
+            "A monitor displays: 'Tests passed: 847/848.' One test. One single test.",
+            "Someone has written 'WORKS ON MY MACHINE' in dry-erase marker. It won't erase.",
+        ],
+        emoji="🔍",
+        zone="qa",
+    )
+
+    rooms["testing_grounds"] = Room(
+        id="testing_grounds",
+        name="The Testing Grounds",
+        description="A chaotic arena where test cases fight for their lives. Assertions fly through the air like arrows. Mock objects stand in formation, pretending to be things they're not. In the center, a swarm of Flaky Tests flickers in and out of existence, passing and failing in an endless quantum superposition.",
+        short_description="The Testing Grounds. Assertions everywhere. Watch your step.",
+        exits=[
+            RoomExit("south", "qa_lab", "Back to the QA Lab."),
+        ],
+        npcs=["flaky_test_swarm"],
+        items=["flaky_test"],
+        ambient=[
+            "An assertion fails. 'Expected: true. Got: a philosophical crisis.'",
+            "A mock object pretends to be a database. It's surprisingly convincing.",
+            "You step on a test fixture. It shatters into a dozen edge cases.",
+            "Somewhere, a snapshot test notices you changed a single pixel. It screams.",
+        ],
+        emoji="⚔️",
+        zone="qa",
+    )
+
+    # === ZONE: Standup ===
+    rooms["standup_room"] = Room(
+        id="standup_room",
+        name="The Eternal Standup",
+        description="A room where time has no meaning. The standup started 'about 15 minutes ago' according to everyone, but the clock says 2 hours. Todd the Scrum Master holds court, gesturing at a Jira board that looks like abstract art. Half the people here are on their phones. The other half are on their phones but pretending not to be.",
+        short_description="The standup room. The meeting never ends. It merely pauses.",
+        exits=[
+            RoomExit("west", "meeting_room", "Back to the meeting room."),
+        ],
+        npcs=["scrum_master"],
+        ambient=[
+            "Todd updates the sprint velocity. Nobody knows what that means. Including Todd.",
+            "Someone says 'no blockers' while visibly blocked by the person next to them.",
+            "The Jira board refreshes. Three new tickets appear. Nobody made them. They are self-generating.",
+            "An engineer says 'I'm still working on the same thing.' Day 47.",
+            "Todd suggests a retro. Everyone's soul leaves their body simultaneously.",
+        ],
+        emoji="🏃",
+        zone="town",
+    )
+
+    # === ZONE: Incident Channel ===
+    rooms["incident_channel"] = Room(
+        id="incident_channel",
+        name="The Incident Channel",
+        description="A war room with screens covering every wall, each showing a different dashboard in a different shade of red. Marcus the oncall engineer sits in the center like a spider in a web of alerts. The Memory Leak lurks in the corner, growing imperceptibly larger. A banner reads: '#incident-2026-04-01 — SEV1 — THE EVERYTHING IS ON FIRE INCIDENT'.",
+        short_description="The incident channel. Everything is on fire. This is fine.",
+        exits=[
+            RoomExit("south", "server_room", "Back to the server room."),
+            RoomExit("east", "archive", "A heavy vault door.", locked=True, key_item="war_room_badge"),
+        ],
+        npcs=["oncall_engineer", "memory_leak"],
+        ambient=[
+            "An alert fires. Marcus doesn't flinch. He's beyond flinching.",
+            "The Memory Leak grows 0.3% larger. You can feel it.",
+            "A dashboard turns from red to... slightly different red. 'Progress,' says Marcus.",
+            "Someone posts 'any updates?' in the channel. Marcus screams internally.",
+            "The SEV1 banner updates: 'Duration: 47 hours. Blameless post-mortem: pending.'",
+        ],
+        emoji="🔥",
+        zone="server_room",
+    )
+
+    rooms["archive"] = Room(
+        id="archive",
+        name="The Archive",
+        description="The deepest, quietest room in StackHaven. Filing cabinets stretch to the ceiling, each labeled with incident dates going back decades. The air smells like old paper and broken promises. In a glass case at the back sits the First Commit — the original source code, printed on dot-matrix paper, framed and lit from below like a museum artifact. The Founder's Coffee Mug sits next to it, still full.",
+        short_description="The Archive. History and its lessons, filed and forgotten.",
+        exits=[
+            RoomExit("west", "incident_channel", "Back to the incident channel."),
+        ],
+        items=["incident_report", "founders_mug", "first_commit"],
+        ambient=[
+            "You open a filing cabinet. It contains every Jira ticket marked 'Won't Fix'. There are thousands.",
+            "The First Commit glows softly. The HTML inside is... beautiful in its simplicity.",
+            "The Founder's Coffee Mug is warm. It shouldn't be warm.",
+            "A filing cabinet labeled '2020' is welded shut. Nobody questions why.",
+            "You find a Post-It that reads: 'If you're reading this, the company is still alive. Somehow.'",
+        ],
+        emoji="📚",
+        zone="server_room",
+    )
+
+    # === ZONE: Kubernetes Cluster ===
+    rooms["kubernetes_cluster"] = Room(
+        id="kubernetes_cluster",
+        name="The Kubernetes Cluster",
+        description="A vast, humming space filled with floating containers. Each container is a translucent cube showing the application inside — some healthy, some in CrashLoopBackOff, some in a state that defies categorization. Orchestration lines connect them like a subway map designed by someone having a fever dream. The Container Registry sells images from a cart in the corner. A CrashLoopBackoff pod restarts next to you every 30 seconds.",
+        short_description="The Kubernetes Cluster. Containers everywhere. Most of them work.",
+        exits=[
+            RoomExit("south", "cloud_district", "Back to the Cloud District."),
+        ],
+        npcs=["pod_person", "k8s_merchant"],
+        items=["yaml_scroll"],
+        ambient=[
+            "A pod restarts. Nobody notices. It's the 847th time today.",
+            "An HPA scales up. 47 new pods appear. The cluster bill does too.",
+            "You see a namespace labeled 'default'. Nobody admits to using it. Everyone uses it.",
+            "A config map changes. 12 pods crash. The config map changes back. 12 new pods crash.",
+            "A service mesh appears. Then disappears. Then appears somewhere else. Then splits in half.",
+        ],
+        emoji="☸️",
+        zone="cloud",
     )
 
     return rooms
@@ -789,5 +1081,29 @@ def build_starter_quests() -> dict[str, Quest]:
             gold_reward=100,
             xp_reward=50,
             rewards=["slightly_haunted_tophat"],
+        ),
+        "flaky_hunt": Quest(
+            id="flaky_hunt",
+            name="Flaky Test Hunt",
+            description="Priya needs you to defeat the Flaky Test Swarm in the Testing Grounds and bring back proof.",
+            giver="qa_lead",
+            objectives=[
+                QuestObjective("Defeat the Flaky Test Swarm in the Testing Grounds", QuestType.KILL, "flaky_test_swarm"),
+            ],
+            gold_reward=25,
+            xp_reward=20,
+            rewards=["war_room_badge"],
+        ),
+        "incident_report": Quest(
+            id="incident_report",
+            name="The Blameless Post-Mortem",
+            description="Marcus the oncall engineer needs the incident report from the Archive. He can't leave his post or the alerts will consume him.",
+            giver="oncall_engineer",
+            objectives=[
+                QuestObjective("Find the Incident Report in the Archive", QuestType.FETCH, "incident_report"),
+            ],
+            gold_reward=35,
+            xp_reward=20,
+            rewards=["pager"],
         ),
     }
