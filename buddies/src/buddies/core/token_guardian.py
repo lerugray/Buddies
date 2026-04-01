@@ -158,6 +158,70 @@ class TokenGuardian:
         )
         return summary_path, handoff_path
 
+    def build_context_export(self, stats, buddy_state=None, convo_messages=None) -> str:
+        """Build a clipboard-friendly context block for pasting into claude.ai.
+
+        Compact format designed to quickly bring another Claude instance
+        up to speed on what this CC session has been doing.
+        """
+        now = datetime.now()
+        lines = [
+            "--- CONTEXT FROM CLAUDE CODE SESSION ---",
+            f"Exported: {now.strftime('%Y-%m-%d %H:%M:%S')}",
+            f"Duration: {stats.duration_minutes:.0f} min | "
+            f"Events: {stats.event_count} | "
+            f"Est. tokens: ~{stats.tokens_estimated:,}",
+        ]
+
+        if buddy_state:
+            lines.append(
+                f"Buddy: {buddy_state.name} ({buddy_state.species.name}, "
+                f"L{buddy_state.level}, {buddy_state.mood})"
+            )
+
+        # Project path
+        lines.append(f"Project: {self.project_path}")
+        lines.append("")
+
+        # What we're working on
+        if self._session_topics:
+            lines.append("RECENT TOPICS:")
+            for topic in self._session_topics[-5:]:
+                short = topic[:120] + "..." if len(topic) > 120 else topic
+                lines.append(f"  - {short}")
+            lines.append("")
+
+        # Files in play
+        all_files = stats.files_touched | self._files_mentioned
+        if all_files:
+            lines.append(f"FILES TOUCHED ({len(all_files)}):")
+            for f in sorted(all_files)[:15]:
+                short = "/".join(Path(f).parts[-3:]) if len(Path(f).parts) > 3 else f
+                lines.append(f"  - {short}")
+            if len(all_files) > 15:
+                lines.append(f"  ...and {len(all_files) - 15} more")
+            lines.append("")
+
+        # Key events
+        if self._key_events:
+            lines.append("KEY EVENTS:")
+            for evt in self._key_events[-8:]:
+                lines.append(f"  - {evt}")
+            lines.append("")
+
+        # Recent conversation (last 5 messages)
+        if convo_messages:
+            lines.append("RECENT CONVERSATION:")
+            recent = convo_messages[-5:] if len(convo_messages) > 5 else convo_messages
+            for msg in recent:
+                role = msg.get("role", "?")
+                content = msg.get("content", "")[:150]
+                lines.append(f"  [{role}] {content}")
+            lines.append("")
+
+        lines.append("--- END CONTEXT ---")
+        return "\n".join(lines)
+
     def _build_rolling_summary(self, stats, convo_messages=None) -> str:
         """Build the rolling summary content."""
         now = datetime.now()

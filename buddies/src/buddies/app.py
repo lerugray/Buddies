@@ -71,6 +71,7 @@ class BuddyApp(App):
         Binding("f1", "quick_save", "Save", show=False),
         Binding("f2", "cycle_theme", "Theme", show=False),
         Binding("f3", "regen_map", "Map", show=False),
+        Binding("f4", "export_context", "Export", show=False),
         Binding("f5", "refresh", "Refresh", show=False),
     ]
 
@@ -270,6 +271,18 @@ class BuddyApp(App):
         event.input.value = ""
         chat = self.query_one("#chat-panel", ChatWindow)
         chat.add_message("you", message)
+
+        # Check for context import (pasted from claude.ai or another session)
+        if message.startswith("--- CONTEXT FROM") or len(message) > 500:
+            if "CONTEXT FROM" in message or "claude.ai" in message.lower():
+                self.token_guardian.observe_user_message(f"[imported context] {message[:200]}")
+                chat.add_message(
+                    "buddy",
+                    "📥 Got it — I've saved that context to the session log. "
+                    "I'll keep it in mind!"
+                )
+                self._messages_sent += 1
+                return
 
         # Route through AI router
         if self.router:
@@ -922,6 +935,52 @@ class BuddyApp(App):
                 )
         except Exception:
             pass
+
+    def action_export_context(self):
+        """Export session context to clipboard for pasting into claude.ai."""
+        asyncio.create_task(self._do_export_context())
+
+    async def _do_export_context(self):
+        try:
+            convo_msgs = [m.to_dict() for m in self.convo_log.get_messages()] if self.convo_log else None
+            export = self.token_guardian.build_context_export(
+                self.observer.stats,
+                buddy_state=self.buddy_state,
+                convo_messages=convo_msgs,
+            )
+
+            # Copy to clipboard via platform command
+            import subprocess
+            import sys
+            if sys.platform == "win32":
+                proc = subprocess.Popen(["clip"], stdin=subprocess.PIPE)
+                proc.communicate(export.encode("utf-16le"))
+            elif sys.platform == "darwin":
+                proc = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
+                proc.communicate(export.encode("utf-8"))
+            else:
+                # Linux — try xclip, fall back to xsel
+                try:
+                    proc = subprocess.Popen(["xclip", "-selection", "clipboard"], stdin=subprocess.PIPE)
+                    proc.communicate(export.encode("utf-8"))
+                except FileNotFoundError:
+                    proc = subprocess.Popen(["xsel", "--clipboard", "--input"], stdin=subprocess.PIPE)
+                    proc.communicate(export.encode("utf-8"))
+
+            chat = self.query_one("#chat-panel", ChatWindow)
+            chat.add_system("📋 Session context copied to clipboard — paste into claude.ai!")
+            line_count = len(export.split("\n"))
+            chat.add_system(f"[dim]{line_count} lines of context ready to relay[/]")
+        except Exception as e:
+            chat = self.query_one("#chat-panel", ChatWindow)
+            chat.add_system(f"[red]Clipboard failed: {e}[/]")
+            # Fallback: write to file
+            try:
+                export_path = self.token_guardian.project_path / "context-export.txt"
+                export_path.write_text(export, encoding="utf-8")
+                chat.add_system(f"Written to {export_path.name} instead — copy manually")
+            except Exception:
+                pass
 
     async def _rolling_summary_loop(self):
         """Periodically write rolling session summary to disk."""

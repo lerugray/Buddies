@@ -313,7 +313,7 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 *High value, moderate effort. Makes Buddies useful in more contexts.*
 
 - [ ] **Claude Desktop / headless mode** — add headless mode (no TUI) so buddy runs as pure MCP server. MCP server already works with Desktop (same protocol). buddy_status/buddy_note tools appear in Claude Desktop tool panel. Biggest audience expansion for least effort.
-- [ ] **Cross-surface context relay** — lightweight clipboard-friendly bridge between CC and claude.ai web. Quick-export keybinding snapshots current session context (files touched, decisions, summary) into a pasteable block for claude.ai. Context import via Buddy chat saves/summarizes pasted claude.ai excerpts into the session log. Not a live messaging system — just smoothing the manual relay process. Plays to Buddies' existing session awareness and handoff strengths.
+- [x] **Cross-surface context relay** — [F4] exports session context (topics, files, events, recent chat) to clipboard in a compact format for pasting into claude.ai. Pasting context back into buddy chat (starts with "--- CONTEXT FROM" or is 500+ chars mentioning claude.ai) auto-imports it to the session log. Not a live bridge — just smoothing the manual relay.
 - [x] **Multi-machine awareness** — on startup, Buddy saves hostname to local tracking file per project. Detects when project is used across machines, advises on CLAUDE.md (local/gitignored) vs HANDOFF.md (shared/committed) pattern. Three scenarios: missing CLAUDE.md, CLAUDE.md not gitignored, good setup but new machine. Nudges non-programmers toward the right config sharing pattern.
 - [ ] **README health check** — scan README.md for missing elements (no install instructions, no description, no license, no badges), suggest improvements, offer to scaffold a structured README. Same pattern as config intelligence but for project presentation. Could incorporate awesome-readme best practices (GIF demo, collapsible sections, badges).
 - [ ] **Obsidian wiki integration** — auto-generate and maintain an Obsidian vault per project. Session journals, architecture decision logs, file/module link graphs, species lore pages. Plain markdown with [[wikilinks]]. Session summaries + HANDOFF already produce the raw content. Could use Obsidian MCP server for Claude read/write access.
@@ -429,6 +429,7 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - ✅ Code structure map: auto-generated project-map.md in .claude/rules/ [F3]
 - ✅ README revamped: badges, collapsible sections, "Why" section, updated roadmap
 - ✅ Multi-machine awareness: detects cross-machine usage, advises on CLAUDE.md setup
+- ✅ Cross-surface context relay: [F4] exports to clipboard, paste-import in chat
 
 ### Direction
 - Tier 1 done — next up is Tier 2: Platform Expansion (Claude Desktop headless mode, Obsidian wiki)
