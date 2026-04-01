@@ -1156,8 +1156,13 @@ class BuddyApp(App):
 
 
 def main():
-    app = BuddyApp()
-    app.run()
+    import sys
+    if "--headless" in sys.argv or "-H" in sys.argv:
+        from buddies.headless import run_headless
+        run_headless()
+    else:
+        app = BuddyApp()
+        app.run()
 
 
 if __name__ == "__main__":

@@ -312,7 +312,7 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 ### Tier 2: Platform Expansion
 *High value, moderate effort. Makes Buddies useful in more contexts.*
 
-- [ ] **Claude Desktop / headless mode** — add headless mode (no TUI) so buddy runs as pure MCP server. MCP server already works with Desktop (same protocol). buddy_status/buddy_note tools appear in Claude Desktop tool panel. Biggest audience expansion for least effort.
+- [x] **Claude Desktop / headless mode** — `buddy --headless` or `python -m buddies --headless` runs as pure MCP server (stdio transport). Background services (session observer, code map refresh) run alongside. Configure in Claude Desktop's `claude_desktop_config.json`. All 5 MCP tools available without the TUI.
 - [x] **Cross-surface context relay** — [F4] exports session context (topics, files, events, recent chat) to clipboard in a compact format for pasting into claude.ai. Pasting context back into buddy chat (starts with "--- CONTEXT FROM" or is 500+ chars mentioning claude.ai) auto-imports it to the session log. Not a live bridge — just smoothing the manual relay.
 - [x] **Multi-machine awareness** — on startup, Buddy saves hostname to local tracking file per project. Detects when project is used across machines, advises on CLAUDE.md (local/gitignored) vs HANDOFF.md (shared/committed) pattern. Three scenarios: missing CLAUDE.md, CLAUDE.md not gitignored, good setup but new machine. Nudges non-programmers toward the right config sharing pattern.
 - [ ] **README health check** — scan README.md for missing elements (no install instructions, no description, no license, no badges), suggest improvements, offer to scaffold a structured README. Same pattern as config intelligence but for project presentation. Could incorporate awesome-readme best practices (GIF demo, collapsible sections, badges).
@@ -430,6 +430,7 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - ✅ README revamped: badges, collapsible sections, "Why" section, updated roadmap
 - ✅ Multi-machine awareness: detects cross-machine usage, advises on CLAUDE.md setup
 - ✅ Cross-surface context relay: [F4] exports to clipboard, paste-import in chat
+- ✅ Headless mode: `buddy --headless` for Claude Desktop (pure MCP server)
 
 ### Direction
 - Tier 1 done — next up is Tier 2: Platform Expansion (Claude Desktop headless mode, Obsidian wiki)

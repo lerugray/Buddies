@@ -56,6 +56,32 @@ Gives Claude access to: `buddy_status`, `buddy_note`, `session_stats`, `ask_budd
 
 </details>
 
+<details>
+<summary><strong>Claude Desktop / headless mode</strong></summary>
+
+Run Buddy as a pure MCP server without the TUI:
+
+```bash
+buddy --headless
+```
+
+Add to Claude Desktop's `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "buddies": {
+      "command": "buddy",
+      "args": ["--headless"]
+    }
+  }
+}
+```
+
+All 5 MCP tools work in headless mode. Background services (session observer, code map refresh) run alongside.
+
+</details>
+
 ## Features
 
 ### The Useful Stuff
