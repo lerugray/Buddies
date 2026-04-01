@@ -161,6 +161,7 @@ def parse_command(raw: str) -> tuple[str, str]:
         "inventory": "inventory", "inv": "inventory", "i": "inventory",
         "buy": "buy", "shop": "buy", "purchase": "buy",
         "sell": "sell",
+        "lore": "lore",
         "note": "note", "write": "note", "message": "note",
         "rate": "rate", "upvote": "rate", "downvote": "rate",
         "notes": "notes", "messages": "notes",
@@ -631,11 +632,14 @@ def _handle_examine(state: MudState, target: str) -> list[str]:
     for iid in room.items:
         item = state.items.get(iid)
         if item and target_lower in item.name.lower():
-            return [
+            lines = [
                 f"\n{item.emoji} [bold]{item.name}[/bold]",
                 item.description,
                 f"[dim]Type: {item.item_type.value} | Value: {item.value}g[/dim]",
             ]
+            if item.lore:
+                lines.append(f"\n[italic]{item.lore}[/italic]")
+            return lines
 
     # Check inventory items
     for item in state.inventory.items:
@@ -651,6 +655,8 @@ def _handle_examine(state: MudState, target: str) -> list[str]:
                 lines.append(f"[dim]Defense bonus: +{item.defense_bonus}[/dim]")
             if item.heal_amount:
                 lines.append(f"[dim]Heals: {item.heal_amount} HP[/dim]")
+            if item.lore:
+                lines.append(f"\n[italic]{item.lore}[/italic]")
             return lines
 
     return [f"You don't see '{target}' here."]
@@ -982,6 +988,48 @@ def _handle_sell(state: MudState, target: str) -> list[str]:
 
 
 # ---------------------------------------------------------------------------
+# Lore command
+# ---------------------------------------------------------------------------
+
+def _handle_lore(state: MudState, arg: str) -> list[str]:
+    """View collected lore from items — a codex of StackHaven's history."""
+    lore_items = [i for i in state.inventory.items if i.lore]
+
+    if arg:
+        # Show lore for a specific item
+        target_lower = arg.lower()
+        for item in lore_items:
+            if target_lower in item.name.lower():
+                return [
+                    f"\n{item.emoji} [bold]{item.name}[/bold]",
+                    f"{'─' * 50}",
+                    f"[italic]{item.lore}[/italic]",
+                ]
+        return [f"No lore found for '{arg}'. Try [bold]lore[/bold] to see all collected lore."]
+
+    if not lore_items:
+        lines = [
+            "\n[bold]📖 Lore Codex[/bold]",
+            f"{'─' * 50}",
+            "[dim]No lore collected yet. Examine items to discover the hidden history of StackHaven.[/dim]",
+            "[dim]Items with lore show it when you [bold]examine[/bold] them. Collect items to build your codex.[/dim]",
+        ]
+        return lines
+
+    lines = [
+        "\n[bold]📖 Lore Codex — The History of StackHaven[/bold]",
+        f"{'─' * 50}",
+        f"[dim]{len(lore_items)} fragment(s) collected[/dim]",
+        "",
+    ]
+    for item in lore_items:
+        lines.append(f"  {item.emoji} [bold]{item.name}[/bold]")
+
+    lines.append(f"\n[dim]Type [bold]lore <item name>[/bold] to read a specific entry.[/dim]")
+    return lines
+
+
+# ---------------------------------------------------------------------------
 # Async multiplayer command handlers
 # ---------------------------------------------------------------------------
 
@@ -1222,6 +1270,7 @@ def _handle_help(state: MudState, _arg: str) -> list[str]:
         "  [bold]inventory[/bold] (i)   — Check your items",
         "  [bold]quest[/bold] (q)       — View quest log",
         "  [bold]map[/bold]             — Show world map",
+        "  [bold]lore[/bold]            — Read collected lore fragments",
         "",
         "[dim]Press Esc to exit the MUD[/dim]",
     ]
@@ -1509,6 +1558,7 @@ COMMAND_HANDLERS = {
     "inventory": _handle_inventory,
     "buy": _handle_buy,
     "sell": _handle_sell,
+    "lore": _handle_lore,
     "note": _handle_note,
     "rate": _handle_rate,
     "notes": _handle_notes,
@@ -1538,7 +1588,7 @@ def process_command(state: MudState, raw_input: str) -> list[str]:
     if handler:
         result = handler(state, arg)
         # Random world events after non-meta commands
-        if cmd not in ("help", "inventory", "quest", "map", "note", "notes", "rate", "bloodstain") and not state.combat:
+        if cmd not in ("help", "inventory", "quest", "map", "lore", "note", "notes", "rate", "bloodstain") and not state.combat:
             event = _maybe_world_event()
             if event:
                 result.append(f"\n{event}")

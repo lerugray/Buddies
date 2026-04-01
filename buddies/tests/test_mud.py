@@ -626,3 +626,49 @@ class TestRoomReactions:
             for stat in ["debugging", "chaos", "snark", "wisdom", "patience"]:
                 assert stat in pools, f"Room {room_id} missing {stat} reactions"
                 assert len(pools[stat]) >= 1, f"Room {room_id} {stat} pool is empty"
+
+
+# ---------------------------------------------------------------------------
+# Lore system tests
+# ---------------------------------------------------------------------------
+
+class TestLoreSystem:
+    def test_items_have_lore(self):
+        """Most items should have lore text."""
+        state = _make_game()
+        items_with_lore = [i for i in state.items.values() if i.lore]
+        assert len(items_with_lore) >= 20, f"Only {len(items_with_lore)} items have lore"
+
+    def test_lore_visible_on_examine(self):
+        """Examining an item with lore should show the lore text."""
+        state = _make_game()
+        state.current_room = "break_room"
+        lines = process_command(state, "examine pizza")
+        text = "\n".join(lines)
+        assert "deploy" in text.lower() or "Pizza" in text  # Lore mentions deploy celebration
+
+    def test_lore_command_empty(self):
+        state = _make_game()
+        lines = process_command(state, "lore")
+        text = "\n".join(lines)
+        assert "Codex" in text
+
+    def test_lore_command_with_items(self):
+        state = _make_game()
+        state.inventory.add_item(state.items["rubber_duck"])
+        lines = process_command(state, "lore")
+        text = "\n".join(lines)
+        assert "Rubber Duck" in text
+
+    def test_lore_command_specific_item(self):
+        state = _make_game()
+        state.inventory.add_item(state.items["rubber_duck"])
+        lines = process_command(state, "lore rubber duck")
+        text = "\n".join(lines)
+        assert "Founder Chen" in text or "Three-Week Deploy" in text
+
+    def test_lore_not_on_items_without_lore(self):
+        """Items created by buy (copies) shouldn't show lore unless they have it."""
+        from buddies.core.games.mud_world import Item, ItemType
+        item = Item("test_no_lore", "Test", "No lore here", ItemType.JUNK)
+        assert item.lore == ""

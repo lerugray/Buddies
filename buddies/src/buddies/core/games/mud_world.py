@@ -45,6 +45,8 @@ class Item:
     # Quest/key items
     unlocks: str = ""  # Room or door ID this item unlocks
     emoji: str = "📦"
+    # Dark Souls-style lore text — the deeper story
+    lore: str = ""
 
 
 # ---------------------------------------------------------------------------
@@ -239,68 +241,106 @@ def build_starter_items() -> dict[str, Item]:
     """All items in the starter world."""
     return {i.id: i for i in [
         # --- Weapons ---
-        Item("rubber_duck", "Rubber Duck of Debugging", "A yellow rubber duck. Explaining your code to it somehow fixes bugs.", ItemType.WEAPON, 0, attack_bonus=3, emoji="🦆"),
-        Item("mechanical_keyboard", "Mechanical Keyboard (+5 Clack)", "Cherry MX Blues. The weapon is the sound.", ItemType.WEAPON, 15, attack_bonus=5, emoji="⌨️"),
-        Item("usb_sword", "USB Sword", "A USB cable sharpened to a point. Only works one way.", ItemType.WEAPON, 25, attack_bonus=7, emoji="🗡️"),
-        Item("mass_regex", "Regex of Mass Destruction", "(?:(?:a])*b)+c — nobody understands it, but it hurts.", ItemType.WEAPON, 50, attack_bonus=10, emoji="💥"),
+        Item("rubber_duck", "Rubber Duck of Debugging", "A yellow rubber duck. Explaining your code to it somehow fixes bugs.", ItemType.WEAPON, 0, attack_bonus=3, emoji="🦆",
+             lore="The first Rubber Duck belonged to Founder Chen. She kept it on her monitor during the Three-Week Deploy — the incident that nearly killed StackHaven before it launched. She talked to it for 72 hours straight. When she finally shipped, the duck was warm to the touch. They say it still carries some of her focus."),
+        Item("mechanical_keyboard", "Mechanical Keyboard (+5 Clack)", "Cherry MX Blues. The weapon is the sound.", ItemType.WEAPON, 15, attack_bonus=5, emoji="⌨️",
+             lore="In the early days, you could hear the engineering floor from the parking garage. Forty keyboards, all mechanical, all Cherry Blues. The rhythm meant the company was alive. When they switched to quieter boards for the open-plan redesign, three senior engineers quit. They said the silence felt like a funeral."),
+        Item("usb_sword", "USB Sword", "A USB cable sharpened to a point. Only works one way.", ItemType.WEAPON, 25, attack_bonus=7, emoji="🗡️",
+             lore="USB-A was designed to be reversible but was manufactured wrong. The engineer who discovered the mistake stayed late for a week trying to fix it before launch. It shipped anyway. Some mistakes become standards. Some standards become weapons. That engineer went on to design USB-C — and got it right."),
+        Item("mass_regex", "Regex of Mass Destruction", "(?:(?:a])*b)+c — nobody understands it, but it hurts.", ItemType.WEAPON, 50, attack_bonus=10, emoji="💥",
+             lore="Written by Founder Vasquez in a single caffeine-fueled session at 3 AM during the first production outage. Nobody has been able to modify it since — not because it's obfuscated, but because it's perfect. Every character is load-bearing. She wrote it without an IDE, without autocomplete, without AI. Just a human being who understood patterns so deeply she could think in regular expressions."),
 
         # --- Armor ---
-        Item("hoodie", "Developer Hoodie", "A black hoodie with a conference logo. Provides warmth and anonymity.", ItemType.ARMOR, 5, defense_bonus=2, emoji="🧥"),
-        Item("noise_cancelling", "Noise-Cancelling Headphones", "Blocks all distractions. And your coworker's feelings.", ItemType.ARMOR, 20, defense_bonus=4, emoji="🎧"),
-        Item("kevlar_vest", "Kevlar Commit Vest", "Protects against rollbacks and force pushes.", ItemType.ARMOR, 40, defense_bonus=6, emoji="🦺"),
+        Item("hoodie", "Developer Hoodie", "A black hoodie with a conference logo. Provides warmth and anonymity.", ItemType.ARMOR, 5, defense_bonus=2, emoji="🧥",
+             lore="The hoodie became the engineer's uniform not out of laziness but out of focus. Every decision about what to wear was a decision not spent on the problem at hand. The Founders understood this instinctively. They dressed for the work, not the meeting."),
+        Item("noise_cancelling", "Noise-Cancelling Headphones", "Blocks all distractions. And your coworker's feelings.", ItemType.ARMOR, 20, defense_bonus=4, emoji="🎧",
+             lore="When StackHaven moved to the open-plan office, productivity dropped 40% in the first month. The headphones were the engineers' quiet rebellion — a way to build walls where management had torn them down. The best code at StackHaven was written by people who couldn't hear their own name being called."),
+        Item("kevlar_vest", "Kevlar Commit Vest", "Protects against rollbacks and force pushes.", ItemType.ARMOR, 40, defense_bonus=6, emoji="🦺",
+             lore="After the Great Rollback of '22, where a force-push to main erased two weeks of work, Founder Park instituted the commit review ritual. 'Every push is a promise,' she said. 'And promises should be hard to break.' The vest was a joke gift that became a symbol. The promise remained."),
 
         # --- Consumables ---
-        Item("coffee", "Artisanal Single-Origin Coffee", "Restores 15 HP. Fair trade, obviously.", ItemType.CONSUMABLE, 5, heal_amount=15, emoji="☕"),
-        Item("energy_drink", "Monster Energy (The Green One)", "Restores 25 HP. Your heart is now a techno beat.", ItemType.CONSUMABLE, 8, heal_amount=25, emoji="🥤"),
-        Item("pizza_slice", "Cold Pizza Slice", "From last night's deploy celebration. Restores 10 HP.", ItemType.CONSUMABLE, 3, heal_amount=10, emoji="🍕"),
-        Item("sudo_sandwich", "Sudo Sandwich", "Restores 40 HP. Permission granted to feel better.", ItemType.CONSUMABLE, 15, heal_amount=40, emoji="🥪"),
+        Item("coffee", "Artisanal Single-Origin Coffee", "Restores 15 HP. Fair trade, obviously.", ItemType.CONSUMABLE, 5, heal_amount=15, emoji="☕",
+             lore="The Founders ran on coffee — not because they loved it, but because the work demanded more hours than the human body was designed to give. Every great feature shipped at StackHaven has a coffee ring stain on its design doc. The coffee didn't write the code. But it kept the people writing."),
+        Item("energy_drink", "Monster Energy (The Green One)", "Restores 25 HP. Your heart is now a techno beat.", ItemType.CONSUMABLE, 8, heal_amount=25, emoji="🥤",
+             lore="There's a photo in the Archive: the entire engineering team at 4 AM, surrounded by empty cans, the night they shipped v1.0. They're all smiling. Not because it was fun — it wasn't — but because they'd built something together that none of them could have built alone. That's the part people forget when they optimize for velocity."),
+        Item("pizza_slice", "Cold Pizza Slice", "From last night's deploy celebration. Restores 10 HP.", ItemType.CONSUMABLE, 3, heal_amount=10, emoji="🍕",
+             lore="Deploy night pizza. The tradition started when Founder Okafor ordered 12 boxes for the team during the first midnight release. 'If we're going to risk everything,' he said, 'we should at least eat well.' The pizza was always cold by the time they ate it. Nobody cared."),
+        Item("sudo_sandwich", "Sudo Sandwich", "Restores 40 HP. Permission granted to feel better.", ItemType.CONSUMABLE, 15, heal_amount=40, emoji="🥪",
+             lore="Root access was never given lightly at StackHaven. Founder Chen insisted every engineer earn it — not through seniority, but through demonstrated judgment. 'sudo isn't power,' she said. 'It's trust.' The sandwich is named after her philosophy. It nourishes because someone trusted you to have it."),
 
         # --- Key Items ---
-        Item("server_key", "Server Room Key", "A physical key. In 2026. How quaint.", ItemType.KEY, 0, unlocks="server_room", emoji="🔑"),
-        Item("root_password", "Sticky Note (root password)", "hunter2. Written in Sharpie on a Post-It.", ItemType.KEY, 0, unlocks="root_chamber", emoji="📝"),
-        Item("vpn_token", "VPN Token", "A hardware token that blinks accusingly.", ItemType.KEY, 0, unlocks="cloud_district", emoji="🔐"),
+        Item("server_key", "Server Room Key", "A physical key. In 2026. How quaint.", ItemType.KEY, 0, unlocks="server_room", emoji="🔑",
+             lore="StackHaven was one of the last companies to use physical keys for the server room. Not because they couldn't afford badge readers, but because Founder Park believed that the walk to the server room — key in hand, feeling its weight — was a ritual. 'You should feel the gravity of what you're about to touch,' she said."),
+        Item("root_password", "Sticky Note (root password)", "hunter2. Written in Sharpie on a Post-It.", ItemType.KEY, 0, unlocks="root_chamber", emoji="📝",
+             lore="Yes, the root password is on a Post-It. But look at where it is — deep inside the server room, behind a locked door, in a building with badge access. The Founders understood defense in depth. The Post-It isn't the vulnerability. The password isn't the point. The point is: someone trusted the system enough to keep it simple."),
+        Item("vpn_token", "VPN Token", "A hardware token that blinks accusingly.", ItemType.KEY, 0, unlocks="cloud_district", emoji="🔐",
+             lore="Before the cloud, every line of code ran on hardware you could touch. When StackHaven migrated, Founder Vasquez kept one physical token 'in case we need to find our way back.' She never used it. But she never threw it away either."),
 
         # --- Quest Items ---
-        Item("missing_semicolon", "The Missing Semicolon", "It was here the whole time. Behind the couch.", ItemType.QUEST, 0, emoji="❓"),
-        Item("legacy_codebase", "Ancient Legacy Codebase", "A USB drive labeled 'DO NOT OPEN'. Written in COBOL.", ItemType.QUEST, 0, emoji="💾"),
-        Item("git_blame_scroll", "The Scroll of Git Blame", "Reveals who wrote that one line. Some things are better left unknown.", ItemType.QUEST, 0, emoji="📜"),
-        Item("merge_conflict", "Bottled Merge Conflict", "Shaking intensifies. The resolution is within you.", ItemType.QUEST, 0, emoji="🧪"),
+        Item("missing_semicolon", "The Missing Semicolon", "It was here the whole time. Behind the couch.", ItemType.QUEST, 0, emoji="❓",
+             lore="The legendary missing semicolon that crashed production for 6 hours in 2019. Three senior engineers debugged it. The intern found it in 20 minutes. Experience teaches you where to look. Fresh eyes teach you what to see. Both are needed. The semicolon is kept as a reminder that expertise and humility are not opposites."),
+        Item("legacy_codebase", "Ancient Legacy Codebase", "A USB drive labeled 'DO NOT OPEN'. Written in COBOL.", ItemType.QUEST, 0, emoji="💾",
+             lore="They call it 'legacy' like it's a curse. But someone wrote this. Someone sat in a room with a fraction of the tools we have and built something that worked — that's still working, decades later, handling transactions, keeping systems alive. The COBOL isn't the problem. The problem is that we forgot how hard it was to write it, and how much skill it took to get it right."),
+        Item("git_blame_scroll", "The Scroll of Git Blame", "Reveals who wrote that one line. Some things are better left unknown.", ItemType.QUEST, 0, emoji="📜",
+             lore="Git blame was never meant to assign fault. It was meant to find context. Who wrote this line? When? What problem were they solving? What constraints were they under? Before you judge the code, understand the person. Before you refactor the function, read the commit message. The scroll remembers what the codebase cannot: that every line was written by a human being doing their best."),
+        Item("merge_conflict", "Bottled Merge Conflict", "Shaking intensifies. The resolution is within you.", ItemType.QUEST, 0, emoji="🧪",
+             lore="A merge conflict isn't a failure — it's proof that two people cared enough about the same code to change it simultaneously. The resolution requires understanding both perspectives, choosing what to keep, and integrating the work of colleagues you may never meet. Every resolved conflict is a small act of collaboration across time."),
 
         # --- Junk (sellable) ---
-        Item("stack_overflow_printout", "Printout from Stack Overflow", "The answer has 2 upvotes from 2014. It's the only one that works.", ItemType.JUNK, 3, emoji="📄"),
-        Item("deprecated_manual", "Deprecated Manual", "jQuery for Dummies, 3rd Edition.", ItemType.JUNK, 2, emoji="📕"),
-        Item("tangled_cables", "Tangled Ethernet Cables", "They were neat when they went in. What happened?", ItemType.JUNK, 1, emoji="🔌"),
-        Item("broken_monitor", "Broken Monitor", "It just shows 'No Signal' but with real commitment.", ItemType.JUNK, 5, emoji="🖥️"),
+        Item("stack_overflow_printout", "Printout from Stack Overflow", "The answer has 2 upvotes from 2014. It's the only one that works.", ItemType.JUNK, 3, emoji="📄",
+             lore="Someone took the time to write this answer in 2014. They got 2 upvotes and were probably never thanked. But their answer has been copied into a thousand codebases, kept a thousand production servers running, unblocked a thousand developers at 2 AM. The greatest infrastructure of the internet age isn't the cloud — it's the unpaid knowledge of strangers."),
+        Item("deprecated_manual", "Deprecated Manual", "jQuery for Dummies, 3rd Edition.", ItemType.JUNK, 2, emoji="📕",
+             lore="jQuery made the web accessible to a generation of developers who didn't have CS degrees. It was messy. It was bloated. It was also the reason your uncle's small business had a website. Before we mock the tools, we should remember who they were built for, and what they made possible."),
+        Item("tangled_cables", "Tangled Ethernet Cables", "They were neat when they went in. What happened?", ItemType.JUNK, 1, emoji="🔌",
+             lore="They started organized. Someone — probably the first sysadmin, probably on a weekend — ran each cable with care, labeled both ends, documented the network topology. Then came growth. Then came urgency. Then came the person who 'just needed one more port.' Entropy isn't malice. It's what happens when the people who built the foundation move on and the people who inherit it are never given time to understand it."),
+        Item("broken_monitor", "Broken Monitor", "It just shows 'No Signal' but with real commitment.", ItemType.JUNK, 5, emoji="🖥️",
+             lore="This monitor displayed the StackHaven dashboard for 8 years without being turned off. It died on a Tuesday, mid-sprint. Nobody noticed for three hours. Someone had already written a Slack bot that did the same thing. But the monitor was there first. It did its job without asking for credit or a rewrite in a trendier framework."),
 
         # --- Cosmetics ---
-        Item("slightly_haunted_tophat", "Slightly Haunted Top Hat", "It whispers deprecated APIs at night.", ItemType.COSMETIC, 100, emoji="🎩"),
-        Item("artisanal_semicolon", "Artisanal Semicolon", "Hand-crafted. Organic. Gluten-free. ;", ItemType.COSMETIC, 50, emoji="✨"),
-        Item("nft_nothing", "NFT That Does Nothing", "You own this nothing. On the blockchain.", ItemType.COSMETIC, 1, emoji="🖼️"),
+        Item("slightly_haunted_tophat", "Slightly Haunted Top Hat", "It whispers deprecated APIs at night.", ItemType.COSMETIC, 100, emoji="🎩",
+             lore="It belonged to Founder Okafor. He wore it to the IPO party as a joke. When he left the company a year later — quietly, without a farewell email — the hat was found on his desk. It whispers because it remembers things the codebase has forgotten. The APIs it names still work. They were deprecated not because they were broken, but because someone newer decided they weren't modern enough."),
+        Item("artisanal_semicolon", "Artisanal Semicolon", "Hand-crafted. Organic. Gluten-free. ;", ItemType.COSMETIC, 50, emoji="✨",
+             lore="Before linters, before formatters, before AI could write your code — there was the semicolon, placed deliberately by a human hand. Each one a tiny decision. Each one an act of craft so small it became invisible. The artisanal semicolon is a monument to the ten thousand invisible decisions that make software work."),
+        Item("nft_nothing", "NFT That Does Nothing", "You own this nothing. On the blockchain.", ItemType.COSMETIC, 1, emoji="🖼️",
+             lore="Not everything built with skill is built with wisdom. The blockchain engineers were brilliant — genuinely, technically brilliant. They solved problems in cryptography and distributed systems that had stumped researchers for decades. And then they used those solutions to sell pictures of monkeys. Skill without direction is just expensive noise."),
 
         # --- Soapstone (async multiplayer) ---
-        Item("orange_soapstone", "Orange Soapstone", "A warm, glowing stone. Leave messages for other adventurers to find. Use 'note' to write, 'rate' to vote.", ItemType.KEY, 0, emoji="🧡"),
+        Item("orange_soapstone", "Orange Soapstone", "A warm, glowing stone. Leave messages for other adventurers to find. Use 'note' to write, 'rate' to vote.", ItemType.KEY, 0, emoji="🧡",
+             lore="The Rubber Duck Sage has been here longer than StackHaven itself. It predates the building, the company, the industry. It is the oldest debugging tool: the act of explaining your problem to something that will not judge you, will not interrupt you, will not suggest a framework. In explaining, you understand. The soapstone carries this lesson forward — leave your understanding for those who come after."),
 
-        # --- New: QA Lab items ---
-        Item("flaky_test", "Captured Flaky Test", "It passes sometimes. Fails sometimes. Nobody knows why. Schrödinger's assertion.", ItemType.JUNK, 4, emoji="🦋"),
-        Item("test_pyramid", "Miniature Test Pyramid", "A tiny desk ornament. The bottom says UNIT, the middle says INTEGRATION, the top says E2E. Someone has drawn a huge blob labeled 'MANUAL' next to it.", ItemType.JUNK, 6, emoji="🔺"),
-        Item("green_checkmark", "The Eternal Green Checkmark", "A glowing green ✓ that never goes red. Suspicious.", ItemType.COSMETIC, 75, emoji="✅"),
+        # --- QA Lab items ---
+        Item("flaky_test", "Captured Flaky Test", "It passes sometimes. Fails sometimes. Nobody knows why. Schrödinger's assertion.", ItemType.JUNK, 4, emoji="🦋",
+             lore="A flaky test is a test that tells the truth only sometimes. It knows something is wrong but can't quite articulate what. The engineers who write them aren't careless — they're probing at the boundary between what the system promises and what it actually does. Every flaky test is a question the codebase hasn't answered yet."),
+        Item("test_pyramid", "Miniature Test Pyramid", "A tiny desk ornament. The bottom says UNIT, the middle says INTEGRATION, the top says E2E. Someone has drawn a huge blob labeled 'MANUAL' next to it.", ItemType.JUNK, 6, emoji="🔺",
+             lore="The test pyramid was drawn by a Google engineer in a blog post. It became gospel. But the original insight wasn't about the shape — it was about confidence. Unit tests give you speed. Integration tests give you truth. E2E tests give you sleep at night. The people who built these frameworks did it so that the rest of us could ship with less fear."),
+        Item("green_checkmark", "The Eternal Green Checkmark", "A glowing green ✓ that never goes red. Suspicious.", ItemType.COSMETIC, 75, emoji="✅",
+             lore="A build that never fails is not a build that never has problems. It's a build whose problems have been made invisible. The green checkmark is both StackHaven's greatest comfort and its greatest lie. Somewhere beneath it, someone wrote the tests that give it meaning. Or didn't."),
 
-        # --- New: Standup items ---
-        Item("blockers_list", "Infinite Blockers List", "A scroll that unrolls forever. Every item says 'Waiting on review.'", ItemType.JUNK, 3, emoji="📋"),
-        Item("standup_timer", "Standup Timer", "Set to 15 minutes. It's been 45. Nobody notices.", ItemType.WEAPON, 10, attack_bonus=4, emoji="⏱️"),
+        # --- Standup items ---
+        Item("blockers_list", "Infinite Blockers List", "A scroll that unrolls forever. Every item says 'Waiting on review.'", ItemType.JUNK, 3, emoji="📋",
+             lore="Code review is an act of care. To review someone's code is to say: 'Your work matters enough for me to read it carefully.' The blocker isn't the review process. The blocker is when organizations treat review as a gate instead of a gift."),
+        Item("standup_timer", "Standup Timer", "Set to 15 minutes. It's been 45. Nobody notices.", ItemType.WEAPON, 10, attack_bonus=4, emoji="⏱️",
+             lore="The standup was invented by people who understood that engineers need protection from meetings, not more of them. Fifteen minutes, standing up, so it stays short. The timer was the contract. When it broke, so did the promise."),
 
-        # --- New: Incident items ---
-        Item("pager", "The Oncall Pager", "It vibrates with the anxiety of a thousand production incidents.", ItemType.WEAPON, 30, attack_bonus=8, emoji="📟"),
-        Item("incident_report", "Blameless Incident Report", "Technically blameless. The footnotes tell a different story.", ItemType.QUEST, 0, emoji="📊"),
-        Item("war_room_badge", "War Room Badge", "Grants access to the Archive. Smells like stale coffee and regret.", ItemType.KEY, 0, unlocks="archive", emoji="🪪"),
+        # --- Incident items ---
+        Item("pager", "The Oncall Pager", "It vibrates with the anxiety of a thousand production incidents.", ItemType.WEAPON, 30, attack_bonus=8, emoji="📟",
+             lore="Being oncall is a covenant between the engineer and the users who depend on the system. When the pager goes off at 3 AM, someone wakes up, opens a laptop, and fights to keep a system alive that most people will never know was in danger. This is not glamorous work. It is essential work. The people who do it deserve more than a rotation schedule and a gift card."),
+        Item("incident_report", "Blameless Incident Report", "Technically blameless. The footnotes tell a different story.", ItemType.QUEST, 0, emoji="📊",
+             lore="The blameless post-mortem was one of software engineering's great innovations in human systems. The insight: you learn more when people aren't afraid to tell the truth. But 'blameless' doesn't mean 'actionless.' The report is a record of what happened so it never has to happen again. The best ones read like a story — because every incident is a story of systems and the people who operate them."),
+        Item("war_room_badge", "War Room Badge", "Grants access to the Archive. Smells like stale coffee and regret.", ItemType.KEY, 0, unlocks="archive", emoji="🪪",
+             lore="The War Room was originally the only conference room at StackHaven. It became the incident room by accident — it was just where people gathered when things went wrong. Over time, the accidents became rituals, and the rituals became culture. The badge is worn smooth by the hands of engineers who ran toward the fire instead of away from it."),
 
-        # --- New: K8s items ---
-        Item("yaml_scroll", "Infinite YAML Scroll", "The indentation goes 47 levels deep. Looking at it gives you a headache.", ItemType.JUNK, 7, emoji="📃"),
-        Item("helm_chart", "Helm Chart of Protection", "A mystical chart that deploys defenses. 50% chance of working.", ItemType.ARMOR, 35, defense_bonus=5, emoji="⛑️"),
+        # --- K8s items ---
+        Item("yaml_scroll", "Infinite YAML Scroll", "The indentation goes 47 levels deep. Looking at it gives you a headache.", ItemType.JUNK, 7, emoji="📃",
+             lore="YAML was chosen because it was human-readable. This turned out to be optimistic. But the people who built Kubernetes — who orchestrated containers at a scale that would have seemed like science fiction a decade earlier — they built something that actually works. The YAML is the tax. The orchestration is the miracle."),
+        Item("helm_chart", "Helm Chart of Protection", "A mystical chart that deploys defenses. 50% chance of working.", ItemType.ARMOR, 35, defense_bonus=5, emoji="⛑️",
+             lore="Helm exists because deploying to Kubernetes was too hard. So someone made it easier. Then Helm was too hard. So someone wrote a chart. Then the chart was too hard. At each layer, a human being looked at complexity and said 'I can make this better for the next person.' That impulse — to smooth the path for those who follow — is the best thing about this industry."),
 
-        # --- New: Archive items ---
-        Item("founders_mug", "Founder's Coffee Mug", "From the original garage days. Still has coffee in it. The coffee has become sentient.", ItemType.COSMETIC, 200, emoji="🏆"),
-        Item("first_commit", "The First Commit", "A framed printout: 'initial commit'. The code is... HTML with inline styles.", ItemType.QUEST, 0, emoji="📜"),
+        # --- Archive items ---
+        Item("founders_mug", "Founder's Coffee Mug", "From the original garage days. Still has coffee in it. The coffee has become sentient.", ItemType.COSMETIC, 200, emoji="🏆",
+             lore="Four people started StackHaven in a garage with $3,000, three laptops, and this mug. They had no AI assistants, no copilot, no cloud infrastructure. They had themselves, their skills, and the belief that they could build something that mattered. The mug is still warm because what they built is still running. Somewhere, right now, their code is serving a request. And they never needed to be told that this was impressive. They already knew."),
+        Item("first_commit", "The First Commit", "A framed printout: 'initial commit'. The code is... HTML with inline styles.", ItemType.QUEST, 0, emoji="📜",
+             lore="Every codebase begins with someone brave enough to write the first line. The HTML is ugly. The inline styles are a sin. But it shipped. It worked. It was the seed that grew into everything you see around you. Before you judge the first commit, ask yourself: what have you started from nothing? What have you built when there was no foundation, no template, no 'best practice'? The people who write first commits are the people who make things exist."),
     ]}
 
 
