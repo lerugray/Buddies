@@ -97,6 +97,7 @@ class BuddyApp(App):
         self._last_thought_time: float = 0
         self._recent_tools: list[str] = []
         self._bored_minutes: float = 0  # Track sustained boredom for nightcap
+        self._typing_timer = None  # Debounce timer for typing detection
 
     def compose(self) -> ComposeResult:
         yield Static("🐾 BUDDIES — Your AI Companions", id="title-bar")
@@ -226,6 +227,27 @@ class BuddyApp(App):
             "grumpy": "Hmph. About time. Let's just get to work.",
         }
         return greetings.get(self.buddy_state.mood, "Hello!")
+
+    def on_input_changed(self, event: Input.Changed) -> None:
+        """React to typing — buddy gets excited while user types."""
+        if event.input.id != "chat-input":
+            return
+        try:
+            sprite = self.query_one("#buddy-sprite", SpriteDisplay)
+            if event.value:
+                sprite.set_activity("excited")
+                # Reset debounce timer — revert to normal after 1.5s of no typing
+                if self._typing_timer:
+                    self._typing_timer.stop()
+                self._typing_timer = self.set_timer(1.5, lambda: sprite.set_activity("normal"))
+            else:
+                # Input cleared (submitted or deleted)
+                sprite.set_activity("normal")
+                if self._typing_timer:
+                    self._typing_timer.stop()
+                    self._typing_timer = None
+        except Exception:
+            pass
 
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         """Handle chat input."""
@@ -752,7 +774,7 @@ class BuddyApp(App):
         """Open the discussion screen for party focus group."""
         self._discussions_started += 1
         self.push_screen(
-            DiscussionScreen(self.store, self.prose),
+            DiscussionScreen(self.store, self.prose, ai_backend=self.ai_backend),
             callback=self._on_discussion_dismissed,
         )
 

@@ -6,7 +6,7 @@ their personality register. Three modes:
 - Guided topic: user provides a topic, each buddy responds in-character
 - File focus: buddies comment on a file using metadata or AI analysis
 
-No AI required. Falls back to prose engine for everything.
+Falls back to prose engine when no AI is available.
 """
 
 from __future__ import annotations
@@ -15,9 +15,13 @@ import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from buddies.core.buddy_brain import BuddyState, SPECIES_CATALOG
 from buddies.core.prose import ProseEngine, _register, _dominant_stat
+
+if TYPE_CHECKING:
+    from buddies.core.ai_backend import AIBackend
 
 
 @dataclass
@@ -183,8 +187,9 @@ REGISTER_COMMENTARY: dict[str, dict[str, list[str]]] = {
 class DiscussionEngine:
     """Orchestrates multi-buddy discussions using the prose engine."""
 
-    def __init__(self, prose: ProseEngine):
+    def __init__(self, prose: ProseEngine, ai_backend: "AIBackend | None" = None):
         self.prose = prose
+        self.ai_backend = ai_backend
 
     def open_chat(self, participants: list[BuddyState]) -> list[DiscussionMessage]:
         """Generate a round of open discussion — buddies riff freely."""
@@ -250,22 +255,35 @@ class DiscussionEngine:
 
         return messages
 
-    def file_focus(
+    async def file_focus(
         self, participants: list[BuddyState], file_path: str
     ) -> list[DiscussionMessage]:
-        """Generate commentary on a specific file."""
+        """Generate commentary on a specific file, using AI analysis when available."""
         meta = _extract_file_meta(file_path)
         messages: list[DiscussionMessage] = []
+
+        # Try AI-powered analysis if backend is available
+        ai_analysis = await self._analyze_file(file_path, meta)
 
         for buddy in participants:
             register = _register(buddy)
             commentary = REGISTER_COMMENTARY.get(register, REGISTER_COMMENTARY["calm"])
 
-            # Try prose engine with file context
-            text = self.prose.thought("discussion_file", buddy, meta)
-            if not text:
-                import random
-                text = random.choice(commentary["file"]).format(**meta)
+            if ai_analysis:
+                # AI available — each buddy reacts to the analysis in-character
+                text = await self._ai_file_commentary(buddy, register, meta, ai_analysis)
+                if not text:
+                    # AI commentary failed, fall back to templates
+                    text = self.prose.thought("discussion_file", buddy, meta)
+                    if not text:
+                        import random
+                        text = random.choice(commentary["file"]).format(**meta)
+            else:
+                # No AI — use prose engine / template fallback
+                text = self.prose.thought("discussion_file", buddy, meta)
+                if not text:
+                    import random
+                    text = random.choice(commentary["file"]).format(**meta)
 
             messages.append(DiscussionMessage(
                 buddy_name=buddy.name,
@@ -280,6 +298,69 @@ class DiscussionEngine:
             messages.extend(self._react_round(participants, messages))
 
         return messages
+
+    async def _analyze_file(self, file_path: str, meta: dict) -> str | None:
+        """Use AI backend to analyze a file's contents. Returns analysis or None."""
+        if not self.ai_backend or not await self.ai_backend.is_available():
+            return None
+
+        path = Path(file_path)
+        if not path.exists() or not path.is_file():
+            return None
+
+        try:
+            content = path.read_text(encoding="utf-8", errors="replace")
+            # Truncate to ~300 lines to stay within context limits
+            lines = content.split("\n")
+            if len(lines) > 300:
+                content = "\n".join(lines[:300]) + f"\n... ({len(lines) - 300} more lines)"
+
+            prompt = (
+                f"Briefly analyze this {meta['extension']} file ({meta['filename']}, "
+                f"{meta['line_count']} lines, {meta['function_count']} functions). "
+                f"Give 2-3 observations about code quality, structure, or notable patterns. "
+                f"Be concise — max 4 sentences total.\n\n```\n{content}\n```"
+            )
+            response = await self.ai_backend.chat(
+                [{"role": "user", "content": prompt}],
+                system_prompt="You are a code reviewer. Be concise and specific.",
+            )
+            if response.error or not response.content:
+                return None
+            return response.content
+        except (OSError, Exception):
+            return None
+
+    async def _ai_file_commentary(
+        self, buddy: BuddyState, register: str, meta: dict, analysis: str,
+    ) -> str | None:
+        """Generate in-character buddy commentary on AI file analysis."""
+        if not self.ai_backend or not await self.ai_backend.is_available():
+            return None
+
+        register_prompts = {
+            "clinical": "You are analytical and data-driven. Refer to specific metrics and patterns.",
+            "sarcastic": "You are witty and sarcastic. Make jokes about the code but stay helpful.",
+            "absurdist": "You are surreal and chaotic. Mix real observations with wild metaphors.",
+            "philosophical": "You are thoughtful and reflective. Relate the code to deeper meanings.",
+            "calm": "You are patient and gentle. Focus on encouragement and gentle suggestions.",
+        }
+        style = register_prompts.get(register, register_prompts["calm"])
+
+        prompt = (
+            f"Here's an analysis of {meta['filename']}:\n{analysis}\n\n"
+            f"React to this analysis in 1-2 sentences. {style}"
+        )
+        try:
+            response = await self.ai_backend.chat(
+                [{"role": "user", "content": prompt}],
+                system_prompt=f"You are {buddy.name}, a {buddy.species.name} companion. Stay in character. Max 2 sentences.",
+            )
+            if response.error or not response.content:
+                return None
+            return response.content.strip()
+        except Exception:
+            return None
 
     def _react_round(
         self,

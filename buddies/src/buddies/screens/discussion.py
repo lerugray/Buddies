@@ -13,6 +13,7 @@ from textual.containers import Vertical, Center
 from textual.widgets import Static, Input, Footer, RichLog
 from textual.screen import Screen
 
+from buddies.core.ai_backend import AIBackend
 from buddies.core.buddy_brain import BuddyState, SPECIES_CATALOG
 from buddies.core.discussion import DiscussionEngine, DiscussionMessage
 from buddies.core.prose import ProseEngine
@@ -74,11 +75,12 @@ class DiscussionScreen(Screen):
         self,
         store: BuddyStore,
         prose: ProseEngine,
+        ai_backend: AIBackend | None = None,
     ):
         super().__init__()
         self.store = store
         self.prose = prose
-        self.engine = DiscussionEngine(prose)
+        self.engine = DiscussionEngine(prose, ai_backend=ai_backend)
         self.participants: list[BuddyState] = []
         self._mode = "open"
         self._input_target = ""  # "topic" or "file"
@@ -210,7 +212,9 @@ class DiscussionScreen(Screen):
         elif mode == "file":
             self._update_mode(f"file: {value[:40]}")
             log.write(f"[bold]File: {value}[/]")
-            messages = self.engine.file_focus(self.participants, value)
+            if self.engine.ai_backend:
+                log.write("[dim]Analyzing with AI...[/]")
+            messages = await self.engine.file_focus(self.participants, value)
         else:
             self._discussing = False
             return

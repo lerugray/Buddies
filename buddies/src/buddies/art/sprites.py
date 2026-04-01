@@ -116,7 +116,37 @@ def _phoenix_frames() -> list[str]:
         "trottttttortt",
         "ttottttttottt",
     ])
-    return [frame1, frame2]
+    # phoenix — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttttrrrttttt",
+        "ttttrooortttt",
+        "tttrooooorttt",
+        "tttoyyyotttt",
+        "tttoywyyotttt",
+        "tttoyyyottttt",
+        "ttttoootttttt",
+        "tttrrooorrttt",
+        "ttrrottoorrt",
+        "trottttttort",
+        "trottttttort",
+        "ttottttttott",
+    ])
+    # phoenix — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttttrrrttttt",
+        "ttttrooortttt",
+        "tttrooooorttt",
+        "tttoyyyotttt",
+        "tttoywyyotttt",
+        "tttoyyyottttt",
+        "ttttoootttttt",
+        "tttrrooorrttt",
+        "ttrrottoorrt",
+        "trottttttort",
+        "trottttttort",
+        "ttottttttott",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _duck_frames() -> list[str]:
@@ -272,7 +302,37 @@ def _frog_frames() -> list[str]:
         "tgggtttggg",
         "ttgtttttgt",
     ])
-    return [frame1, frame2]
+    # frog — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "ttggtttggtt",
+        "tgwgttgwgtt",
+        "tggggggggtt",
+        "tggggggggtt",
+        "tggggggggtt",
+        "tggrrrrggtt",
+        "ttggggggtt",
+        "tttggggtttt",
+        "ttggttggttt",
+        "tgggttgggt",
+        "tgggtttggg",
+        "tggttttggt",
+    ])
+    # frog — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "ttggtttggtt",
+        "tgwgttgwgtt",
+        "tggggggggtt",
+        "tgEggggEgtt",
+        "tggggggggtt",
+        "tggrrrrggtt",
+        "ttggggggtt",
+        "tttggggtttt",
+        "ttggttggttt",
+        "tgggttgggt",
+        "tgggtttggg",
+        "tggttttggt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _hamster_frames() -> list[str]:
@@ -304,7 +364,37 @@ def _hamster_frames() -> list[str]:
         "ttttnntnnttt",
         "ttttnntnnttt",
     ])
-    return [frame1, frame2]
+    # hamster — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttnnnnttttt",
+        "ttnnnnnntttt",
+        "tnnnnnnnnttt",
+        "tnnnnnnnntt",
+        "tnnnnknnntt",
+        "tnnwnnwnnttt",
+        "ttnnnnnntttt",
+        "tttnnnntttt",
+        "tttnnnnttttt",
+        "tttnnnnttttt",
+        "tttnntnnttt",
+        "tttnntnnttt",
+    ])
+    # hamster — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttnnnnttttt",
+        "ttnnnnnntttt",
+        "tnnnnnnnnttt",
+        "tnEnnnnEntt",
+        "tnnnnknnntt",
+        "tnnwnnwnnttt",
+        "ttnnnnnntttt",
+        "tttnnnntttt",
+        "tttnnnnttttt",
+        "tttnnnnttttt",
+        "tttnntnnttt",
+        "tttnntnnttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _owl_frames() -> list[str]:
@@ -336,7 +426,37 @@ def _owl_frames() -> list[str]:
         "ttNNttNNttt",
         "ttNNttNNttt",
     ])
-    return [frame1, frame2]
+    # owl — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttNNNNtttt",
+        "ttNNNNNNttt",
+        "tNNNNNNNNtt",
+        "tNyNNNyNNtt",
+        "tNyNNNNyNtt",
+        "tNNNoNNNNtt",
+        "ttNNNNNNttt",
+        "tttNNNNtttt",
+        "ttNNNNNNttt",
+        "tNNNNNNNNtt",
+        "ttNNttNNttt",
+        "ttNNttNNttt",
+    ])
+    # owl — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttNNNNtttt",
+        "ttNNNNNNttt",
+        "tNNNNNNNNtt",
+        "tNyNNNyNNtt",
+        "tNyENNEyNtt",
+        "tNNNoNNNNtt",
+        "ttNNNNNNttt",
+        "tttNNNNtttt",
+        "ttNNNNNNttt",
+        "tNNNNNNNNtt",
+        "ttNNttNNttt",
+        "ttNNttNNttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _fox_frames() -> list[str]:
@@ -368,7 +488,37 @@ def _fox_frames() -> list[str]:
         "tttoottoott",
         "tttoottoott",
     ])
-    return [frame1, frame2]
+    # fox — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tootttttoott",
+        "toootttooott",
+        "tooooooooot",
+        "towooooowot",
+        "tokkooookot",
+        "toooonoooot",
+        "ttooowooott",
+        "tttoooootttt",
+        "tttooooottt",
+        "tttoooootttt",
+        "tttoottoott",
+        "tttoottoott",
+    ])
+    # fox — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tootttttoott",
+        "toootttooott",
+        "tooooooooot",
+        "towooooowot",
+        "tokkooookot",
+        "toooonoooot",
+        "ttooowooott",
+        "tttoooootttt",
+        "tttooooottt",
+        "tttoooootttt",
+        "tttoottoott",
+        "tttoottoott",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _axolotl_frames() -> list[str]:
@@ -400,7 +550,37 @@ def _axolotl_frames() -> list[str]:
         "tttppttpptt",
         "ttpptttpptt",
     ])
-    return [frame1, frame2]
+    # axolotl — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "ppttttttpptt",
+        "ppptttpppttt",
+        "tppppppppttt",
+        "tppppppppptt",
+        "tpppppppptt",
+        "tpppooppptt",
+        "ttppppppttt",
+        "tttpppptttt",
+        "tttppppttttt",
+        "ttppttpptttt",
+        "ttppttpptttt",
+        "tppptttppptt",
+    ])
+    # axolotl — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "ppttttttpptt",
+        "ppptttpppttt",
+        "tppppppppttt",
+        "tpEpppppEptt",
+        "tpppppppptt",
+        "tpppooppptt",
+        "ttppppppttt",
+        "tttpppptttt",
+        "tttppppttttt",
+        "ttppttpptttt",
+        "ttppttpptttt",
+        "tppptttppptt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _penguin_frames() -> list[str]:
@@ -432,7 +612,37 @@ def _penguin_frames() -> list[str]:
         "ttttyyttttt",
         "tttyyttyytt",
     ])
-    return [frame1, frame2]
+    # penguin — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "ttttyytttttt",
+        "tttkkkkttttt",
+        "ttkkkkkkttt",
+        "ttkwkkwkkttt",
+        "ttkkokkktt",
+        "ttwwwwwwttt",
+        "ttwwwwwwttt",
+        "tttwwwwtttt",
+        "ttttwwtttttt",
+        "ttttywytttt",
+        "ttttyyttttt",
+        "tttyytyyttt",
+    ])
+    # penguin — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "ttttEEtttttt",
+        "tttkkkkttttt",
+        "ttkkkkkkttt",
+        "ttkwkkwkkttt",
+        "ttkkokkktt",
+        "ttwwwwwwttt",
+        "ttwwwwwwttt",
+        "tttwwwwtttt",
+        "ttttwwtttttt",
+        "ttttywytttt",
+        "ttttyyttttt",
+        "tttyytyyttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _dragon_frames() -> list[str]:
@@ -526,7 +736,37 @@ def _capybara_frames() -> list[str]:
         "tNNNttNNNtt",
         "tNNNttNNNtt",
     ])
-    return [frame1, frame2]
+    # capybara — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttNNNNNtttt",
+        "ttNNNNNNNttt",
+        "tNNNNNNNNNtt",
+        "tNNNNNNNNNtt",
+        "tNNNNNNNNtt",
+        "tNNNnNNNNtt",
+        "ttNNNNNNNttt",
+        "tttNNNNNtttt",
+        "ttNNNNNNNttt",
+        "tNNNNNNNNNtt",
+        "tNNNttNNNtt",
+        "tNNNttNNNtt",
+    ])
+    # capybara — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttNNNNNtttt",
+        "ttNNNNNNNttt",
+        "tNNNNNNNNNtt",
+        "tNENNNNENNtt",
+        "tNNNNNNNNtt",
+        "tNNNnNNNNtt",
+        "ttNNNNNNNttt",
+        "tttNNNNNtttt",
+        "ttNNNNNNNttt",
+        "tNNNNNNNNNtt",
+        "tNNNttNNNtt",
+        "tNNNttNNNtt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _mushroom_frames() -> list[str]:
@@ -558,7 +798,37 @@ def _mushroom_frames() -> list[str]:
         "ttnnnnnntt",
         "ttnnnnnntt",
     ])
-    return [frame1, frame2]
+    # mushroom — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttrrrrttttt",
+        "ttrrrrrrttt",
+        "trrwrrwrrttt",
+        "rrrrrrrrrttt",
+        "rrwrrrwrrttt",
+        "trrrrrrrtttt",
+        "tttnnnntttt",
+        "tttnnnntttt",
+        "tttnnnntttt",
+        "tttnnnntttt",
+        "ttnnnnnntt",
+        "ttnnnnnntt",
+    ])
+    # mushroom — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttrrrrttttt",
+        "ttrrrrrrttt",
+        "trrwrrwrrttt",
+        "rrrrrrrrrttt",
+        "rrwrrrwrrttt",
+        "trrrrrrrtttt",
+        "tttnnnntttt",
+        "tttnnnntttt",
+        "tttnnnntttt",
+        "tttnnnntttt",
+        "ttnnnnnntt",
+        "ttnnnnnntt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _kraken_frames() -> list[str]:
@@ -590,7 +860,37 @@ def _kraken_frames() -> list[str]:
         "ttttPPtttPtt",
         "tttPPttPtttt",
     ])
-    return [frame1, frame2]
+    # kraken — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "ttttPPPPtttt",
+        "tttPPPPPPttt",
+        "ttPPPPPPPPtt",
+        "ttPPPPPPPPtt",
+        "ttPPPPPPPPtt",
+        "ttPPPPPPPPtt",
+        "tttPPPPPPttt",
+        "tPPtPPtPPttt",
+        "PPttPPttPPtt",
+        "PtttPPtttPtt",
+        "PtttPPtttPtt",
+        "ttttPPtttttt",
+    ])
+    # kraken — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "ttttPPPPtttt",
+        "tttPPPPPPttt",
+        "ttPPPPPPPPtt",
+        "ttPwPPPwPPtt",
+        "ttPEPPPEPPtt",
+        "ttPPPPPPPPtt",
+        "tttPPPPPPttt",
+        "tPPtPPtPPttt",
+        "PPttPPttPPtt",
+        "PtttPPtttPtt",
+        "PtttPPtttPtt",
+        "ttttPPtttttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _unicorn_frames() -> list[str]:
@@ -622,7 +922,37 @@ def _unicorn_frames() -> list[str]:
         "tttwwtttwttt",
         "ttpptttpptt",
     ])
-    return [frame1, frame2]
+    # unicorn — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "ttttyytttttt",
+        "ttttywtttttt",
+        "ttttwwtttttt",
+        "tttwwwwwtttt",
+        "ttwwkwwwwttt",
+        "ttwwwpwwwttt",
+        "tttwwwwwtttt",
+        "ttttwwwtttt",
+        "tttwwwwwttt",
+        "ttwwttwwttt",
+        "ttwwtttwttt",
+        "tpptttpptt",
+    ])
+    # unicorn — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "ttttyytttttt",
+        "ttttywtttttt",
+        "ttttwwtttttt",
+        "tttwwwwwtttt",
+        "ttwwkwwwwttt",
+        "ttwwwpwwwttt",
+        "tttwwwwwtttt",
+        "ttttwwwtttt",
+        "tttwwwwwttt",
+        "ttwwttwwttt",
+        "ttwwtttwttt",
+        "tpptttpptt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _ghost_frames() -> list[str]:
@@ -716,7 +1046,37 @@ def _cosmic_whale_frames() -> list[str]:
         "tytttBBtttytt",
         "ttytttttytt",
     ])
-    return [frame1, frame2]
+    # cosmic_whale — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttttBBBBBttt",
+        "tttBBBBBBBBtt",
+        "ttBBBBBBBBBBt",
+        "tBBBBByBBBBBt",
+        "tBBBBBBBBBBBt",
+        "tBBBBBBBBBBBt",
+        "ttBBBBBBBBBBt",
+        "tttBBBBBBBBtt",
+        "ttttBBBBBBttt",
+        "tttttBBBBtttt",
+        "ttytttBBttytt",
+        "tttyttttytttt",
+    ])
+    # cosmic_whale — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttttBBBBBttt",
+        "tttBBBBBBBBtt",
+        "ttBBBBBBBBBBt",
+        "tBBwBByBBwBBt",
+        "tBBEBBBBBEBBt",
+        "tBBBBBBBBBBBt",
+        "ttBBBBBBBBBBt",
+        "tttBBBBBBBBtt",
+        "ttttBBBBBBttt",
+        "tttttBBBBtttt",
+        "ttytttBBttytt",
+        "tttyttttytttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _bee_frames() -> list[str]:
@@ -741,7 +1101,29 @@ def _bee_frames() -> list[str]:
         "ttggggt",
         "ttttttt",
     ])
-    return [frame1, frame2]
+    # bee — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "ttttgggtttt",
+        "ttggGGGgtt",
+        "tgGGGGGGgtt",
+        "tgGGYYGGgt",
+        "tgGGGGGGgt",
+        "ttgGGGGgt",
+        "tttgggtt",
+        "ttttttt",
+    ])
+    # bee — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "ttttgggtttt",
+        "ttggGGGgtt",
+        "tgGGGGGGgtt",
+        "tgGGYYGGgt",
+        "tgGGGGGGgt",
+        "ttgGGGGgt",
+        "tttgggtt",
+        "ttttttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _slime_frames() -> list[str]:
@@ -756,7 +1138,29 @@ def _slime_frames() -> list[str]:
         "ttggGGGggt",
         "ttttgggtt",
     ])
-    return [frame1, frame1]  # Slime doesn't move much
+    # slime — happy (jiggles wider)
+    frame3 = _build_sprite([
+        "ttgggggggtt",
+        "tggGGGGGggt",
+        "gGGGGGGGGgt",
+        "gGGGGGGGGGg",
+        "gGGGGGGGGGg",
+        "gGGGGGGGGGg",
+        "tggGGGGGggt",
+        "tttgggggtt",
+    ])
+    # slime — sleepy (flattens)
+    frame4 = _build_sprite([
+        "ttttttttttt",
+        "ttggGGGggt",
+        "tgGGGGGGgt",
+        "gGGGGGGGGg",
+        "gGGGGGGGGg",
+        "gGGGGGGGGg",
+        "tggGGGGggt",
+        "ttgggggggtt",
+    ])
+    return [frame1, frame1, frame3, frame4]
 
 
 def _raccoon_frames() -> list[str]:
@@ -771,7 +1175,29 @@ def _raccoon_frames() -> list[str]:
         "tEERRRRRt",
         "ttEEEEEt",
     ])
-    return [frame1, frame1]
+    # raccoon — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttttkkttt",
+        "tttkkEEktt",
+        "ttkEEEEEkt",
+        "tkEEYYEEkt",
+        "tEEEEEEEt",
+        "tEERRRREt",
+        "tEERRRRRt",
+        "ttEEEEEt",
+    ])
+    # raccoon — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttttkkttt",
+        "tttkkEEktt",
+        "ttkEEEEEkt",
+        "tkEEYYEEkt",
+        "tEEEEEEEt",
+        "tEERRRREt",
+        "tEERRRRRt",
+        "ttEEEEEt",
+    ])
+    return [frame1, frame1, frame3, frame4]
 
 
 def _parrot_frames() -> list[str]:
@@ -786,7 +1212,29 @@ def _parrot_frames() -> list[str]:
         "tRooRoRt",
         "tttRRRtt",
     ])
-    return [frame1, frame1]
+    # parrot — happy (eyes squinted, beak open)
+    frame3 = _build_sprite([
+        "tttttyyytt",
+        "tttyyyRytt",
+        "ttyRRRRRyt",
+        "tyRRYRRRyt",
+        "tRRRRRRRt",
+        "tRRoooRt",
+        "tRooooRt",
+        "tttRRRtt",
+    ])
+    # parrot — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttttyyytt",
+        "tttyyyRytt",
+        "ttyRRRRRyt",
+        "tyREYERRyt",
+        "tRRRRRRRt",
+        "tRRoooRt",
+        "tRooRoRt",
+        "tttRRRtt",
+    ])
+    return [frame1, frame1, frame3, frame4]
 
 
 def _octopus_frames() -> list[str]:
@@ -801,7 +1249,29 @@ def _octopus_frames() -> list[str]:
         "tBtBtBtBt",
         "tBtBtBtBt",
     ])
-    return [frame1, frame1]
+    # octopus — happy (eyes squinted, tentacles spread)
+    frame3 = _build_sprite([
+        "ttttbbbtt",
+        "tttBBBBt",
+        "ttBBBBBBt",
+        "tBBBBYBBt",
+        "tBBBBBBBt",
+        "BtBtBtBtB",
+        "BtBtBtBtB",
+        "BtBtBtBtB",
+    ])
+    # octopus — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "ttttbbbtt",
+        "tttBBBBt",
+        "ttBBBBBBt",
+        "tBBBEYEBt",
+        "tBBBBBBBt",
+        "tBtBtBtBt",
+        "tBtBtBtBt",
+        "ttBtBtBtt",
+    ])
+    return [frame1, frame1, frame3, frame4]
 
 
 def _wolf_frames() -> list[str]:
@@ -816,7 +1286,29 @@ def _wolf_frames() -> list[str]:
         "ttkkkktt",
         "tttttttt",
     ])
-    return [frame1, frame1]
+    # wolf — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttkkktt",
+        "ttkEEEktt",
+        "tkEEEEEkt",
+        "kEEYYEEEk",
+        "kEEEEEEk",
+        "kEEwEEEk",
+        "ttkkkktt",
+        "tttttttt",
+    ])
+    # wolf — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttkkktt",
+        "ttkEEEktt",
+        "tkEEEEEkt",
+        "kEeYYeEEk",
+        "kEEEEEEk",
+        "kEEEEEEk",
+        "ttkkkktt",
+        "tttttttt",
+    ])
+    return [frame1, frame1, frame3, frame4]
 
 
 def _robot_frames() -> list[str]:
@@ -831,7 +1323,29 @@ def _robot_frames() -> list[str]:
         "teEEEEEet",
         "tteEEEEet",
     ])
-    return [frame1, frame1]
+    # robot — happy (eyes as happy lights)
+    frame3 = _build_sprite([
+        "ttteeeett",
+        "tteEEEEet",
+        "teEEEEEet",
+        "eEgYYgEEe",
+        "eEEEEEEEe",
+        "eEEwwEEEe",
+        "teEEEEEet",
+        "tteEEEEet",
+    ])
+    # robot — sleepy (dim eyes)
+    frame4 = _build_sprite([
+        "ttteeeett",
+        "tteEEEEet",
+        "teEEEEEet",
+        "eEEYYEEEe",
+        "eEEEEEEEe",
+        "eEEEEEEEe",
+        "teEEEEEet",
+        "tteEEEEet",
+    ])
+    return [frame1, frame1, frame3, frame4]
 
 
 def _tree_frames() -> list[str]:
@@ -846,7 +1360,29 @@ def _tree_frames() -> list[str]:
         "ttttYYttt",
         "ttttYYttt",
     ])
-    return [frame1, frame1]
+    # tree — happy (leaves rustling, fruit appears)
+    frame3 = _build_sprite([
+        "tttggytt",
+        "ttggGyggt",
+        "tgGGGGGgt",
+        "gGGrGGrGt",
+        "tGGGGGGGt",
+        "ttttYYttt",
+        "ttttYYttt",
+        "ttttYYttt",
+    ])
+    # tree — sleepy (leaves droop)
+    frame4 = _build_sprite([
+        "tttttttt",
+        "tttgGytt",
+        "ttgGGGgtt",
+        "tgGGGGGGt",
+        "tGGGGGGGt",
+        "tGGGGGGGt",
+        "ttttYYttt",
+        "ttttYYttt",
+    ])
+    return [frame1, frame1, frame3, frame4]
 
 
 def _void_cat_frames() -> list[str]:
@@ -861,7 +1397,29 @@ def _void_cat_frames() -> list[str]:
         "ttEEEEEtt",
         "ttttttt",
     ])
-    return [frame1, frame1]
+    # void_cat — happy (eyes squinted, purring)
+    frame3 = _build_sprite([
+        "tttEEEtt",
+        "ttEEEEEtt",
+        "tEEEEEEEt",
+        "EEEYYEEEE",
+        "EEEpEEEEt",
+        "tEEEEEEEt",
+        "ttEEEEEtt",
+        "ttttttt",
+    ])
+    # void_cat — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttEEEtt",
+        "ttEEEEEtt",
+        "tEEEEEEEt",
+        "EEeYYeEEE",
+        "EEEEEEEEt",
+        "tEEEEEEEt",
+        "ttEEEEEtt",
+        "ttttttt",
+    ])
+    return [frame1, frame1, frame3, frame4]
 
 
 # ============================================================
@@ -1022,7 +1580,37 @@ def _dolphin_frames() -> list[str]:
         "tttteeeettttt",
         "ttteettttttt",
     ])
-    return [frame1, frame2]
+    # dolphin — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "ttttttttttttt",
+        "tttteeeettttt",
+        "ttteeeeeettt",
+        "tteeeeeeeettt",
+        "teeekeeeeett",
+        "teeeeeeeeettt",
+        "tteeeeeeeettt",
+        "ttteeeeeettt",
+        "tttteeeettttt",
+        "tteeeeettttt",
+        "tttteeeettttt",
+        "ttttteettttt",
+    ])
+    # dolphin — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "ttttttttttttt",
+        "tttteeeettttt",
+        "ttteeeeeettt",
+        "tteeeeeeeettt",
+        "teeekeeeeett",
+        "teeeeeeeeettt",
+        "tteeeeeeeettt",
+        "ttteeeeeettt",
+        "tttteeeettttt",
+        "tteeeeettttt",
+        "tttteeeettttt",
+        "ttttteettttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _orca_frames() -> list[str]:
@@ -1054,7 +1642,37 @@ def _orca_frames() -> list[str]:
         "tttwwwttttttt",
         "ttttwwttttttt",
     ])
-    return [frame1, frame2]
+    # orca — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "ttttttttttttt",
+        "ttttkkkktttt",
+        "tttkkkkkkttt",
+        "ttkkkkkkkkttt",
+        "tkwkkkkkkktt",
+        "tkwwkkkkkkttt",
+        "ttwwwkkkkkttt",
+        "ttteeekkktt",
+        "tttteeeeettt",
+        "ttwwwwwttttt",
+        "tttttwwwttttt",
+        "ttttttwwttttt",
+    ])
+    # orca — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "ttttttttttttt",
+        "ttttkkkktttt",
+        "tttkkkkkkttt",
+        "ttkkkkkkkkttt",
+        "tkwkkkkkkktt",
+        "tkwwkkkkkkttt",
+        "ttwwwkkkkkttt",
+        "tttwwwkkktt",
+        "ttttwwwEEttt",
+        "ttwwwwwttttt",
+        "tttttwwwttttt",
+        "ttttttwwttttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _chonk_frames() -> list[str]:
@@ -1149,7 +1767,37 @@ def _panda_frames() -> list[str]:
         "tttwwtwwttttt",
         "tttwwtwwttttt",
     ])
-    return [frame1, frame2]
+    # panda — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "ttkktttkktttt",
+        "ttwwwwwwwtttt",
+        "teeeeeeeettt",
+        "teeeeeeeettt",
+        "teeeeeeeettt",
+        "twwwkwwwwttt",
+        "ttwwwwwwwtttt",
+        "ttwwwwwwwttt",
+        "twwwwwwwwttt",
+        "twwwwwwwwttt",
+        "ttwwttwwtttt",
+        "ttwwttwwtttt",
+    ])
+    # panda — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "ttkktttkktttt",
+        "ttwwwwwwwtttt",
+        "twwwwwwwwttt",
+        "twEwwwwEwttt",
+        "twEwwwwEwttt",
+        "twwwkwwwwttt",
+        "ttwwwwwwwtttt",
+        "ttwwwwwwwttt",
+        "twwwwwwwwttt",
+        "twwwwwwwwttt",
+        "ttwwttwwtttt",
+        "ttwwttwwtttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _starspawn_frames() -> list[str]:
@@ -1245,7 +1893,37 @@ def _basilisk_frames() -> list[str]:
         "ttGGttGGttttt",
         "tGGGttGGGtttt",
     ])
-    return [frame1, frame2]
+    # basilisk — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tGGttttGGtttt",
+        "tGGGttGGGtttt",
+        "twwwttwwwtttt",
+        "tttGGGGGttttt",
+        "ttGGGGGGGtttt",
+        "tGGGGGGGGGttt",
+        "tGGGGGGGGGttt",
+        "ttGGGGGGGtttt",
+        "tttGGGGGttttt",
+        "ttGGttGGttttt",
+        "ttGGttGGttttt",
+        "tGGGttGGGtttt",
+    ])
+    # basilisk — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "twwttttwwtttt",
+        "twEwttwEwtttt",
+        "twwwttwwwtttt",
+        "tttGGGGGttttt",
+        "ttGGGGGGGtttt",
+        "tGGGGGGGGGttt",
+        "tGGGGGGGGGttt",
+        "ttGGGGGGGtttt",
+        "tttGGGGGttttt",
+        "ttGGttGGttttt",
+        "ttGGttGGttttt",
+        "tGGGttGGGtttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _cane_toad_frames() -> list[str]:
@@ -1278,7 +1956,37 @@ def _cane_toad_frames() -> list[str]:
         "tttGGtGGttttt",
         "tttGGtGGttttt",
     ])
-    return [frame1, frame2]
+    # cane_toad — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "ttttttttttttt",
+        "ttGGGGGGGtttt",
+        "tGGGGGGGGGttt",
+        "tGGGGGGGGGttt",
+        "tGGGGGGGGGttt",
+        "tGGGoooGGGttt",
+        "tGGGGGGGGGttt",
+        "ttGGGGGGGtttt",
+        "tGGGGGGGGGttt",
+        "tGGGGGGGGGttt",
+        "ttGGtttGGtttt",
+        "ttGGtttGGtttt",
+    ])
+    # cane_toad — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "ttttttttttttt",
+        "ttGGGGGGGtttt",
+        "tGGGGGGGGGttt",
+        "tGwGGGGGwGttt",
+        "tGEGGGGGEGttt",
+        "tGGGoooGGGttt",
+        "tGGGGGGGGGttt",
+        "ttGGGGGGGtttt",
+        "tGGGGGGGGGttt",
+        "tGGGGGGGGGttt",
+        "ttGGtttGGtttt",
+        "ttGGtttGGtttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _gorby_frames() -> list[str]:
@@ -1374,7 +2082,37 @@ def _tardigrade_frames() -> list[str]:
         "ttnnttttnnttt",
         "ttnnttttnnttt",
     ])
-    return [frame1, frame2]
+    # tardigrade — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "ttttttttttttt",
+        "ttttnnnnttttt",
+        "tttnnnnnnttt",
+        "ttnnnnnnnnttt",
+        "tnnnnnnnnnntt",
+        "tnnnnnnnnntt",
+        "ttnnnnnnnnttt",
+        "nntnnnnnntnn",
+        "nnttnnnnttnn",
+        "tttnnttnntttt",
+        "ttnnttttnntt",
+        "ttnnttttnntt",
+    ])
+    # tardigrade — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "ttttttttttttt",
+        "ttttnnnnttttt",
+        "tttnnnnnnttt",
+        "ttnnnnnnnnttt",
+        "tnEnnnnnnEntt",
+        "tnnnnnnnnntt",
+        "ttnnnnnnnnttt",
+        "nntnnnnnntnn",
+        "nnttnnnnttnn",
+        "tttnnttnntttt",
+        "ttnnttttnntt",
+        "ttnnttttnntt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _mantis_shrimp_frames() -> list[str]:
@@ -1407,7 +2145,37 @@ def _mantis_shrimp_frames() -> list[str]:
         "ttttttbbtttt",
         "tttttttbtttt",
     ])
-    return [frame1, frame2]
+    # mantis_shrimp — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "ttttttttttttt",
+        "rrttrrrrttttt",
+        "rrtooooortttt",
+        "tttooooootttt",
+        "ttooooooottt",
+        "tttooooootttt",
+        "tttyyyyyytttt",
+        "tttggggggtttt",
+        "ttttbbbbtttt",
+        "tttttbbbttttt",
+        "ttttttbbtttt",
+        "tttttttbtttt",
+    ])
+    # mantis_shrimp — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "ttttttttttttt",
+        "rrttrrrrttttt",
+        "rrtooooortttt",
+        "tttooooootttt",
+        "ttEooooEottt",
+        "tttooooootttt",
+        "tttyyyyyytttt",
+        "tttggggggtttt",
+        "ttttbbbbtttt",
+        "tttttbbbttttt",
+        "ttttttbbtttt",
+        "tttttttbtttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 # ============================================================
@@ -1442,7 +2210,35 @@ def _corgi_frames() -> list[str]:
         "twwttttwwtt",
         "twwttttwwtt",
     ])
-    return [frame1, frame2]
+    # corgi — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "ttNNttNNttt",
+        "tNNNNNNNNtt",
+        "tNNNNNNNNtt",
+        "NNNNNNNNNt",
+        "NNNNNNNNNt",
+        "NNNNNNNNNt",
+        "tNNNNNNNNtt",
+        "twwwwwwwwtt",
+        "twwwwwwwwtt",
+        "ttwwttwwttt",
+        "ttwwttwwttt",
+    ])
+    # corgi — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "ttNNttNNttt",
+        "tNNNNNNNNtt",
+        "tNNNNNNNNtt",
+        "NNENNENNNt",
+        "NNNNNNNNNt",
+        "NNNEENNNNt",
+        "tNNNNNNNNtt",
+        "twwwwwwwwtt",
+        "twwwwwwwwtt",
+        "ttwwttwwttt",
+        "ttwwttwwttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _pig_frames() -> list[str]:
@@ -1473,7 +2269,35 @@ def _pig_frames() -> list[str]:
         "ttptttptttt",
         "ttptttptttt",
     ])
-    return [frame1, frame2]
+    # pig — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttppppttt",
+        "ttpppppptt",
+        "tpppppppt",
+        "pppppppppt",
+        "pppppppppt",
+        "ppnnnppppt",
+        "ppnppnpppt",
+        "tpppppppt",
+        "ttpppppptt",
+        "ttpptppttt",
+        "ttpptppttt",
+    ])
+    # pig — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttppppttt",
+        "ttpppppptt",
+        "tpppppppt",
+        "pEpppEpppt",
+        "pppppppppt",
+        "ppnnnppppt",
+        "ppnEEnpppt",
+        "tpppppppt",
+        "ttpppppptt",
+        "ttpptppttt",
+        "ttpptppttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _doobie_frames() -> list[str]:
@@ -1506,7 +2330,37 @@ def _doobie_frames() -> list[str]:
         "ttttYYttttt",
         "ttttYYttttt",
     ])
-    return [frame1, frame2]
+    # doobie — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttttGttttt",
+        "ttGttGttGtt",
+        "tGGtGGtGGt",
+        "tGGGGGGGGt",
+        "GGGGGGGGGt",
+        "GGGGGGGGGt",
+        "GGGGGGGGGt",
+        "GGGGwGGGGt",
+        "tGGGGGGGtt",
+        "ttttYYttttt",
+        "ttttYYttttt",
+        "ttttYYttttt",
+    ])
+    # doobie — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttttGttttt",
+        "ttGttGttGtt",
+        "tGGtGGtGGt",
+        "tGGGGGGGGt",
+        "GGGGGGGGGt",
+        "GGEGGGEGGt",
+        "GGGGGGGGGt",
+        "GGGGwGGGGt",
+        "tGGGGGGGtt",
+        "ttttYYttttt",
+        "ttttYYttttt",
+        "ttttYYttttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _claude_frames() -> list[str]:
@@ -1535,7 +2389,33 @@ def _claude_frames() -> list[str]:
         "tttoooooott",
         "ttttooootttt",
     ])
-    return [frame1, frame2]
+    # claude — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "ttttoooottt",
+        "tttoooooottt",
+        "ttoooooooott",
+        "tooooooooot",
+        "oowooowoooo",
+        "oooooooooot",
+        "tooooooooot",
+        "ttoowwwooott",
+        "tttoooooott",
+        "ttttooootttt",
+    ])
+    # claude — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "ttttoooottt",
+        "tttoooooottt",
+        "ttoooooooott",
+        "tooooooooot",
+        "oowooowoooo",
+        "oooooooooot",
+        "tooooooooot",
+        "ttoowwwooott",
+        "tttoooooott",
+        "ttttooootttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _illuminati_frames() -> list[str]:
@@ -1564,7 +2444,33 @@ def _illuminati_frames() -> list[str]:
         "YYYYYYYYYYt",
         "YYYYYYYYYYt",
     ])
-    return [frame1, frame2]
+    # illuminati — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttttytttttt",
+        "ttttyYyttttt",
+        "tttyYYYytttt",
+        "tttYYYYYtttt",
+        "ttYYYYYYyttt",
+        "ttyYYYYYyttt",
+        "tYYYYYYYYtt",
+        "tyYYYYYYYYt",
+        "YYYYYYYYYYt",
+        "YYYYYYYYYYt",
+    ])
+    # illuminati — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttttytttttt",
+        "ttttyYyttttt",
+        "tttyYYYytttt",
+        "tttYEwEYtttt",
+        "ttYYYYYYyttt",
+        "ttyYYYYYyttt",
+        "tYYYYYYYYtt",
+        "tyYYYYYYYYt",
+        "YYYYYYYYYYt",
+        "YYYYYYYYYYt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _burger_frames() -> list[str]:
@@ -1595,7 +2501,35 @@ def _burger_frames() -> list[str]:
         "ttooooooott",
         "tttooooottt",
     ])
-    return [frame1, frame2]
+    # burger — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttooooottt",
+        "ttooooooott",
+        "tooooooooot",
+        "towotowoooo",
+        "tooooooooot",
+        "ggggggggggt",
+        "yyyyyyyyyyy",
+        "rrrrrrrrrrt",
+        "NNNNNNNNNNt",
+        "ttooooooott",
+        "tttooooottt",
+    ])
+    # burger — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttooooottt",
+        "ttooooooott",
+        "tooooooooot",
+        "towotowoooo",
+        "tooooooooot",
+        "ggggggggggt",
+        "yyyyyyyyyyy",
+        "rrrrrrrrrrt",
+        "NNNNNNNNNNt",
+        "ttooooooott",
+        "tttooooottt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _beholder_frames() -> list[str]:
@@ -1628,7 +2562,37 @@ def _beholder_frames() -> list[str]:
         "ttPPPPPPttt",
         "tttPPPPtttt",
     ])
-    return [frame1, frame2]
+    # beholder — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tgttgtttgtt",
+        "gPtgPttgPtt",
+        "tttttttttt",
+        "tttPPPPtttt",
+        "ttPPPPPPttt",
+        "tPPPPPPPPtt",
+        "PPPPPPPPPPt",
+        "PPPPPPPPPPt",
+        "PPwwwwPPPPt",
+        "tPPPPPPPPtt",
+        "ttPPPPPPttt",
+        "tttPPPPtttt",
+    ])
+    # beholder — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tgttgtttgtt",
+        "gPtgPttgPtt",
+        "tttttttttt",
+        "tttPPPPtttt",
+        "ttPPPPPPttt",
+        "tPPPPPPPPtt",
+        "PPwwwwPPPPt",
+        "PwEwwEwPPPt",
+        "PPwwwwPPPPt",
+        "tPPPPPPPPtt",
+        "ttPPPPPPttt",
+        "tttPPPPtttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _mimic_frames() -> list[str]:
@@ -1660,7 +2624,33 @@ def _mimic_frames() -> list[str]:
         "NttNttttNtt",
         "NttNttttNtt",
     ])
-    return [frame1, frame2]
+    # mimic — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tYYYYYYYYYt",
+        "YYYyYYyYYYt",
+        "YYYYYYYYYYt",
+        "YYYYkYYYYYt",
+        "YYYYYYYYYYt",
+        "NYYYYYYYYNt",
+        "NYYYYYYYYNt",
+        "NNNNNNNNNNt",
+        "NNNNNNNNNNt",
+        "ttNNttNNttt",
+    ])
+    # mimic — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tYYYYYYYYYt",
+        "YYYyYYyYYYt",
+        "YYYYYYYYYYt",
+        "YYYYkYYYYYt",
+        "YYYYYYYYYYt",
+        "NYYYYYYYYNt",
+        "NYYYYYYYYNt",
+        "NNNNNNNNNNt",
+        "NNNNNNNNNNt",
+        "ttNNttNNttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _crab_frames() -> list[str]:
@@ -1687,7 +2677,31 @@ def _crab_frames() -> list[str]:
         "trrttttrrtt",
         "rrttttttrrt",
     ])
-    return [frame1, frame2]
+    # crab — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "rrttttttrrt",
+        "rrrttttrrt",
+        "trrrrrrrrtt",
+        "trrrrrrrrtt",
+        "rrrrrrrrrrt",
+        "trrrrrrrrtt",
+        "ttrrrrrrttt",
+        "trrttttrrt",
+        "rrttttttrrt",
+    ])
+    # crab — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "rrttttttrrt",
+        "rrrttttrrt",
+        "trrrrrrrrtt",
+        "trrrrrrrrtt",
+        "rErrrrrErrt",
+        "trrrrrrrrtt",
+        "ttrrrrrrttt",
+        "trrttttrrt",
+        "rrttttttrrt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _moth_frames() -> list[str]:
@@ -1716,7 +2730,33 @@ def _moth_frames() -> list[str]:
         "tteetteett",
         "teettteettt",
     ])
-    return [frame1, frame2]
+    # moth — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttteetttt",
+        "ttteeeeettt",
+        "teeeeeeeett",
+        "eeneeeneet",
+        "eeeeeeeeett",
+        "teeNNNeettt",
+        "tttNNNttttt",
+        "tttNNNttttt",
+        "tteetteettt",
+        "teettteett",
+    ])
+    # moth — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttteetttt",
+        "ttteeeeettt",
+        "teeeeeeeett",
+        "eeneeeneet",
+        "eeeeeeeeett",
+        "teeNNNeettt",
+        "tttNNNttttt",
+        "tttNNNttttt",
+        "tteetteettt",
+        "teettteett",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _snail_frames() -> list[str]:
@@ -1743,7 +2783,31 @@ def _snail_frames() -> list[str]:
         "tyyyyyyyyyyt",
         "ttyyyyyyyytt",
     ])
-    return [frame1, frame2]
+    # snail — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttNNNttttt",
+        "ttNooNNtttt",
+        "tNoooNNtttt",
+        "tNNNNNNtttt",
+        "ttNNNNNtttt",
+        "yyyyyyyyyytt",
+        "yyyyyyyyyyt",
+        "yyyyyyyyyyt",
+        "tyyyyyyyytt",
+    ])
+    # snail — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttNNNttttt",
+        "ttNooNNtttt",
+        "tNoooNNtttt",
+        "tNNNNNNtttt",
+        "ttNNNNNtttt",
+        "yyyyyyyyyytt",
+        "yEyyyEyyyyt",
+        "yyyyyyyyyyt",
+        "tyyyyyyyytt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _jellyfish_frames() -> list[str]:
@@ -1772,7 +2836,33 @@ def _jellyfish_frames() -> list[str]:
         "tttctcttttt",
         "ttttctctttt",
     ])
-    return [frame1, frame2]
+    # jellyfish — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttcccctttt",
+        "ttcccccctt",
+        "tcccccccct",
+        "tccccccccct",
+        "tcccccccct",
+        "ttcccccctt",
+        "tctctctcttt",
+        "tctctctcttt",
+        "ttctctctttt",
+        "tttctcttttt",
+    ])
+    # jellyfish — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttcccctttt",
+        "ttcccccctt",
+        "tcccccccct",
+        "tcEcccEccct",
+        "tcccccccct",
+        "ttcccccctt",
+        "tctctctcttt",
+        "tctctctcttt",
+        "ttctctctttt",
+        "tttctcttttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _sanic_frames() -> list[str]:
@@ -1805,7 +2895,37 @@ def _sanic_frames() -> list[str]:
         "tttbbttbbtt",
         "tttbbttbbtt",
     ])
-    return [frame1, frame2]
+    # sanic — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttttbbbttt",
+        "ttttbbbbbtt",
+        "tttbbbbbbbt",
+        "ttbbbbbbbbt",
+        "ttbbbbbbbbt",
+        "ttbbnnnbbbt",
+        "ttbbnnkbbbt",
+        "tttbbbbbtt",
+        "BBBtbbbtBBt",
+        "tBBtbbbtBBt",
+        "ttttbbtbbtt",
+        "ttttbbbbtt",
+    ])
+    # sanic — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttttbbbttt",
+        "ttttbbbbbtt",
+        "tttbbbbbbbt",
+        "ttbbbbbbbbt",
+        "ttbbEbbEbbt",
+        "ttbbnnnbbbt",
+        "ttbbnnkbbbt",
+        "tttbbbbbtt",
+        "BBBtbbbtBBt",
+        "tBBtbbbtBBt",
+        "ttttbbtbbtt",
+        "ttttbbbbtt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _rat_frames() -> list[str]:
@@ -1836,7 +2956,35 @@ def _rat_frames() -> list[str]:
         "tteetteettt",
         "ttptttpttt",
     ])
-    return [frame1, frame2]
+    # rat — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "teetteettt",
+        "teeeeeettt",
+        "teeeeeeet",
+        "eeeeeeeet",
+        "teeeeeeet",
+        "teeeneet",
+        "tteeeeett",
+        "ttteeeettt",
+        "tteetteett",
+        "tteetteett",
+        "ttpttttptt",
+    ])
+    # rat — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "teetteettt",
+        "teeeeeettt",
+        "teeeeeeet",
+        "eEeeeEeet",
+        "teeeeeeet",
+        "teeeneet",
+        "tteeeeett",
+        "ttteeeettt",
+        "tteetteett",
+        "tteetteett",
+        "ttpttttptt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _rooster_frames() -> list[str]:
@@ -1869,7 +3017,37 @@ def _rooster_frames() -> list[str]:
         "ggNttNggtt",
         "tootttoott",
     ])
-    return [frame1, frame2]
+    # rooster — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttrrttttt",
+        "ttrrrtttt",
+        "ttrrNNtttt",
+        "tNNNNNNttt",
+        "NNNNNNNNtt",
+        "NNNNNNNNtt",
+        "NNoNNNNNtt",
+        "tNNNNNNttt",
+        "ttNNNNtttt",
+        "gNNNNNNgtt",
+        "gNNttNNgtt",
+        "toottoott",
+    ])
+    # rooster — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttrrttttt",
+        "ttrrrtttt",
+        "ttrrNNtttt",
+        "tNNNNNNttt",
+        "NNENNENNtt",
+        "NNNNNNNNtt",
+        "NNoNNNNNtt",
+        "tNNNNNNttt",
+        "ttNNNNtttt",
+        "gNNNNNNgtt",
+        "gNNttNNgtt",
+        "toottoott",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _cow_frames() -> list[str]:
@@ -1902,7 +3080,37 @@ def _cow_frames() -> list[str]:
         "ttwwtwwttt",
         "ttwwtwwttt",
     ])
-    return [frame1, frame2]
+    # cow — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "ttwtttwtttt",
+        "twwwwwwwttt",
+        "tEEEEEEEttt",
+        "EEEEEEEEtt",
+        "wwwwwwwwtt",
+        "wwnnnwwwtt",
+        "twwwwwwwttt",
+        "ttEwwEwwttt",
+        "tEwwwwEwttt",
+        "twwwwwwwttt",
+        "twwttwwttt",
+        "twwttwwttt",
+    ])
+    # cow — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "ttwtttwtttt",
+        "twwwwwwwttt",
+        "twwwwwwwttt",
+        "wEwEwEwwtt",
+        "wwwwwwwwtt",
+        "wwnnnwwwtt",
+        "twwwwwwwttt",
+        "ttEwwEwwttt",
+        "tEwwwwEwttt",
+        "twwwwwwwttt",
+        "twwttwwttt",
+        "twwttwwttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _yog_sothoth_frames() -> list[str]:
@@ -1935,7 +3143,37 @@ def _yog_sothoth_frames() -> list[str]:
         "tttPPPtttt",
         "ttttPPtttt",
     ])
-    return [frame1, frame2]
+    # yog_sothoth — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "ttttPPtttt",
+        "tttPPPPttt",
+        "ttPPPPPttt",
+        "tPpPPpPPtt",
+        "PPPPPPPPPt",
+        "PPpPPPpPtt",
+        "tPPPPPPPPt",
+        "PPPpPPPPPt",
+        "PPPPPPpPPt",
+        "tPPPPPPPtt",
+        "ttPPPPPttt",
+        "tttPPttttt",
+    ])
+    # yog_sothoth — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "ttttPPtttt",
+        "tttPPPPttt",
+        "ttPPPPPttt",
+        "tPpPPpPPtt",
+        "PPPPPPPPPt",
+        "PPpPPPpPtt",
+        "tPPPPPPPPt",
+        "PPPpPPPPPt",
+        "PPPPPPpPPt",
+        "tPPPPPPPtt",
+        "ttPPPPPttt",
+        "tttPPttttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _clippy_frames() -> list[str]:
@@ -1968,7 +3206,37 @@ def _clippy_frames() -> list[str]:
         "teettttttt",
         "tteeetttt",
     ])
-    return [frame1, frame2]
+    # clippy — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "ttteeeettt",
+        "tteetteett",
+        "teettteettt",
+        "eettttteet",
+        "eeeteeteet",
+        "eeeteetet",
+        "eetttteet",
+        "teewwweettt",
+        "tteetteett",
+        "teettteettt",
+        "teettttttt",
+        "tteeetttt",
+    ])
+    # clippy — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "ttteeeettt",
+        "tteetteett",
+        "teettteettt",
+        "eettttteet",
+        "eewtewteet",
+        "eeEteEtet",
+        "eetttteet",
+        "teewwweettt",
+        "tteetteett",
+        "teettteettt",
+        "teettttttt",
+        "tteeetttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _goblin_frames() -> list[str]:
@@ -1999,7 +3267,35 @@ def _goblin_frames() -> list[str]:
         "tGGtttGGttt",
         "tGGtttGGttt",
     ])
-    return [frame1, frame2]
+    # goblin — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tGGtttGGttt",
+        "GGGGGGGGGtt",
+        "tGGGGGGGGtt",
+        "GGrGGGrGGtt",
+        "tGGGGGGGGtt",
+        "GGwGwGwGGtt",
+        "tGGGGGGGGtt",
+        "ttGGGGGGttt",
+        "ttGGGGGGttt",
+        "ttGGttGGttt",
+        "ttGGttGGttt",
+    ])
+    # goblin — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tGGtttGGttt",
+        "GGGGGGGGGtt",
+        "tGGGGGGGGtt",
+        "GGrGGGrGGtt",
+        "tGGGGGGGGtt",
+        "GGwGwGwGGtt",
+        "tGGGGGGGGtt",
+        "ttGGGGGGttt",
+        "ttGGGGGGttt",
+        "ttGGttGGttt",
+        "ttGGttGGttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _imp_frames() -> list[str]:
@@ -2032,7 +3328,37 @@ def _imp_frames() -> list[str]:
         "tRttttttttt",
         "ttRtttttttt",
     ])
-    return [frame1, frame2]
+    # imp — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "trttttrtttt",
+        "trrrrrrttt",
+        "trrrrrrrttt",
+        "rrrrrrrrrtt",
+        "trrrrrrrttt",
+        "trrwwrrrttt",
+        "ttrrrrrtttt",
+        "ttrrrrrttt",
+        "ttrrttrrtt",
+        "ttrrttrrtt",
+        "tttttttrRtt",
+        "tttttttRttt",
+    ])
+    # imp — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "trttttrtttt",
+        "trrrrrrttt",
+        "trrrrrrrttt",
+        "rErrrrrErtt",
+        "trrrrrrrttt",
+        "trrwwrrrttt",
+        "ttrrrrrtttt",
+        "ttrrrrrttt",
+        "ttrrttrrtt",
+        "ttrrttrrtt",
+        "tttttttrRtt",
+        "tttttttRttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _kobold_frames() -> list[str]:
@@ -2063,7 +3389,35 @@ def _kobold_frames() -> list[str]:
         "ttoottoott",
         "ttoottoott",
     ])
-    return [frame1, frame2]
+    # kobold — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "ttttoootttt",
+        "ttoooooott",
+        "toooooooott",
+        "ooyoooyoott",
+        "ooooooooott",
+        "toooNNoottt",
+        "ttooNNoott",
+        "tttoooottt",
+        "ttoooooott",
+        "ttoottoottt",
+        "ttoottoottt",
+    ])
+    # kobold — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "ttttoootttt",
+        "ttoooooott",
+        "toooooooott",
+        "ooyoooyoott",
+        "ooooooooott",
+        "toooNNoottt",
+        "ttooNNoott",
+        "tttoooottt",
+        "ttoooooott",
+        "ttoottoottt",
+        "ttoottoottt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _joe_camel_frames() -> list[str]:
@@ -2098,7 +3452,39 @@ def _joe_camel_frames() -> list[str]:
         "NNttNNttNNt",
         "NNttNNttNNt",
     ])
-    return [frame1, frame2]
+    # joe_camel — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttNNttttt",
+        "ttNNNNtttt",
+        "tNNNNNNttt",
+        "NNkkkNNNtt",
+        "NNkkkNNNtt",
+        "tNNNNNtttt",
+        "tNNNNNtttt",
+        "ttNNNNtttt",
+        "ttNNNNtttt",
+        "tNNNNNNNtt",
+        "NNNNNNNNNt",
+        "NNtNNtNNtt",
+        "NNtNNtNNtt",
+    ])
+    # joe_camel — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttNNttttt",
+        "ttNNNNtttt",
+        "tNNNNNNttt",
+        "NNkkkNNNtt",
+        "NNkkkNNNtt",
+        "tNNNNNtttt",
+        "tNNNNNtttt",
+        "ttNNNNtttt",
+        "ttNNNNtttt",
+        "tNNNNNNNtt",
+        "NNNNNNNNNt",
+        "NNtNNtNNtt",
+        "NNtNNtNNtt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _potato_frames() -> list[str]:
@@ -2125,7 +3511,31 @@ def _potato_frames() -> list[str]:
         "ttNNNNNNttt",
         "tttNNNNtttt",
     ])
-    return [frame1, frame2]
+    # potato — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttNNNNtttt",
+        "ttNNNNNNttt",
+        "tNNNNNNNNtt",
+        "NNNNNNNNNtt",
+        "NNNNNNNNNtt",
+        "NNNwwNNNNtt",
+        "tNNNNNNNNtt",
+        "ttNNNNNNttt",
+        "tttNNNNtttt",
+    ])
+    # potato — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttNNNNtttt",
+        "ttNNNNNNttt",
+        "tNNNNNNNNtt",
+        "NNENNNENNtt",
+        "NNNNNNNNNtt",
+        "NNNwwNNNNtt",
+        "tNNNNNNNNtt",
+        "ttNNNNNNttt",
+        "tttNNNNtttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _bat_frames() -> list[str]:
@@ -2154,7 +3564,33 @@ def _bat_frames() -> list[str]:
         "ttttEEEttttt",
         "tttEEtEEtttt",
     ])
-    return [frame1, frame2]
+    # bat — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "EEtttttttEEt",
+        "EEEtttttEEEt",
+        "EEEEtttEEEEt",
+        "EEEEEEEEEEEt",
+        "EEEEEEEEEEEt",
+        "EEEEEEEEEEEt",
+        "EEEEEwEEEEEt",
+        "tEEEEEEEEEtt",
+        "ttEEEEEEEttt",
+        "tttEEtEEtttt",
+    ])
+    # bat — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "EEtttttttEEt",
+        "EEEtttttEEEt",
+        "EEEEtttEEEEt",
+        "EEEEEEEEEEEt",
+        "EEEEEEEEEEEt",
+        "EEEEEEEEEEEt",
+        "EEEEEwEEEEEt",
+        "tEEEEEEEEEtt",
+        "ttEEEEEEEttt",
+        "tttEEtEEtttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _coffee_frames() -> list[str]:
@@ -2185,7 +3621,35 @@ def _coffee_frames() -> list[str]:
         "twwwwwwwttt",
         "ttwwwwwtttt",
     ])
-    return [frame1, frame2]
+    # coffee — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tteeeteettt",
+        "tttetetettt",
+        "tttetettttt",
+        "twwwwwwwttt",
+        "tNNNNNNNtNt",
+        "tNNNNNNNtNt",
+        "twNNNNNwtNt",
+        "twNwwNNwtNt",
+        "twNNNNNwttt",
+        "twwwwwwwttt",
+        "ttwwwwwtttt",
+    ])
+    # coffee — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tteeeteettt",
+        "tttetetettt",
+        "tttetettttt",
+        "twwwwwwwttt",
+        "twNNNNNwtNt",
+        "twNENENwtNt",
+        "twNNNNNwtNt",
+        "twNwwNNwtNt",
+        "twNNNNNwttt",
+        "twwwwwwwttt",
+        "ttwwwwwtttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _dali_clock_frames() -> list[str]:
@@ -2216,7 +3680,35 @@ def _dali_clock_frames() -> list[str]:
         "ttttttttyttt",
         "tttttttytttt",
     ])
-    return [frame1, frame2]
+    # dali_clock — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tyyyyyyyyttt",
+        "yYYYYYYYyttt",
+        "yYyYYYyYyttt",
+        "yYYYYYYYyttt",
+        "yYYwwYYYyttt",
+        "yYYYYYYYyttt",
+        "tyyyyyyytttt",
+        "tttttyyyyttt",
+        "tttttttyyttt",
+        "tttttttytttt",
+        "ttttttytttt",
+    ])
+    # dali_clock — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tyyyyyyyyttt",
+        "yYYYYYYYyttt",
+        "yYEYYYEYyttt",
+        "yYYYYYYYyttt",
+        "yYYwwYYYyttt",
+        "yYYYYYYYyttt",
+        "tyyyyyyytttt",
+        "tttttyyyyttt",
+        "tttttttyyttt",
+        "tttttttytttt",
+        "ttttttytttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _comrade_frames() -> list[str]:
@@ -2245,7 +3737,33 @@ def _comrade_frames() -> list[str]:
         "ttrrRtttttt",
         "trrRttttttt",
     ])
-    return [frame1, frame2]
+    # comrade — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttrrtttttt",
+        "ttrrrrttttt",
+        "tttrrttrrrt",
+        "tttrrtrrRtt",
+        "tttrrrrRttt",
+        "tttwrrwttt",
+        "tttrrRtttt",
+        "ttrrRttttt",
+        "trrRtttttt",
+        "rrRttttttt",
+    ])
+    # comrade — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttrrtttttt",
+        "ttrrrrttttt",
+        "tttrrttrrrt",
+        "tttrrtrrRtt",
+        "tttrrrrRttt",
+        "tttwrrwttt",
+        "tttrrRtttt",
+        "ttrrRttttt",
+        "trrRtttttt",
+        "rrRttttttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _box_frames() -> list[str]:
@@ -2276,7 +3794,33 @@ def _box_frames() -> list[str]:
         "NNNNNNNNNNt",
         "NNNNNNNNNNN",
     ])
-    return [frame1, frame2]
+    # box — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "ttttttttttt",
+        "ttttttttttt",
+        "NNNNNNNNNNN",
+        "NNNNkNNNNNt",
+        "NNNNNNNNNNN",
+        "NNNNNNNNNNt",
+        "NNNNNNNNNNt",
+        "NNNNNNNNNNt",
+        "NNNNNNNNNNt",
+        "NNNNNNNNNNN",
+    ])
+    # box — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "ttttttttttt",
+        "ttttttttttt",
+        "NNNNNNNNNNN",
+        "NNNNkNNNNNt",
+        "NNNNNNNNNNN",
+        "NNNNNNNNNNt",
+        "NNNNNNNNNNt",
+        "NNNNNNNNNNt",
+        "NNNNNNNNNNt",
+        "NNNNNNNNNNN",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _bac_man_frames() -> list[str]:
@@ -2308,7 +3852,35 @@ def _bac_man_frames() -> list[str]:
         "ttyyyyyyttt",
         "tttyyyytttt",
     ])
-    return [frame1, frame2]
+    # bac_man — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttyyyytttt",
+        "ttyyyyyyttt",
+        "tyyyyyyyyytt",
+        "yyyyyyyyyyy",
+        "yyyyyytttt",
+        "yyyyyttttt",
+        "yyyyyytttt",
+        "yyyyyyyyyyy",
+        "tyyyyyyyyytt",
+        "ttyyyyyyttt",
+        "tttyyyytttt",
+    ])
+    # bac_man — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttyyyytttt",
+        "ttyyyyyyttt",
+        "tyyyyyyyyytt",
+        "yyyyyyyyyyy",
+        "yyyyyytttt",
+        "yyyyyttttt",
+        "yyyyyytttt",
+        "yyyyyyyyyyy",
+        "tyyyyyyyyytt",
+        "ttyyyyyyttt",
+        "tttyyyytttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _coopa_frames() -> list[str]:
@@ -2339,7 +3911,35 @@ def _coopa_frames() -> list[str]:
         "tyytttyyttt",
         "tyytttyyttt",
     ])
-    return [frame1, frame2]
+    # coopa — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "ttttttttttt",
+        "tttgggtttt",
+        "ttgGGGGgttt",
+        "tgGGGGGGttt",
+        "tgGGGGGGttt",
+        "ttgGGGgttt",
+        "tttyyyyytt",
+        "ttyyyyyyttt",
+        "ttyyyyytttt",
+        "ttyyttyyttt",
+        "ttyyttyyttt",
+    ])
+    # coopa — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "ttttttttttt",
+        "tttgggtttt",
+        "ttgGGGGgttt",
+        "tgGGGGGGttt",
+        "tgGGGGGGttt",
+        "ttgGGGgttt",
+        "tttyyyyytt",
+        "ttEyyyyEttt",
+        "ttyyyyytttt",
+        "ttyyttyyttt",
+        "ttyyttyyttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _kilowatt_frames() -> list[str]:
@@ -2372,7 +3972,37 @@ def _kilowatt_frames() -> list[str]:
         "tteetteettt",
         "eettttttttt",
     ])
-    return [frame1, frame2]
+    # kilowatt — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tttrrrttttt",
+        "ttyyyyytttt",
+        "tyyyyyyyttt",
+        "tyyyyyyyttt",
+        "tyyyyyyyttt",
+        "tyywwyyttt",
+        "ttyyyyytt",
+        "tttyyytttt",
+        "ttteyettttt",
+        "tteeteettt",
+        "tteetteett",
+        "ttttttteett",
+    ])
+    # kilowatt — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tttrrrttttt",
+        "ttyyyyytttt",
+        "tyyyyyyyttt",
+        "tyEyyyyEttt",
+        "tyyyyyyyttt",
+        "tyywwyyttt",
+        "ttyyyyytt",
+        "tttyyytttt",
+        "ttteyettttt",
+        "tteeteettt",
+        "tteetteett",
+        "ttttttteett",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _zorak_frames() -> list[str]:
@@ -2403,7 +4033,35 @@ def _zorak_frames() -> list[str]:
         "tttGtGttttt",
         "tttGtGttttt",
     ])
-    return [frame1, frame2]
+    # zorak — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "tGGtttGGttt",
+        "GGGGGGGGGtt",
+        "GGrGGGrGGtt",
+        "GGGGGGGGGtt",
+        "GGGwwwGGGtt",
+        "tGGGGGGGttt",
+        "GtGGGGGtGtt",
+        "GttGGGttGtt",
+        "tttGGGttttt",
+        "tttGtGttttt",
+        "ttGGtGGtttt",
+    ])
+    # zorak — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "tGGtttGGttt",
+        "GGGGGGGGGtt",
+        "GGrGGGrGGtt",
+        "GGGGGGGGGtt",
+        "GGGwwwGGGtt",
+        "tGGGGGGGttt",
+        "GtGGGGGtGtt",
+        "GttGGGttGtt",
+        "tttGGGttttt",
+        "tttGtGttttt",
+        "ttGGtGGtttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _anchor_frames() -> list[str]:
@@ -2421,7 +4079,35 @@ def _anchor_frames() -> list[str]:
         "tttteetttt",
         "tttteettttt",
     ])
-    return [frame1, frame1]
+    # anchor — happy (glinting)
+    frame3 = _build_sprite([
+        "ttttwetttt",
+        "ttteeeettt",
+        "tttteetttt",
+        "tttteetttt",
+        "ettteettte",
+        "eetteetteet",
+        "teeeeeeeet",
+        "tteeeeeettt",
+        "tttteetttt",
+        "tttteetttt",
+        "tttteettttt",
+    ])
+    # anchor — sleepy (duller)
+    frame4 = _build_sprite([
+        "tttteetttt",
+        "tttEEEEttt",
+        "tttteetttt",
+        "tttteetttt",
+        "Ettteettte",
+        "EEtteettEEt",
+        "teeeeeeeet",
+        "tteeeeeettt",
+        "tttteetttt",
+        "tttteetttt",
+        "tttteettttt",
+    ])
+    return [frame1, frame1, frame3, frame4]
 
 
 def _dice_frames() -> list[str]:
@@ -2444,7 +4130,27 @@ def _dice_frames() -> list[str]:
         "wwwwwwwwttt",
         "twwwwwwwttt",
     ])
-    return [frame1, frame2]
+    # dice — happy (eyes squinted)
+    frame3 = _build_sprite([
+        "teeeeeeettt",
+        "eeeeeeeettt",
+        "wwwwwwwwttt",
+        "wwwwkwwwttt",
+        "wwwwwwwwttt",
+        "eeeeeeeettt",
+        "twwwwwwwttt",
+    ])
+    # dice — sleepy (half-closed eyes)
+    frame4 = _build_sprite([
+        "twwwwwwwttt",
+        "wEwwwwEwttt",
+        "wwwwwwwwttt",
+        "wwwwkwwwttt",
+        "wwwwwwwwttt",
+        "wEwwwwEwttt",
+        "twwwwwwwttt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _taco_frames() -> list[str]:
@@ -2467,7 +4173,27 @@ def _taco_frames() -> list[str]:
         "ttoooooooott",
         "tttooooottt",
     ])
-    return [frame1, frame2]
+    # taco — happy (fillings spilling out)
+    frame3 = _build_sprite([
+        "tttooooottt",
+        "ttoooooooott",
+        "toggryrgott",
+        "toggryrrgot",
+        "toggryrgotg",
+        "ttoooooooott",
+        "tttooooottt",
+    ])
+    # taco — sleepy (settled)
+    frame4 = _build_sprite([
+        "ttttttttttt",
+        "tttooooottt",
+        "ttoooooooott",
+        "toggryrgott",
+        "toggryrrgot",
+        "ttoooooooott",
+        "tttooooottt",
+    ])
+    return [frame1, frame2, frame3, frame4]
 
 
 def _hat_safety_cone() -> str:

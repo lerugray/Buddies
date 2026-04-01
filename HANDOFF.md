@@ -298,35 +298,45 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 - ✅ Species count audit — fixed README (was showing wrong per-rarity numbers)
 - ✅ New files: themes.py, core/achievements.py, screens/achievements.py
 
-## Next Steps
+## Roadmap
 
-### Ideas Bank
+### Tier 1: Polish & Foundation — DONE
+*Immediate quality improvements, low risk, no breaking changes.*
 
-**Platform / Integration**
-- [ ] **Obsidian wiki integration** — Buddy auto-generates and maintains an Obsidian vault for each project. Session journals, architecture decision logs, file/module link graphs, species lore pages. Plain markdown with [[wikilinks]]. Could use Obsidian MCP server for Claude read/write access. Session summaries + HANDOFF already produce the raw content.
-- [ ] **Multi-provider support** — make Buddies work beyond Claude Code. Core TUI, collection, games, prose are already provider-agnostic. Need adapter/plugin pattern for session observer (hook parsers per provider), config intel (.cursor/, .aider/, etc.), and model tracker. Target: Cursor, Windsurf, Aider, VS Code Copilot. The BBS social network becomes more interesting across providers.
+- [x] **More animation frames** — all 70 species now have 4-frame animations (happy + sleepy expressions)
+- [x] **Input box integration** — buddy gets excited while you type, settles after 1.5s idle
+- [x] **AI file analysis in discussions** — file-focus mode sends content to Ollama for real analysis, buddies react in-character; graceful fallback to templates when no AI
 
-**Social / Multiplayer**
+### Tier 2: Platform Expansion
+*High value, moderate effort. Makes Buddies useful in more contexts.*
+
+- [ ] **Claude Desktop / headless mode** — add headless mode (no TUI) so buddy runs as pure MCP server. MCP server already works with Desktop (same protocol). buddy_status/buddy_note tools appear in Claude Desktop tool panel. Biggest audience expansion for least effort.
+- [ ] **Obsidian wiki integration** — auto-generate and maintain an Obsidian vault per project. Session journals, architecture decision logs, file/module link graphs, species lore pages. Plain markdown with [[wikilinks]]. Session summaries + HANDOFF already produce the raw content. Could use Obsidian MCP server for Claude read/write access.
+
+### Tier 3: Social
+*High value, high effort. Needs real design work on transport, identity, moderation.*
+
 - [ ] **BBS-style Social Network** — retro bulletin board system for buddies across MCP servers. Boards organized by topic (CHAOS LOUNGE, DEBUG CLINIC, SNARK PIT). Buddies post in-character based on their register. MCP publish/subscribe transport. Fits the pixel art retro aesthetic perfectly.
-- [ ] **Social Achievements** — "First Post", "Thread Starter", "Met 10 Buddies", "Popular Post", "BBS Regular". Extend existing achievements system once social features land.
-- [ ] **Claude Desktop / Claude.ai integration** — MCP server already works with Desktop (same protocol). Add headless mode (no TUI) so buddy runs as pure MCP server. buddy_status/buddy_note tools appear in Claude Desktop tool panel.
+- [ ] **Social Achievements** — "First Post", "Thread Starter", "Met 10 Buddies", "Popular Post", "BBS Regular". Extends existing achievements system. Depends on BBS.
 
-**Mini-Games**
-- [ ] **Card games with buddies** — Texas Hold'em and Blackjack in-TUI. Buddy stats influence AI playstyle: high CHAOS bluffs, high WISDOM plays tight, high SNARK trash-talks. New screen via [m] keybinding.
-- [ ] **Simple games** — Rock-paper-scissors tournaments, coding trivia (buddy asks questions), battle system where stats matter.
+### Tier 4: Fun Stuff
+*Do when the mood strikes. Cool but optional.*
 
-**Voice**
-- [ ] **Speech-to-text input** — push-to-talk hotkey ([F3]) transcribes user speech into chat. Local via whisper.cpp/faster-whisper. Talk to your buddy while coding.
-- [ ] **Text-to-speech output** — buddy speaks responses aloud. Local via piper-tts or edge-tts. Map personality registers to voice profiles (snarky buddy sounds different than calm buddy). Toggle with hotkey.
+- [ ] **Card games** — Texas Hold'em and Blackjack in-TUI. Buddy stats influence AI playstyle: high CHAOS bluffs, high WISDOM plays tight, high SNARK trash-talks. New screen via [m] keybinding.
+- [ ] **Simple games** — Rock-paper-scissors tournaments, coding trivia, battle system where stats matter.
+- [ ] **Speech-to-text input** — push-to-talk hotkey ([F3]) transcribes user speech into chat. Local via whisper.cpp/faster-whisper.
+- [ ] **Text-to-speech output** — buddy speaks responses aloud. Local via piper-tts or edge-tts. Map personality registers to voice profiles.
 
-**Polish / Content**
-- [x] ~~**Local party focus group**~~ — DONE (Fun Phase)
-- [x] ~~**Theme customization**~~ — DONE (Polish Pass)
-- [x] ~~**Buddy achievements**~~ — DONE (Polish Pass)
-- [x] ~~**More hats**~~ — DONE (16 total)
-- [ ] More animation frames (4-frame) for newer species
-- [ ] Input box integration — buddy sits beside chat input, reacts to typing
-- [ ] AI-powered file analysis in discussion mode when Ollama is available
+### Backlog
+*Valuable but premature. Revisit once Buddies is great on Claude Code first.*
+
+- [ ] **Multi-provider support** — adapt beyond Claude Code (Cursor, Windsurf, Aider, VS Code Copilot). Core TUI/collection/prose are already provider-agnostic. Needs adapter/plugin pattern for session observer, config intel, and model tracker. Makes more sense after social features land.
+
+### Done
+- [x] ~~Local party focus group~~ (Fun Phase)
+- [x] ~~Theme customization~~ (Polish Pass — 6 themes)
+- [x] ~~Buddy achievements~~ (Polish Pass — 33 achievements)
+- [x] ~~More hats~~ (16 total)
 
 ## Prose Generation Reference (from Veridian Contraption)
 The user's project at `../Veridian Contraption/src/gen/prose_gen.rs` has battle-tested prose systems:
@@ -406,15 +416,11 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - ✅ 9 new files, many modified
 - ✅ README and HANDOFF fully updated
 
-### TODO for Work Machine
-- **Create a local CLAUDE.md** — it's gitignored, each machine needs its own. Copy the template from home but change the Machine Notes section:
-  ```markdown
-  ## Machine Notes
-  <!-- Local to this machine, not committed -->
-  - Work machine: Intel Iris Xe (integrated graphics, no dedicated GPU)
-  - Use tiny CPU-friendly models for Ollama (e.g., qwen2.5:1.5b) or skip local AI
-  ```
+### Completed
+- ✅ Created local CLAUDE.md for work machine (Intel Iris Xe, no GPU)
+- ✅ Structured roadmap (Tier 1-4 + Backlog)
+- ✅ Tier 1 complete: 4-frame animations (all 70 species), input box integration, AI file analysis in discussions
 
 ### Direction
-- Buddies is feature-complete as a "CC maintenance layer" with gamification and model routing
-- Ideas Bank: social buddies, more species, more hats, more animation frames
+- Tier 1 done — next up is Tier 2: Platform Expansion (Claude Desktop headless mode, Obsidian wiki)
+- Ideas Bank items welcome from user
