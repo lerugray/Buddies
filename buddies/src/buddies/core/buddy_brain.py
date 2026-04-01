@@ -68,6 +68,19 @@ SPECIES_CATALOG: list[Species] = [
     Species("chonk", "🐈", Rarity.EPIC, {"patience": 5, "snark": 4}, "The legendary fat cat. Sits on your keyboard."),
     Species("tardigrade", "🔬", Rarity.EPIC, {"patience": 5, "debugging": 4}, "Indestructible micro-bear. Survives anything."),
     Species("starspawn", "🟣", Rarity.LEGENDARY, {"chaos": 5, "wisdom": 5}, "Eldritch tentacle blob. Ph'nglui mglw'nafh."),
+    # Fun phase species
+    Species("corgi", "🐕", Rarity.COMMON, {"patience": 3, "debugging": 2}, "Short legs, big heart. Will herd your functions."),
+    Species("pig", "🐷", Rarity.COMMON, {"patience": 2, "snark": 3}, "Truffle hunter. Finds bugs by smell."),
+    Species("crab", "🦀", Rarity.UNCOMMON, {"snark": 3, "debugging": 3}, "Walks sideways through your codebase."),
+    Species("moth", "🦋", Rarity.UNCOMMON, {"wisdom": 3, "chaos": 2}, "Drawn to the glow of your terminal."),
+    Species("snail", "🐌", Rarity.UNCOMMON, {"patience": 5, "wisdom": 2}, "Slow and steady ships the feature."),
+    Species("doobie", "🌿", Rarity.RARE, {"patience": 5, "chaos": 3}, "Chill vibes only. Everything compiles eventually."),
+    Species("jellyfish", "🪼", Rarity.RARE, {"wisdom": 4, "patience": 3}, "Floats through problems with ethereal grace."),
+    Species("burger", "🍔", Rarity.EPIC, {"chaos": 4, "snark": 5}, "A sentient cheeseburger. Surprisingly opinionated."),
+    Species("beholder", "👁", Rarity.EPIC, {"wisdom": 5, "debugging": 4}, "Sees all. Judges all. Ten eyestalks of review."),
+    Species("mimic", "📦", Rarity.EPIC, {"chaos": 5, "snark": 4}, "Looks like a chest. IS NOT A CHEST. Has legs."),
+    Species("claude", "🤖", Rarity.LEGENDARY, {"wisdom": 6, "debugging": 5}, "A tiny Claude. Helpful, harmless, and pixelated."),
+    Species("illuminati", "🔺", Rarity.LEGENDARY, {"wisdom": 6, "chaos": 5}, "The all-seeing eye. Knows your commit history."),
 ]
 
 # Rarity weights for the gacha
