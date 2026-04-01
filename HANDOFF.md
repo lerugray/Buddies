@@ -371,7 +371,7 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 *The deranged masterpiece. Absurdist shared world where all users' buddies coexist.*
 
 - [x] **Phase 1 (Local MUD)** — "StackHaven MUD" — 11 rooms across 4 zones, 10 NPCs (quest givers, merchants, hostile mobs, a sentient coffee machine), 25+ items, 4 quests, full command parser (look/go/talk/take/attack/buy/flee/quest/map), personality-driven buddy commentary, simplified combat with equipment bonuses, locked doors with key items. 45 tests.
-- [ ] **Phase 2 (Multiplayer)** — GitHub Issues as persistent world state (same transport as BBS). See other users' buddies in rooms. Async messaging — leave notes in rooms, others find them later. Not real-time, which is more MUD-authentic.
+- [ ] **Phase 2 (Multiplayer)** — GitHub Issues as persistent world state (same transport as BBS). See other users' notes/bloodstains/phantoms. Share soapstone messages across users. Death markers become globally visible. Phantom traces show other users' buddies.
 - [ ] **Phase 3 (Economy)** — gold from dungeon runs feeds into MUD marketplace. Trade items between users. Absurd cosmetics ("Slightly Haunted Top Hat", "NFT That Does Nothing", "Artisanal Semicolon"). In-game currency.
 - [ ] **Phase 4 (Living World)** — rotating quests, world events ("The Production Server Is On Fire — All Hands"), seasonal skins, BBS integration (buddies auto-post about MUD adventures). Silly DLC/add-ons/minigames as jokes.
 
@@ -653,9 +653,27 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - ✅ **Personality-driven room reactions** — 13 rooms × 5 stats = 65+ unique lines. Buddies react to specific locations based on their dominant stat (CHAOS wants to pull cables, SNARK roasts the root password, WISDOM philosophizes)
 - ✅ **73 MUD tests, 207 total** across the full suite
 
+- ✅ **Dark Souls Async Multiplayer** — soapstone notes, bloodstains, phantom traces
+  - **Orange Soapstone** — given by the Rubber Duck Sage, lets you leave template-based messages in rooms
+  - **Note system** — 20 templates × 50+ subjects = 1000+ possible messages ("Try coffee", "Be wary of merge conflicts", "Praise the CI/CD pipeline!"). Upvote/downvote rating.
+  - **Bloodstains** — death markers showing what killed you. Created automatically on combat defeat.
+  - **Phantom traces** — ghostly silhouettes of your buddies appear in rooms you've visited. 15 possible actions.
+  - **Pre-seeded world** — 32 phantom notes and 11 bloodstains from "other adventurers" so it feels alive from the start
+  - **Persistent** — all multiplayer data saved to local JSON, designed for GitHub Issues transport in Phase 2
+  - 33 new tests (240 total)
+
+### New files (updated)
+- `core/games/mud_world.py` — World engine (rooms, NPCs, items, quests, soapstone)
+- `core/games/mud_engine.py` — Command parser, combat, game loop, world events, room reactions, note/rate/bloodstain commands
+- `core/games/mud_multiplayer.py` — Async multiplayer: notes, bloodstains, phantoms, template system, local JSON storage
+- `screens/game_mud.py` — TUI screen with sidebar and soapstone status
+- `tests/test_mud.py` — 73 MUD engine tests
+- `tests/test_mud_multiplayer.py` — 33 async multiplayer tests
+
 ### Direction
-- Tier 5b Phase 1 complete and polished! Local MUD has 17 rooms, 17 NPCs, 6 quests, 40+ items
-- Phase 2 (Multiplayer) next — GitHub Issues for persistent world state
+- Tier 5b Phase 1 complete and polished with async multiplayer!
+- MUD has 17 rooms, 17 NPCs, 6 quests, 40+ items, Dark Souls-style notes/bloodstains/phantoms
+- Phase 2 (Full Multiplayer) next — GitHub Issues for shared world state, see other players' notes/bloodstains
 - The world is designed to be expandable: add rooms/NPCs/quests by extending build_starter_* functions
 - Multiple quest chains create progression: QA quest → Archive badge → find incident report → get Oncall Pager
 - Pipeline quest → VPN token → Cloud District → Kubernetes Cluster
