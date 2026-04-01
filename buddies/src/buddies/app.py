@@ -34,6 +34,8 @@ from buddies.widgets.session_monitor import SessionMonitor
 from buddies.screens.party import PartyScreen
 from buddies.screens.discussion import DiscussionScreen
 from buddies.screens.tool_browser import ToolBrowserScreen
+from buddies.screens.conversations import ConversationsScreen
+from buddies.core.conversation import ConversationLog
 
 
 CSS_PATH = Path(__file__).parent / "styles" / "buddy.tcss"
@@ -53,6 +55,7 @@ class BuddyApp(App):
         Binding("p", "party", "Party", show=True),
         Binding("d", "discussion", "Discuss", show=True),
         Binding("t", "tools", "Tools", show=True),
+        Binding("c", "conversations", "Convos", show=True),
     ]
 
     def __init__(self):
@@ -65,6 +68,7 @@ class BuddyApp(App):
         self.router: AIRouter | None = None
         self.rule_suggester: RuleSuggester | None = None
         self.prose = ProseEngine()
+        self.convo_log = ConversationLog()
         self._last_thought_time: float = 0
         self._recent_tools: list[str] = []
         self._bored_minutes: float = 0  # Track sustained boredom for nightcap
@@ -115,12 +119,19 @@ class BuddyApp(App):
         # Initialize AI router and rule suggester
         self.router = AIRouter(self.ai_backend, self.buddy_state)
         self.rule_suggester = RuleSuggester(self.store)
+
+        # Start a new conversation (auto-saves every message)
+        buddy_name = self.buddy_state.name if self.buddy_state else "Buddy"
+        self.convo_log.start_new(buddy_name=buddy_name)
         asyncio.create_task(self.rule_suggester.load_dismissed())
 
         self._update_displays()
 
-        # Welcome message
+        # Connect conversation log to chat widget
         chat = self.query_one("#chat-panel", ChatWindow)
+        chat.convo_log = self.convo_log
+
+        # Welcome message
         chat.add_system(f"{self.buddy_state.species.emoji} {self.buddy_state.name} hatched!")
         chat.add_message("buddy", self._get_greeting())
 
@@ -562,7 +573,7 @@ class BuddyApp(App):
         chat.add_system("Simple questions → handled locally (saves Claude tokens)")
         chat.add_system("Complex questions → buddy tells you to ask Claude")
         chat.add_system("Commands: 'stats' 'help' 'name' 'session' 'tokens'")
-        chat.add_system("Keys: [q] quit  [?] help  [r] hatch  [p] party  [d] discuss  [t] tools  [F5] refresh")
+        chat.add_system("Keys: [q] quit  [?] help  [r] hatch  [p] party  [d] discuss  [t] tools  [c] convos  [F5] refresh")
         chat.add_system("────────────")
 
     def action_hatch_new(self):
@@ -642,6 +653,23 @@ class BuddyApp(App):
 
     async def _on_tools_dismissed(self, result) -> None:
         pass
+
+    def action_conversations(self):
+        """Open the conversations browser."""
+        self.push_screen(ConversationsScreen(), callback=self._on_conversations_dismissed)
+
+    async def _on_conversations_dismissed(self, result) -> None:
+        """Handle conversations screen result — load a saved conversation."""
+        if result is None:
+            return
+
+        action, filename = result
+        if action == "load":
+            messages = self.convo_log.load(filename)
+            chat = self.query_one("#chat-panel", ChatWindow)
+            chat.clear_log()
+            chat.replay_messages(messages)
+            chat.add_system(f"Loaded conversation: {self.convo_log.name}")
 
     def action_refresh(self):
         self._update_displays()

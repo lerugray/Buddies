@@ -44,6 +44,9 @@ class ChatWindow(Vertical):
     buddy_emoji: str = ""
     buddy_rarity: str = "common"
 
+    # Conversation log — set by app.py for auto-saving
+    convo_log = None  # Optional[ConversationLog]
+
     def compose(self) -> ComposeResult:
         yield Static("💬 Chat", id="chat-header")
         yield RichLog(id="chat-log", wrap=True, highlight=True, markup=True)
@@ -70,5 +73,22 @@ class ChatWindow(Vertical):
         else:
             log.write(f"[bold yellow]{sender}:[/] {message}")
 
+        # Auto-save to conversation log
+        if self.convo_log is not None:
+            self.convo_log.add_message(sender, message)
+
     def add_system(self, message: str):
         self.add_message("system", message)
+
+    def clear_log(self):
+        """Clear the chat log display (for loading a different conversation)."""
+        log = self.query_one("#chat-log", RichLog)
+        log.clear()
+
+    def replay_messages(self, messages: list) -> None:
+        """Replay a list of Message objects into the chat log without re-saving."""
+        saved_log = self.convo_log
+        self.convo_log = None  # Temporarily disable auto-save during replay
+        for msg in messages:
+            self.add_message(msg.sender, msg.text)
+        self.convo_log = saved_log  # Re-enable
