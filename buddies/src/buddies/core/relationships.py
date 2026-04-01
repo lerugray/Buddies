@@ -92,11 +92,11 @@ def compute_stat_compatibility(a: BuddyState, b: BuddyState) -> int:
 
     if avg_diff < 5:
         return 15  # Very similar — strong bond
-    elif avg_diff < 10:
+    elif avg_diff < 8:
         return 8   # Somewhat similar
-    elif avg_diff < 20:
+    elif avg_diff < 12:
         return 0   # Neutral
-    elif avg_diff < 30:
+    elif avg_diff < 18:
         return -5  # Different enough to clash
     else:
         return -12 # Very different — rivalry material
