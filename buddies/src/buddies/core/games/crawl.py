@@ -310,10 +310,10 @@ def _place_encounters(grid: list[list[Cell]], rooms: list[Room], floor_num: int)
                 boss = Enemy(
                     name="The Monolith",
                     emoji="🏛️",
-                    base_hp=60,
-                    base_attack=10,
-                    base_defense=5,
-                    primary_type=MoveType.LOGIC,
+                    hp=60,
+                    attack=10,
+                    defense=5,
+                    move_type=MoveType.LOGIC,
                     moves=[
                         Move("Legacy Crush", MoveType.LOGIC, 12, 0.85, "10,000 lines of pain."),
                         Move("Dependency Hell", MoveType.CHAOS, 15, 0.70, "Everything depends on everything."),
@@ -553,9 +553,9 @@ class CrawlState:
                 fighter = BattleFighter(
                     name=e.name + (f" #{i+1}" if enc.enemy_count > 1 else ""),
                     emoji=e.emoji,
-                    hp=e.base_hp, max_hp=e.base_hp,
-                    attack=e.base_attack, defense=e.base_defense,
-                    moves=e.moves, primary_type=e.primary_type,
+                    hp=e.hp, max_hp=e.hp,
+                    attack=e.attack, defense=e.defense,
+                    moves=e.moves, primary_type=e.move_type,
                 )
                 self.combat_enemies.append(fighter)
 
