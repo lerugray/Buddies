@@ -11,6 +11,7 @@ from textual.widgets import Static, Footer
 from textual.screen import Screen
 
 from buddies.core.config_intel import ConfigIntelligence, ConfigReport
+from buddies.core.readme_intel import scan_readme, ReadmeReport
 
 
 # Grade display colors
@@ -80,6 +81,13 @@ class ConfigHealthScreen(Screen):
         height: auto;
     }
 
+    #health-readme {
+        border: solid $primary;
+        padding: 1;
+        margin: 0 0 1 0;
+        height: auto;
+    }
+
     #health-suggestions {
         border: solid $accent;
         padding: 1;
@@ -118,6 +126,7 @@ class ConfigHealthScreen(Screen):
                     yield Static("", id="health-grade")
                     yield Static("", id="health-claude-md")
                     yield Static("", id="health-rules-dir")
+                    yield Static("", id="health-readme")
                     yield Static("", id="health-suggestions")
                     yield Static("", id="health-scaffold-status")
                     yield Static(
@@ -132,6 +141,8 @@ class ConfigHealthScreen(Screen):
     async def _run_scan(self):
         self._intel = ConfigIntelligence(self.project_path)
         self.report = self._intel.scan()
+        project_path = self._intel.project_path if self._intel else Path.cwd()
+        self.readme_report = scan_readme(project_path)
         self._render_report()
 
     def _render_report(self):
@@ -208,8 +219,41 @@ class ConfigHealthScreen(Screen):
 
         self.query_one("#health-rules-dir", Static).update(rd_text)
 
+        # README section
+        if hasattr(self, "readme_report") and self.readme_report:
+            rm = self.readme_report
+            rm_color = GRADE_COLORS.get(rm.grade, "white")
+            rm_emoji = GRADE_EMOJI.get(rm.grade, "")
+
+            if rm.exists:
+                checks = []
+                for label, val in [
+                    ("Title", rm.has_title),
+                    ("Description", rm.has_description),
+                    ("Badges", rm.has_badges),
+                    ("Install", rm.has_install),
+                    ("Usage", rm.has_usage),
+                    ("License", rm.has_license),
+                    ("Screenshot/GIF", rm.has_screenshot or rm.has_gif),
+                    ("Collapsible", rm.has_collapsible),
+                ]:
+                    icon = "[green]✓[/]" if val else "[red]✗[/]"
+                    checks.append(f"  {icon} {label}")
+
+                checks_text = "\n".join(checks)
+                rm_text = (
+                    f"{rm_emoji} [bold {rm_color}]README.md — Grade {rm.grade}[/]\n"
+                    f"Lines: {rm.line_count} | Sections: {len(rm.sections)}\n"
+                    f"{checks_text}"
+                )
+            else:
+                rm_text = f"{rm_emoji} [bold red]README.md — Not Found[/]\nNo README in project root."
+
+            self.query_one("#health-readme", Static).update(rm_text)
+
         # Suggestions
-        all_suggestions = md.suggestions + rd.suggestions
+        readme_suggestions = self.readme_report.suggestions if hasattr(self, "readme_report") and self.readme_report else []
+        all_suggestions = md.suggestions + rd.suggestions + readme_suggestions
         if all_suggestions:
             suggestion_lines = "\n".join(
                 f"  [yellow]→[/] {s}" for s in all_suggestions
