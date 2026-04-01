@@ -300,18 +300,21 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 
 ## Roadmap
 
-### Tier 1: Polish & Foundation — DONE
+### Tier 1: Polish & Foundation
 *Immediate quality improvements, low risk, no breaking changes.*
 
 - [x] **More animation frames** — all 70 species now have 4-frame animations (happy + sleepy expressions)
 - [x] **Input box integration** — buddy gets excited while you type, settles after 1.5s idle
 - [x] **AI file analysis in discussions** — file-focus mode sends content to Ollama for real analysis, buddies react in-character; graceful fallback to templates when no AI
+- [x] **Layout consistency audit** — all 6 modal screens now use full-width responsive layouts, removed hardcoded max-widths and Center() containers
+- [x] **Code structure map** — Buddy generates a concise `project-map.md` in `.claude/rules/` (auto-loaded into CC context). File tree with one-line descriptions, key classes/functions per file, import graph. Auto-refreshes on startup if stale (>1hr), manual refresh with [F3]. 143 lines for 53 files — compact enough to save tokens, detailed enough to skip exploration.
 
 ### Tier 2: Platform Expansion
 *High value, moderate effort. Makes Buddies useful in more contexts.*
 
 - [ ] **Claude Desktop / headless mode** — add headless mode (no TUI) so buddy runs as pure MCP server. MCP server already works with Desktop (same protocol). buddy_status/buddy_note tools appear in Claude Desktop tool panel. Biggest audience expansion for least effort.
 - [ ] **Cross-surface context relay** — lightweight clipboard-friendly bridge between CC and claude.ai web. Quick-export keybinding snapshots current session context (files touched, decisions, summary) into a pasteable block for claude.ai. Context import via Buddy chat saves/summarizes pasted claude.ai excerpts into the session log. Not a live messaging system — just smoothing the manual relay process. Plays to Buddies' existing session awareness and handoff strengths.
+- [ ] **Multi-machine awareness** — on startup, Buddy saves a machine ID (hostname) to local config and checks git history for signs of multi-machine usage (different hostnames, unfamiliar CLAUDE.md state). First time it detects this, it explains that CLAUDE.md is local/gitignored and offers to set up the HANDOFF.md sharing pattern + .gitignore entry. Leverages existing config intelligence (Phase 9) infrastructure. Aimed at non-programmers who don't realize CLAUDE.md doesn't travel with the repo.
 - [ ] **Obsidian wiki integration** — auto-generate and maintain an Obsidian vault per project. Session journals, architecture decision logs, file/module link graphs, species lore pages. Plain markdown with [[wikilinks]]. Session summaries + HANDOFF already produce the raw content. Could use Obsidian MCP server for Claude read/write access.
 
 ### Tier 3: Social
@@ -420,7 +423,9 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 ### Completed
 - ✅ Created local CLAUDE.md for work machine (Intel Iris Xe, no GPU)
 - ✅ Structured roadmap (Tier 1-4 + Backlog)
-- ✅ Tier 1 complete: 4-frame animations (all 70 species), input box integration, AI file analysis in discussions
+- ✅ Tier 1: 4-frame animations (all 70 species), input box integration, AI file analysis in discussions
+- ✅ Layout audit: all 6 modal screens now full-width responsive
+- ✅ Code structure map: auto-generated project-map.md in .claude/rules/ [F3]
 
 ### Direction
 - Tier 1 done — next up is Tier 2: Platform Expansion (Claude Desktop headless mode, Obsidian wiki)

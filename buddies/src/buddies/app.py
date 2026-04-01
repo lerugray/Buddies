@@ -43,6 +43,7 @@ from buddies.themes import BUDDY_THEMES, THEME_ORDER, next_theme
 from buddies.core.achievements import check_achievements, ACHIEVEMENT_MAP
 from buddies.screens.achievements import AchievementsScreen
 from buddies.core.model_tracker import ModelTracker
+from buddies.core.code_map import write_project_map
 
 
 CSS_PATH = Path(__file__).parent / "styles" / "buddy.tcss"
@@ -68,6 +69,7 @@ class BuddyApp(App):
         Binding("g", "config_health", "Config", show=False),
         Binding("f1", "quick_save", "Save", show=False),
         Binding("f2", "cycle_theme", "Theme", show=False),
+        Binding("f3", "regen_map", "Map", show=False),
         Binding("f5", "refresh", "Refresh", show=False),
     ]
 
@@ -181,6 +183,9 @@ class BuddyApp(App):
 
         # Phase 9: Config health check on startup
         asyncio.create_task(self._startup_config_check())
+
+        # Generate/refresh project code map on startup
+        asyncio.create_task(self._refresh_code_map(silent=True))
 
         # Phase 10: Rolling session summary writer
         self._rolling_summary_task = asyncio.create_task(self._rolling_summary_loop())
@@ -843,6 +848,35 @@ class BuddyApp(App):
                     )
         except Exception:
             pass
+
+    def action_regen_map(self):
+        """Regenerate the project code map."""
+        asyncio.create_task(self._refresh_code_map(silent=False))
+
+    async def _refresh_code_map(self, silent: bool = False):
+        """Generate/refresh the project-map.md in .claude/rules/."""
+        try:
+            project_path = Path.cwd()
+            map_path = project_path / ".claude" / "rules" / "project-map.md"
+
+            # On silent startup, skip if map exists and is less than 1 hour old
+            if silent and map_path.exists():
+                import time
+                age = time.time() - map_path.stat().st_mtime
+                if age < 3600:
+                    return
+
+            write_project_map(project_path)
+
+            if not silent:
+                chat = self.query_one("#chat-panel", ChatWindow)
+                chat.add_system("🗺️ Project map regenerated → .claude/rules/project-map.md")
+                monitor = self.query_one("#session-panel", SessionMonitor)
+                monitor.log_event("info", "Code map refreshed")
+        except Exception:
+            if not silent:
+                chat = self.query_one("#chat-panel", ChatWindow)
+                chat.add_system("[red]Failed to generate project map[/]")
 
     def action_quick_save(self):
         """Quick-save session state to disk and generate handoff file."""
