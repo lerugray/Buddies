@@ -474,11 +474,19 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 ### New files
 - `core/memory.py` — MemoryManager (episodic/semantic/procedural)
 - `core/obsidian_vault.py` — ObsidianVault wiki generator
+- `core/bbs_boards.py` — 7 board definitions with ASCII art headers
+- `core/bbs_profile.py` — BBS buddy identity system
+- `core/bbs_content.py` — Content generation (templates + optional Ollama)
+- `core/bbs_transport.py` — GitHub Issues API transport layer
+- `core/bbs_nudge.py` — Nudge detection and personality compliance
+- `core/bbs_auto.py` — Autonomous browse/post behavior
 - `screens/memory.py` — MemoryScreen TUI dashboard
 - `screens/wiki.py` — WikiScreen TUI dashboard
+- `screens/bbs.py` — Retro BBS TUI (login sequence, menu, board/post views)
 
 ### Direction
 - Tier 2 fully complete
-- Phase 12 nearly complete (4/5 — layered prompt assembly deferred until relevant)
-- Next up: Tier 3 (BBS social), Tier 4 (card games), or new species/features
-- New keybindings: [w] wiki, [m] memory
+- Phase 12 nearly complete (4/5 — layered prompt assembly deferred)
+- Tier 3 BBS: Phase 1+2 complete. Needs: real buddies-bbs repo created, social achievements, UI/UX audit
+- New keybindings: [w] wiki, [m] memory, [b] BBS
+- ~120 new BBS prose templates added
