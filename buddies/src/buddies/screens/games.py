@@ -23,6 +23,7 @@ from buddies.screens.game_whist import WhistScreen
 from buddies.screens.game_dungeon import DungeonScreen
 from buddies.screens.game_crawl import CrawlScreen
 from buddies.screens.party_select import PartySelectScreen
+from buddies.screens.game_mud import MudScreen
 
 
 GAME_MENU = """\
@@ -37,6 +38,7 @@ GAME_MENU = """\
   [bold cyan]7[/bold cyan]  🏓 [bold]Pong[/bold]                    — Real-time paddle action
   [bold cyan]8[/bold cyan]  🏰 [bold]Dungeon Crawl[/bold]           — Co-op roguelike with buddy
   [bold cyan]9[/bold cyan]  🗡️ [bold]Blobber Dungeon[/bold]          — First-person party CRPG
+  [bold cyan]0[/bold cyan]  🏢 [bold]StackHaven MUD[/bold]           — Text adventure in a broken tech company
 
 [dim]Press a number to play  |  Esc=Back[/dim]"""
 
@@ -54,6 +56,7 @@ class GamesScreen(Screen):
         Binding("7", "play_pong", "Pong", show=True),
         Binding("8", "play_dungeon", "Dungeon", show=True),
         Binding("9", "play_crawl", "Blobber", show=True),
+        Binding("0", "play_mud", "MUD", show=True),
         Binding("escape", "back", "Back", show=True),
     ]
 
@@ -222,6 +225,12 @@ class GamesScreen(Screen):
     def action_play_dungeon(self):
         self.app.push_screen(
             DungeonScreen(buddy_state=self.buddy_state),
+            callback=self._on_game_dismissed,
+        )
+
+    def action_play_mud(self):
+        self.app.push_screen(
+            MudScreen(buddy_state=self.buddy_state, party_states=self.party_states),
             callback=self._on_game_dismissed,
         )
 

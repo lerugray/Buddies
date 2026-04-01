@@ -73,6 +73,13 @@ ACHIEVEMENTS: list[Achievement] = [
     Achievement("arcade_regular", "Arcade Regular", "Play 25 total games", "🕹️", "mastery"),
     Achievement("all_in_chaos", "ALL IN!", "Win a game with a high-CHAOS buddy", "🎰", "secret"),
 
+    # MUD achievements
+    Achievement("mud_explorer", "MUD Tourist", "Visit 5 rooms in StackHaven MUD", "🗺️", "exploration"),
+    Achievement("mud_slayer", "Bug Squasher", "Defeat 3 hostile NPCs in the MUD", "🐛", "mastery"),
+    Achievement("mud_quester", "Quest Hero", "Complete 2 quests in the MUD", "📋", "mastery"),
+    Achievement("mud_dragon", "Debt Free", "Defeat the Technical Debt Dragon", "🐉", "secret"),
+    Achievement("mud_shopper", "Consumer", "Buy something from a MUD merchant", "🛒", "exploration"),
+
     # Session / exploration achievements
     Achievement("session_watcher", "Watchful Eye", "Observe 100 session events", "👁️", "exploration"),
     Achievement("session_marathon", "Marathon", "Observe 500 session events", "🏃", "exploration"),
@@ -259,6 +266,17 @@ def check_achievements(
         pong_won = by_type.get("pong", {}).get("won", 0)
         dungeon_won = by_type.get("dungeon", {}).get("won", 0)
         trivia_perfect = game_stats.get("trivia_perfect", False)
+
+        # MUD achievements
+        mud_stats = by_type.get("mud", {})
+        mud_rooms = mud_stats.get("rooms_visited", 0)
+        mud_kills = mud_stats.get("npcs_defeated", 0)
+        mud_quests = mud_stats.get("quests_completed", 0)
+        _check("mud_explorer", mud_rooms >= 5)
+        _check("mud_slayer", mud_kills >= 3)
+        _check("mud_quester", mud_quests >= 2)
+        _check("mud_dragon", mud_stats.get("dragon_slain", False))
+        _check("mud_shopper", mud_stats.get("items_bought", 0) >= 1)
 
         _check("first_game", gp >= 1)
         _check("rps_veteran", rps_won >= 10)

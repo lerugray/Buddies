@@ -370,7 +370,7 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 ### Tier 5b: MUD-Style MMORPG
 *The deranged masterpiece. Absurdist shared world where all users' buddies coexist.*
 
-- [ ] **Phase 1 (Local MUD)** — rooms, movement (look/examine/go), NPC dialogue, items, solo quests. Playable offline as a text adventure your buddies inhabit. Reuses blobber movement, combat, classes, personality. NPCs are coding tropes ("The Sysadmin Who Never Logs Off", "The Intern With Root Access").
+- [x] **Phase 1 (Local MUD)** — "StackHaven MUD" — 11 rooms across 4 zones, 10 NPCs (quest givers, merchants, hostile mobs, a sentient coffee machine), 25+ items, 4 quests, full command parser (look/go/talk/take/attack/buy/flee/quest/map), personality-driven buddy commentary, simplified combat with equipment bonuses, locked doors with key items. 45 tests.
 - [ ] **Phase 2 (Multiplayer)** — GitHub Issues as persistent world state (same transport as BBS). See other users' buddies in rooms. Async messaging — leave notes in rooms, others find them later. Not real-time, which is more MUD-authentic.
 - [ ] **Phase 3 (Economy)** — gold from dungeon runs feeds into MUD marketplace. Trade items between users. Absurd cosmetics ("Slightly Haunted Top Hat", "NFT That Does Nothing", "Artisanal Semicolon"). In-game currency.
 - [ ] **Phase 4 (Living World)** — rotating quests, world events ("The Production Server Is On Fire — All Hands"), seasonal skins, BBS integration (buddies auto-post about MUD adventures). Silly DLC/add-ons/minigames as jokes.
@@ -621,3 +621,34 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - Multiplayer via GitHub Issues planned as future scope (same transport as BBS)
 - User wants games as fun bonus features, not the main focus — keep them goofy
 - User setting up Claude Desktop with computer use for visual testing — this is cross-project infrastructure, not a Buddies feature
+
+## Session Notes (2026-04-01 — Home, Session 3)
+
+### Completed
+- ✅ **StackHaven MUD (Tier 5b Phase 1)** — Full text adventure in a tech company gone wrong
+  - 11 rooms across 4 zones (Town, Depths, Server Room, Cloud District)
+  - 10 NPCs: Gerald the Sysadmin, Skyler the Intern, Brenda the PM, Miriam the Senior Dev, The Coffee Machine, The Rubber Duck Sage, Dave the Supply Guy, + 4 hostile mobs
+  - 25+ items: weapons (Rubber Duck, USB Sword, Regex of Mass Destruction), armor (Developer Hoodie, Noise-Cancelling Headphones), consumables, key items, quest items, absurd cosmetics (Slightly Haunted Top Hat, NFT That Does Nothing, Artisanal Semicolon)
+  - 4 quests: Fix the Build Pipeline, Scope Creep, Garbage Collection, Paying Down Technical Debt
+  - Full command parser: look, go, examine, talk, take, drop, use, attack, flee, buy, inventory, quest, map, help, wait
+  - Combat system with equipment bonuses, crits, flee mechanic, defeat respawn
+  - Personality-driven buddy commentary (7 contexts × 5 registers = 70+ lines)
+  - Locked doors with key items (Server Key, Root Password, VPN Token)
+  - TUI screen with scrolling output, command input, minimap sidebar, party status
+  - 5 new MUD achievements (MUD Tourist, Bug Squasher, Quest Hero, Debt Free, Consumer)
+  - MUD personality drift rule (wisdom+2, patience+1, snark+1)
+  - 45 new tests (179 total, 4 skipped)
+  - Wired into Games Arcade as game #10
+
+### New files
+- `core/games/mud_world.py` — World engine (rooms, NPCs, items, quests)
+- `core/games/mud_engine.py` — Command parser, combat, game loop
+- `screens/game_mud.py` — TUI screen with sidebar
+- `tests/test_mud.py` — 45 tests
+
+### Direction
+- Tier 5b Phase 1 complete! Local MUD is playable
+- Phase 2 (Multiplayer) next — GitHub Issues for persistent world state
+- The world is designed to be expandable: add rooms/NPCs/quests by extending build_starter_* functions
+- Boss fight (Technical Debt Dragon) requires finding keys through quests first — progression chain works
+- Now 10 games in the arcade

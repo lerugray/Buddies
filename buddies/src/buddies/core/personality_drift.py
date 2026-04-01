@@ -32,6 +32,7 @@ GAME_DRIFT: dict[str, list[tuple[str, int]]] = {
     "trivia": [("wisdom", 2), ("debugging", 1)],
     "pong": [("patience", 1), ("debugging", 1)],
     "dungeon": [("debugging", 1), ("wisdom", 1), ("patience", 1)],
+    "mud": [("wisdom", 2), ("patience", 1), ("snark", 1)],
 }
 
 # Win/lose modifiers
