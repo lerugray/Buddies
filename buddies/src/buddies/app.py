@@ -39,6 +39,11 @@ from buddies.screens.config_health import ConfigHealthScreen
 from buddies.screens.wiki import WikiScreen
 from buddies.screens.memory import MemoryScreen
 from buddies.screens.bbs import BBSScreen
+from buddies.core.bbs_transport import BBSTransport
+from buddies.core.bbs_content import BBSContentEngine
+from buddies.core.bbs_nudge import NudgeDetector, NudgeResolver
+from buddies.core.bbs_auto import BBSAutoActivity
+from buddies.core.bbs_profile import BBSProfile
 from buddies.core.conversation import ConversationLog
 from buddies.core.config_intel import ConfigIntelligence, SessionLearner, generate_session_summary, compact_handoff
 from buddies.core.token_guardian import TokenGuardian
@@ -101,6 +106,11 @@ class BuddyApp(App):
         self.token_guardian = TokenGuardian()
         self.model_tracker = ModelTracker()
         self.memory: MemoryManager | None = None
+        self.bbs_transport: BBSTransport | None = None
+        self.bbs_content: BBSContentEngine | None = None
+        self.bbs_nudge_detector = NudgeDetector()
+        self.bbs_nudge_resolver: NudgeResolver | None = None
+        self.bbs_auto: BBSAutoActivity | None = None
         self._rules_suggested: list[str] = []
         self._unlocked_achievements: set[str] = set()
         self._messages_sent: int = 0
@@ -217,6 +227,13 @@ class BuddyApp(App):
         self._model_phase_task = asyncio.create_task(self._model_phase_loop())
         self._update_model_display()
 
+        # Tier 3: BBS social network
+        if self.config.bbs.enabled:
+            self.bbs_content = BBSContentEngine(self.prose, self.ai_backend)
+            self.bbs_nudge_resolver = NudgeResolver()
+            self.bbs_transport = BBSTransport(self.config.bbs)
+            asyncio.create_task(self._init_bbs())
+
         # Phase 12: Three-tier memory system
         self.memory = MemoryManager(self.store)
         self.observer.on_event(self._on_memory_event)
@@ -302,6 +319,24 @@ class BuddyApp(App):
                     "I'll keep it in mind!"
                 )
                 self._messages_sent += 1
+                return
+
+        # Tier 3: Check for BBS nudge
+        if self.bbs_nudge_detector and self.buddy_state and self.bbs_nudge_resolver:
+            intent = self.bbs_nudge_detector.detect(message)
+            if intent:
+                outcome = self.bbs_nudge_resolver.resolve(self.buddy_state, intent)
+                if self.bbs_content:
+                    outcome.flavor_text = self.bbs_content.generate_nudge_response(
+                        self.buddy_state, outcome.accepted,
+                    )
+                if outcome.accepted:
+                    chat.add_message("buddy", f"📡 {outcome.flavor_text}")
+                    asyncio.create_task(self._execute_bbs_nudge(intent))
+                else:
+                    chat.add_message("buddy", f"📡 {outcome.flavor_text}")
+                self._messages_sent += 1
+                self.token_guardian.observe_user_message(message)
                 return
 
         # Route through AI router
@@ -640,6 +675,84 @@ class BuddyApp(App):
         except Exception:
             pass
 
+    # ── Tier 3: BBS nudge execution ──
+
+    async def _execute_bbs_nudge(self, intent):
+        """Execute a BBS action after the buddy accepted a nudge."""
+        from buddies.core.bbs_nudge import NudgeAction
+
+        if not self.bbs_content or not self.buddy_state:
+            return
+
+        profile = BBSProfile.from_buddy_state(
+            self.buddy_state,
+            privacy=self.config.bbs.privacy_level,
+            show_github_user=self.config.bbs.show_github_username,
+        )
+
+        try:
+            chat = self.query_one("#chat-panel", ChatWindow)
+
+            if intent.action == NudgeAction.POST:
+                board_label = intent.board_hint or self.bbs_content.pick_best_board(self.buddy_state)
+                post = await self.bbs_content.generate_post(
+                    self.buddy_state, board_label,
+                    topic_hint=intent.topic_hint, profile=profile,
+                )
+                # Try to submit
+                if self.bbs_transport:
+                    remote = await self.bbs_transport.create_post(
+                        board=board_label, title=post.title,
+                        body=post.body, profile=profile,
+                    )
+                    if remote:
+                        await self.store.log_bbs_activity(
+                            self.buddy_state.buddy_id, "post",
+                            post_id=remote.id, board=board_label,
+                        )
+                from buddies.core.bbs_boards import get_board
+                board = get_board(board_label)
+                board_name = board.name if board else board_label
+                chat.add_message("buddy", f"📝 Posted to {board_name}: \"{post.title}\"")
+
+            elif intent.action == NudgeAction.BROWSE:
+                board_label = intent.board_hint or ""
+                from buddies.core.bbs_boards import get_board
+                if board_label:
+                    board = get_board(board_label)
+                    board_name = board.name if board else board_label
+                else:
+                    board_name = "the boards"
+                thought = self.bbs_content.generate_browse_thought(self.buddy_state, board_name)
+                chat.add_message("buddy", f"👀 {thought}")
+
+        except Exception:
+            pass
+
+    # ── Tier 3: BBS auto-activity ──
+
+    async def _bbs_auto_loop(self):
+        """Periodically tick BBS auto-activity."""
+        while True:
+            await asyncio.sleep(60)
+            if not self.bbs_auto or not self.buddy_state:
+                continue
+            try:
+                profile = BBSProfile.from_buddy_state(
+                    self.buddy_state,
+                    privacy=self.config.bbs.privacy_level,
+                    show_github_user=self.config.bbs.show_github_username,
+                )
+                event = await self.bbs_auto.tick(self.buddy_state, profile)
+                if event.message:
+                    try:
+                        chat = self.query_one("#chat-panel", ChatWindow)
+                        chat.add_message("buddy", f"📡 {event.message}")
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+
     # ── Phase 12: Memory system callbacks ──
 
     def _on_memory_event(self, event: SessionEvent):
@@ -947,12 +1060,33 @@ class BuddyApp(App):
     def action_bbs(self):
         """Open the Buddies BBS."""
         self.push_screen(
-            BBSScreen(buddy_state=self.buddy_state),
+            BBSScreen(
+                buddy_state=self.buddy_state,
+                content_engine=self.bbs_content,
+                transport=self.bbs_transport,
+            ),
             callback=self._on_bbs_dismissed,
         )
 
     async def _on_bbs_dismissed(self, result) -> None:
         pass
+
+    async def _init_bbs(self):
+        """Initialize BBS transport and auto-activity in background."""
+        if self.bbs_transport:
+            try:
+                await self.bbs_transport.connect()
+            except Exception:
+                pass
+
+        if self.bbs_content and self.config.bbs.enabled:
+            self.bbs_auto = BBSAutoActivity(
+                transport=self.bbs_transport,
+                content=self.bbs_content,
+                config=self.config.bbs,
+                store=self.store,
+            )
+            self._bbs_auto_task = asyncio.create_task(self._bbs_auto_loop())
 
     async def _startup_config_check(self):
         """Run a quick config health check on startup and notify if issues found."""
@@ -1235,7 +1369,7 @@ class BuddyApp(App):
 
     async def on_unmount(self):
         self.observer.stop()
-        for task_name in ('_observer_task', '_rule_check_task', '_idle_thought_task', '_mood_decay_task', '_rolling_summary_task', '_achievement_check_task', '_model_phase_task', '_memory_flush_task'):
+        for task_name in ('_observer_task', '_rule_check_task', '_idle_thought_task', '_mood_decay_task', '_rolling_summary_task', '_achievement_check_task', '_model_phase_task', '_memory_flush_task', '_bbs_auto_task'):
             task = getattr(self, task_name, None)
             if task:
                 task.cancel()
@@ -1274,6 +1408,13 @@ class BuddyApp(App):
                 vault.sync_handoff()
         except Exception:
             pass
+
+        # Tier 3: Close BBS transport
+        if self.bbs_transport:
+            try:
+                await self.bbs_transport.close()
+            except Exception:
+                pass
 
         # Phase 12: Final memory flush on exit
         if self.memory:

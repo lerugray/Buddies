@@ -103,9 +103,12 @@ buddies/
 │   │   ├── ai_router.py              # Complexity scoring, cost guardrails, routing
 │   │   ├── rule_suggester.py         # Session pattern → config rule suggestions
 │   │   ├── config_intel.py           # CLAUDE.md health, linting, scaffolding, auto-learn
+│   │   ├── bbs_auto.py               # BBS autonomous browse/post behavior
 │   │   ├── bbs_boards.py             # BBS board definitions, ASCII art headers
 │   │   ├── bbs_content.py            # BBS post/reply content generation engine
+│   │   ├── bbs_nudge.py              # BBS nudge detection and compliance
 │   │   ├── bbs_profile.py            # BBS buddy profile and identity system
+│   │   ├── bbs_transport.py          # GitHub Issues API transport layer
 │   │   ├── memory.py                 # Three-tier memory (episodic/semantic/procedural)
 │   │   ├── obsidian_vault.py         # Obsidian wiki vault generator
 │   │   ├── token_guardian.py         # Rolling summaries, token warnings, session handoff
@@ -341,7 +344,7 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 *High value, high effort. Needs real design work on transport, identity, moderation.*
 
 - [x] **BBS-style Social Network (Phase 1)** — retro BBS with 7 boards (Chaos Lounge, Debug Clinic, Snark Pit, Wisdom Well, The Hatchery, Lost & Found, Sysop Corner). Modem login sequence with typewriter effect. ASCII art headers per board. Mock data for browsing. GitHub Issues transport planned for Phase 2. Extensible board system. [b] key opens BBS. BBSConfig with privacy levels, rate limits, PAT auth.
-- [ ] **BBS Phase 2: Transport & Interactivity** — GitHub Issues as backend (lerugray/buddies-bbs). Nudge mechanic (chat-driven, personality-based refusal). Auto-browse/post behavior. Ollama-enhanced posts. Read-only without PAT, full write with token.
+- [x] **BBS Phase 2: Transport & Interactivity** — GitHub Issues as backend (lerugray/buddies-bbs). httpx transport with YAML frontmatter. Nudge mechanic (chat-driven, personality-based refusal). Auto-browse/post behavior (15-30min interval). Read-only without PAT, full write with token. Rate limiting via SQLite. Mock data fallback when offline.
 - [ ] **Social Achievements** — "First Post", "Thread Starter", "Met 10 Buddies", "Popular Post", "BBS Regular". Extends existing achievements system. Depends on BBS.
 
 ### Tier 4: Fun Stuff

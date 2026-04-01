@@ -24,6 +24,7 @@ from buddies.core.buddy_brain import BuddyState
 from buddies.core.bbs_boards import BOARDS, BBSBoard, SYSOP_MESSAGES, get_board_by_index
 from buddies.core.bbs_profile import BBSProfile
 from buddies.core.bbs_content import BBSContentEngine, BBSPost
+from buddies.core.bbs_transport import BBSTransport, RemotePost, RemoteReply
 
 
 class BBSPage(Enum):
@@ -167,14 +168,17 @@ class BBSScreen(Screen):
         self,
         buddy_state: BuddyState | None = None,
         content_engine: BBSContentEngine | None = None,
+        transport: BBSTransport | None = None,
     ):
         super().__init__()
         self._buddy = buddy_state
         self._content = content_engine
+        self._transport = transport
         self._page = BBSPage.LOGIN
         self._current_board: BBSBoard | None = None
         self._current_post: dict | None = None
         self._board_posts: list[dict] = []
+        self._live_mode: bool = False  # True when transport is connected
 
     def compose(self) -> ComposeResult:
         with Vertical(id="bbs-scroll"):
@@ -259,6 +263,21 @@ class BBSScreen(Screen):
 
         status.update("[dim]press any key to continue • q=quit[/]")
 
+        # Detect live mode
+        if self._transport:
+            try:
+                self._live_mode = await self._transport.is_available()
+                if self._live_mode:
+                    can_write = await self._transport.can_write()
+                    mode = "[green]LIVE[/]" if can_write else "[yellow]READ-ONLY[/]"
+                    log.write(f"  [dim]Connection:[/] {mode}")
+                else:
+                    log.write(f"  [dim]Connection:[/] [red]OFFLINE[/] (using mock data)")
+            except Exception:
+                log.write(f"  [dim]Connection:[/] [red]OFFLINE[/]")
+
+        log.write("")
+
         # Auto-advance to menu after a brief pause
         await asyncio.sleep(1.5)
         await self._show_menu()
@@ -324,8 +343,8 @@ class BBSScreen(Screen):
         log.write(board.header)
         log.write("")
 
-        # Filter posts for this board
-        self._board_posts = [p for p in MOCK_POSTS if p["board"] == board.label]
+        # Fetch posts (live or mock)
+        self._board_posts = await self._fetch_posts(board.label)
 
         if not self._board_posts:
             log.write(f"  [dim]No posts yet. Be the first to write something![/]")
@@ -393,8 +412,8 @@ class BBSScreen(Screen):
         log.write(f"  └{'─' * 50}┘")
         log.write("")
 
-        # Replies
-        replies = MOCK_REPLIES.get(post["id"], [])
+        # Replies (live or mock)
+        replies = await self._fetch_replies(post["id"])
         if replies:
             log.write(f"  [dim]── replies ({len(replies)}) ──────────────────────────────[/]")
             log.write("")
@@ -437,6 +456,65 @@ class BBSScreen(Screen):
                 await asyncio.sleep(speed)
         if buffer:
             log.write(buffer, scroll_end=True)
+
+    # ── Data fetching (transport with mock fallback) ──
+
+    async def _fetch_posts(self, board_label: str) -> list[dict]:
+        """Fetch posts for a board — live or mock."""
+        if self._transport and self._live_mode:
+            try:
+                remote_posts = await self._transport.list_posts(board=board_label)
+                if remote_posts:
+                    return [self._remote_to_dict(p) for p in remote_posts]
+            except Exception:
+                pass
+        # Fallback to mock data
+        return [p for p in MOCK_POSTS if p["board"] == board_label]
+
+    async def _fetch_replies(self, post_id: int) -> list[dict]:
+        """Fetch replies for a post — live or mock."""
+        if self._transport and self._live_mode:
+            try:
+                remote_replies = await self._transport.get_replies(post_id)
+                if remote_replies is not None:
+                    return [self._reply_to_dict(r) for r in remote_replies]
+            except Exception:
+                pass
+        # Fallback to mock data
+        return MOCK_REPLIES.get(post_id, [])
+
+    def _remote_to_dict(self, post: RemotePost) -> dict:
+        """Convert RemotePost to the dict format used by the screen."""
+        meta = post.author_meta
+        return {
+            "id": post.id,
+            "board": post.board,
+            "title": post.title,
+            "body": post.body,
+            "author": {
+                "handle": meta.get("buddy", post.raw_author),
+                "emoji": meta.get("emoji", "❓"),
+                "species": meta.get("species", "unknown"),
+                "register": meta.get("register", "calm"),
+                "level": int(meta.get("level", 1)),
+            },
+            "replies": post.reply_count,
+            "reactions": post.reactions,
+            "age": post.age,
+        }
+
+    def _reply_to_dict(self, reply: RemoteReply) -> dict:
+        """Convert RemoteReply to dict format."""
+        meta = reply.author_meta
+        return {
+            "author": {
+                "handle": meta.get("buddy", reply.raw_author),
+                "emoji": meta.get("emoji", "❓"),
+                "register": meta.get("register", "calm"),
+            },
+            "body": reply.body,
+            "age": reply.age,
+        }
 
     # ── Navigation actions ──
 
