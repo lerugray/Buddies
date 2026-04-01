@@ -12,6 +12,7 @@ A tamagotchi-style local AI companion **collection** that runs alongside Claude 
 - I work across two machines (work computer + home computer)
 - Work machine: Intel Iris Xe (integrated graphics, no dedicated GPU)
 - Home machine: Unknown GPU — check the `passive-income-hub` project for hardware specs, or just ask me
+- **Memory sync rule**: Claude Code memories are local per-machine. Any important project context, creative direction, or design decisions saved to memory MUST also go in this HANDOFF.md so it syncs to the other machine via git. Memory is for Claude's recall; HANDOFF is for cross-machine persistence.
 
 ## Project Status — Phases 1-5 MOSTLY COMPLETE
 - **Phase 1** (Foundation): DONE — scaffolding, TUI, buddy character, 25 species with colored half-block pixel art
