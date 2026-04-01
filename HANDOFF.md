@@ -354,8 +354,8 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 - [x] **Rock-Paper-Scissors** — Best-of-5 tournament. AI driven by personality (CHAOS=random, WISDOM=pattern-tracking, DEBUGGING=counter-strategy, PATIENCE=stubborn favorite). 90+ prose templates with register-flavored trash talk.
 - [x] **Game engine foundation** — GamePersonality blended from all 5 stats, shared card infrastructure (Card/Deck/Hand with ASCII art), game result tracking in DB, 9 new achievements (49 total).
 - [x] **Blackjack** — Player vs buddy-dealer. Hit/stand/double. Personality-driven dealer (CHAOS hits when shouldn't, PATIENCE stands early). 20+ prose templates.
-- [ ] **Texas Hold'em** — 2-6 player poker with party buddies. Betting driven by stats.
-- [ ] **Whist** — Partnership trick-taking. You + buddy vs 2 AI buddies.
+- [x] **Texas Hold'em** — You + party buddies at an ASCII poker table. Buddy profile pics at seats, community cards in center. Full hand evaluation (royal flush down to high card). AI betting driven by hand strength × personality. Chip tracking across hands.
+- [x] **Whist** — Partnership trick-taking. You + partner buddy vs 2 opponents. 13 tricks per round, trump suit from last dealt card. AI plays follow suit rules, uses trump strategically based on personality.
 - [x] **JRPG Battles** — Goofy Pokemon-style fights. Type triangle (LOGIC/CHAOS/HACK + DEBUG support). 20 moves across 5 stat pools. 10 enemies (Wild Segfault, Escaped Regex, Production Bug, etc.). HP bars, crits, type effectiveness, level scaling.
 - [x] **Coding Trivia** — 90 questions across 5 categories (basics, history, bugs, culture, languages), 3 difficulty tiers. Buddy answers alongside you based on personality. Perfect score achievement.
 - [x] **Pong** — Real-time TUI game at ~15 FPS via Textual timer. Buddy controls other paddle with personality-driven AI (PATIENCE=precise, CHAOS=overshoots, DEBUGGING=predicts trajectory). Ball speed ramps, rally tracking, pause support.
@@ -366,13 +366,6 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 
 - [ ] **Speech-to-text input** — push-to-talk hotkey ([F3]) transcribes user speech into chat. Local via whisper.cpp/faster-whisper.
 - [ ] **Text-to-speech output** — buddy speaks responses aloud. Local via piper-tts or edge-tts. Map personality registers to voice profiles.
-
-### Tier 6: Testing & QA via Claude Desktop
-*User setting up Claude Desktop with computer use. Visual testing without human in the loop.*
-
-- [ ] **Claude Desktop visual QA** — Desktop Claude launches Buddies, navigates every screen, verifies sprites/layouts/themes render correctly. Reports issues back via shared context.
-- [ ] **Claude-to-Claude relay** — direct message passing between CC and Desktop instances. Currently manual via clipboard ([F4]) and HANDOFF.md. Explore MCP-based bridge or shared file protocol.
-- [ ] **Automated regression suite** — Desktop Claude runs a standard walkthrough after each build (launch → party → games → BBS → wiki → memory → achievements). Screenshot comparison for visual regressions.
 
 ### Backlog
 *Valuable but premature. Revisit once Buddies is great on Claude Code first.*
@@ -578,19 +571,24 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - ✅ **Pong** — real-time TUI game at ~15 FPS. Personality-driven AI paddle. Ball physics with spin, speed ramp, wall bounces. Rally tracking, pause, commentary.
 - ✅ **Coding Trivia** — 90 questions across 5 categories and 3 difficulty tiers. Buddy answers alongside player. Perfect score achievement.
 - ✅ ~150 new prose templates (pong commentary, trivia reactions, taunts)
-- ✅ Tier 6 added to roadmap: Claude Desktop visual QA and Claude-to-Claude communication
-- ✅ Updated HANDOFF with Claude Desktop testing direction
+- ✅ Updated HANDOFF with session direction
 
 ### New files
 - `core/games/pong.py` — PongGame engine (ball, paddles, AI, scoring)
 - `core/games/trivia.py` — TriviaGame engine (90 questions, buddy answering)
+- `core/games/holdem.py` — HoldemGame engine (hand eval, betting, AI, table render)
+- `core/games/whist.py` — WhistGame engine (trick-taking, teams, trump)
 - `screens/game_pong.py` — PongScreen (real-time rendering via Textual timer)
 - `screens/game_trivia.py` — TriviaScreen (quiz UI with A/B/C/D input)
+- `screens/game_holdem.py` — HoldemScreen (ASCII poker table, 90s card game aesthetic)
+- `screens/game_whist.py` — WhistScreen (numbered card selection, trick display)
+
+- ✅ **Texas Hold'em** — ASCII poker table with buddy profile pics at seats, full hand evaluator, personality-driven betting AI
+- ✅ **Whist** — 4-player trick-taking with team partnerships, trump suits, suit-following rules
+- ✅ Games Arcade now loads party buddies for multiplayer games (Hold'em, Whist)
 
 ### Direction
-- 5 of 7 planned games complete (RPS, Blackjack, Battle, Pong, Trivia)
-- Next: Hold'em, Whist
+- All 7 planned games complete! (RPS, Blackjack, Battle, Pong, Trivia, Hold'em, Whist)
 - Multiplayer via GitHub Issues planned as future scope (same transport as BBS)
 - User wants games as fun bonus features, not the main focus — keep them goofy
-- **Claude Desktop + Computer Use** — user is setting up Claude Desktop for visual testing. Claude Desktop can see the screen and interact with programs, making it ideal for TUI testing (verify sprites, layouts, screen navigation, themes). Headless MCP mode already built for Desktop integration. Cross-surface context relay ([F4]) bridges CC↔Desktop sessions. Goal: Claude Desktop does visual QA, Claude Code does implementation.
-- **Claude-to-Claude communication** — explore having CC and Desktop Claude coordinate. Existing pieces: headless MCP server, cross-surface relay, shared HANDOFF.md. Missing: direct message passing between instances. Worth investigating once Desktop is running.
+- User setting up Claude Desktop with computer use for visual testing — this is cross-project infrastructure, not a Buddies feature

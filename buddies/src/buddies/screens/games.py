@@ -18,6 +18,8 @@ from buddies.screens.game_blackjack import BlackjackScreen
 from buddies.screens.game_battle import BattleScreen
 from buddies.screens.game_pong import PongScreen
 from buddies.screens.game_trivia import TriviaScreen
+from buddies.screens.game_holdem import HoldemScreen
+from buddies.screens.game_whist import WhistScreen
 
 
 GAME_MENU = """\
@@ -25,8 +27,8 @@ GAME_MENU = """\
 
   [bold cyan]1[/bold cyan]  ✊ [bold]Rock-Paper-Scissors[/bold]  — Best of 5, personality-driven AI
   [bold cyan]2[/bold cyan]  🃏 [bold]Blackjack[/bold]              — Player vs buddy-dealer
-  [dim]3[/dim]  🎰 [dim]Texas Hold'em[/dim]           — [dim]Coming soon[/dim]
-  [dim]4[/dim]  🂡 [dim]Whist[/dim]                   — [dim]Coming soon[/dim]
+  [bold cyan]3[/bold cyan]  🎰 [bold]Texas Hold'em[/bold]          — Poker with your party
+  [bold cyan]4[/bold cyan]  🂡 [bold]Whist[/bold]                   — Team trick-taking
   [bold cyan]5[/bold cyan]  ⚔️ [bold]Battle[/bold]                  — JRPG fights vs coding monsters
   [bold cyan]6[/bold cyan]  🧠 [bold]Trivia[/bold]                  — Coding quiz, you vs buddy
   [bold cyan]7[/bold cyan]  🏓 [bold]Pong[/bold]                    — Real-time paddle action
@@ -40,8 +42,8 @@ class GamesScreen(Screen):
     BINDINGS = [
         Binding("1", "play_rps", "RPS", show=True),
         Binding("2", "play_blackjack", "Blackjack", show=True),
-        Binding("3", "play_holdem", "Hold'em", show=False),
-        Binding("4", "play_whist", "Whist", show=False),
+        Binding("3", "play_holdem", "Hold'em", show=True),
+        Binding("4", "play_whist", "Whist", show=True),
         Binding("5", "play_battle", "Battle", show=True),
         Binding("6", "play_trivia", "Trivia", show=True),
         Binding("7", "play_pong", "Pong", show=True),
@@ -62,9 +64,10 @@ class GamesScreen(Screen):
     }
     """
 
-    def __init__(self, buddy_state: BuddyState):
+    def __init__(self, buddy_state: BuddyState, party_states: list[BuddyState] | None = None):
         super().__init__()
         self.buddy_state = buddy_state
+        self.party_states = party_states or []
         self._last_result: GameResult | None = None
         self._pending_results: list[GameResult] = []
 
@@ -131,10 +134,16 @@ class GamesScreen(Screen):
         )
 
     def action_play_holdem(self):
-        self._coming_soon("Texas Hold'em")
+        self.app.push_screen(
+            HoldemScreen(buddy_state=self.buddy_state, party_states=self.party_states),
+            callback=self._on_game_dismissed,
+        )
 
     def action_play_whist(self):
-        self._coming_soon("Whist")
+        self.app.push_screen(
+            WhistScreen(buddy_state=self.buddy_state, party_states=self.party_states),
+            callback=self._on_game_dismissed,
+        )
 
     def action_play_battle(self):
         self.app.push_screen(

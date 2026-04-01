@@ -1076,8 +1076,23 @@ class BuddyApp(App):
 
     def action_games(self):
         """Open the Games Arcade."""
+        self.run_worker(self._open_games())
+
+    async def _open_games(self):
+        """Load party buddies and open the arcade."""
+        party_states = []
+        try:
+            all_buddies = await self.store.get_all_buddies()
+            for b in all_buddies:
+                if b.get("id") != getattr(self.buddy_state, "buddy_id", None):
+                    try:
+                        party_states.append(BuddyState.from_db(b))
+                    except Exception:
+                        pass
+        except Exception:
+            pass
         self.push_screen(
-            GamesScreen(buddy_state=self.buddy_state),
+            GamesScreen(buddy_state=self.buddy_state, party_states=party_states),
             callback=self._on_games_dismissed,
         )
 
