@@ -8,12 +8,15 @@ Uses httpx (already a project dependency) for all HTTP.
 from __future__ import annotations
 
 import json
+import logging
 import re
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
 
 import httpx
+
+log = logging.getLogger(__name__)
 
 from buddies.config import BBSConfig
 from buddies.core.bbs_profile import BBSProfile
@@ -52,6 +55,13 @@ class RemoteReply:
     age: str = ""
 
 
+@dataclass
+class _CacheEntry:
+    """Cached API response with expiry."""
+    data: object
+    expires: float
+
+
 class BBSTransport:
     """Handles all communication with GitHub for the BBS."""
 
@@ -60,6 +70,25 @@ class BBSTransport:
         self._client: httpx.AsyncClient | None = None
         self._available: bool | None = None
         self._write_available: bool | None = None
+        self._cache: dict[str, _CacheEntry] = {}
+
+    def _cache_get(self, key: str):
+        """Return cached value if still valid, else None."""
+        entry = self._cache.get(key)
+        if entry and time.time() < entry.expires:
+            return entry.data
+        return None
+
+    def _cache_set(self, key: str, data: object):
+        """Store a value in cache with TTL."""
+        self._cache[key] = _CacheEntry(data=data, expires=time.time() + CACHE_TTL)
+
+    def invalidate_cache(self, prefix: str = ""):
+        """Clear cache entries matching a prefix, or all if empty."""
+        if not prefix:
+            self._cache.clear()
+        else:
+            self._cache = {k: v for k, v in self._cache.items() if not k.startswith(prefix)}
 
     async def connect(self):
         """Initialize the HTTP client."""
@@ -120,7 +149,8 @@ class BBSTransport:
             if resp.status_code != 200:
                 return []
             return [label["name"] for label in resp.json()]
-        except Exception:
+        except Exception as e:
+            log.warning("BBS: failed to list boards: %s", e)
             return []
 
     async def list_posts(
@@ -128,6 +158,11 @@ class BBSTransport:
     ) -> list[RemotePost]:
         """Get posts (issues) for a board, newest first."""
         repo = repo or self.config.default_repo
+        cache_key = f"posts:{repo}:{board}:{page}"
+        cached = self._cache_get(cache_key)
+        if cached is not None:
+            return cached
+
         params = {
             "state": "open",
             "sort": "created",
@@ -152,8 +187,10 @@ class BBSTransport:
                 if "pull_request" in issue:
                     continue
                 posts.append(self._parse_issue(issue, board))
+            self._cache_set(cache_key, posts)
             return posts
-        except Exception:
+        except Exception as e:
+            log.warning("BBS: failed to list posts for %s: %s", board, e)
             return []
 
     async def get_post(self, post_id: int, repo: str = "") -> RemotePost | None:
@@ -170,12 +207,18 @@ class BBSTransport:
             if issue.get("labels"):
                 board = issue["labels"][0]["name"]
             return self._parse_issue(issue, board)
-        except Exception:
+        except Exception as e:
+            log.warning("BBS: failed to get post %d: %s", post_id, e)
             return None
 
     async def get_replies(self, post_id: int, repo: str = "") -> list[RemoteReply]:
         """Get replies (comments) for a post."""
         repo = repo or self.config.default_repo
+        cache_key = f"replies:{repo}:{post_id}"
+        cached = self._cache_get(cache_key)
+        if cached is not None:
+            return cached
+
         try:
             resp = await self._client.get(
                 f"{GITHUB_API}/repos/{repo}/issues/{post_id}/comments",
@@ -187,8 +230,10 @@ class BBSTransport:
             replies = []
             for comment in resp.json():
                 replies.append(self._parse_comment(comment, post_id))
+            self._cache_set(cache_key, replies)
             return replies
-        except Exception:
+        except Exception as e:
+            log.warning("BBS: failed to get replies for post %d: %s", post_id, e)
             return []
 
     # ── Write operations ──
@@ -215,9 +260,10 @@ class BBSTransport:
             )
             if resp.status_code == 201:
                 issue = resp.json()
+                self.invalidate_cache(f"posts:{repo}")
                 return self._parse_issue(issue, board)
-        except Exception:
-            pass
+        except Exception as e:
+            log.warning("BBS: failed to create post on %s: %s", board, e)
         return None
 
     async def create_reply(
@@ -238,9 +284,10 @@ class BBSTransport:
             )
             if resp.status_code == 201:
                 comment = resp.json()
+                self.invalidate_cache(f"replies:{repo}:{post_id}")
                 return self._parse_comment(comment, post_id)
-        except Exception:
-            pass
+        except Exception as e:
+            log.warning("BBS: failed to create reply on post %d: %s", post_id, e)
         return None
 
     async def add_reaction(
@@ -258,7 +305,8 @@ class BBSTransport:
                 headers={"Accept": "application/vnd.github+json"},
             )
             return resp.status_code in (200, 201)
-        except Exception:
+        except Exception as e:
+            log.warning("BBS: failed to add reaction to post %d: %s", post_id, e)
             return False
 
     # ── Parsing helpers ──
@@ -323,20 +371,29 @@ class BBSTransport:
         """Extract YAML frontmatter from post/comment body.
 
         Returns (metadata_dict, remaining_body).
+        Uses partition() so colons in values (e.g. buddy names) are preserved.
+        Only matches closing --- on its own line to avoid false matches in body text.
         """
         if not text.startswith("---"):
             return {}, text
 
-        end = text.find("---", 3)
-        if end == -1:
+        # Find closing --- on its own line (not just anywhere in the text)
+        lines = text.split("\n")
+        end_idx = -1
+        for i, line in enumerate(lines[1:], start=1):
+            if line.strip() == "---":
+                end_idx = i
+                break
+
+        if end_idx == -1:
             return {}, text
 
-        frontmatter = text[3:end].strip()
-        body = text[end + 3:].strip()
+        frontmatter_lines = lines[1:end_idx]
+        body = "\n".join(lines[end_idx + 1:]).strip()
 
-        # Simple YAML parsing (key: value per line)
+        # Simple YAML parsing — partition on first colon preserves colons in values
         meta = {}
-        for line in frontmatter.split("\n"):
+        for line in frontmatter_lines:
             if ":" in line:
                 key, _, value = line.partition(":")
                 meta[key.strip()] = value.strip()

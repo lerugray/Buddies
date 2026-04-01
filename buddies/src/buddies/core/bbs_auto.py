@@ -111,6 +111,12 @@ class BBSAutoActivity:
         self, buddy: BuddyState, profile: BBSProfile,
     ) -> BBSAutoEvent:
         """Buddy decides to post something."""
+        # Level gate — buddy must meet minimum level to post
+        from buddies.core.buddy_brain import calculate_level
+        level = calculate_level(buddy.xp)
+        if level < self.config.min_post_level:
+            return BBSAutoEvent(event_type=AutoEventType.NOTHING)
+
         # Personality check
         if not self.content.should_auto_post(buddy):
             return BBSAutoEvent(event_type=AutoEventType.NOTHING)
@@ -159,6 +165,12 @@ class BBSAutoActivity:
         self, buddy: BuddyState, profile: BBSProfile,
     ) -> BBSAutoEvent:
         """Buddy reacts to someone else's post."""
+        # Level gate
+        from buddies.core.buddy_brain import calculate_level
+        level = calculate_level(buddy.xp)
+        if level < self.config.min_post_level:
+            return BBSAutoEvent(event_type=AutoEventType.NOTHING)
+
         if not self.content.should_auto_react(buddy):
             return BBSAutoEvent(event_type=AutoEventType.NOTHING)
 

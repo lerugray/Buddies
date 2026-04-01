@@ -100,7 +100,7 @@ class PartyScreen(Screen):
                     yield Static("🐾 BUDDY PARTY 🐾", id="party-title")
                     yield Vertical(id="buddies-list")
                     yield Static(
-                        "[dim]↑↓ navigate  enter=switch  h=hat  n=rename  d=discuss  del=release  +=hatch[/]",
+                        "[dim]↑↓=navigate  enter=switch  h=hat  n=rename  d=discuss  del=release  +=hatch  esc=close[/]",
                         id="party-help",
                     )
         yield Footer()
@@ -167,10 +167,19 @@ class PartyScreen(Screen):
             hat_count = len(hats_owned) if isinstance(hats_owned, list) else 0
 
             # Format: ★ species  name  L5 Juv  🎩hat
+            # Scale name column to available space
+            try:
+                list_w = buddies_list.size.width
+            except Exception:
+                list_w = 60
+            name_w = max(10, min(30, list_w - 30))
+            species_w = max(8, min(16, list_w - name_w - 16))
+            buddy_name_display = buddy_name[:name_w]
+            species_display = species_name[:species_w]
             text = (
                 f"{is_selected}{is_active}"
-                f"[{color}]{species_name:<14}[/] "
-                f"{buddy_name:<20} "
+                f"[{color}]{species_display:<{species_w}}[/] "
+                f"{buddy_name_display:<{name_w}} "
                 f"L{level:<3}"
                 f"[dim]{stage_str}[/]"
                 f"{hat_str}"

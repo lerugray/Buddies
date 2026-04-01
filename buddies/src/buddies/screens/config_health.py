@@ -130,7 +130,7 @@ class ConfigHealthScreen(Screen):
                     yield Static("", id="health-suggestions")
                     yield Static("", id="health-scaffold-status")
                     yield Static(
-                        "[dim]s=scaffold config  r=rescan  esc=close[/]",
+                        "[dim]s=scaffold  r=rescan  esc=close[/]",
                         id="health-help",
                     )
         yield Footer()

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from textual.app import ComposeResult
-from textual.containers import Vertical, VerticalScroll
+from textual.containers import Vertical
 from textual.widgets import Input, RichLog, Static
 
 from buddies.widgets.styling import format_buddy_message, format_system_message

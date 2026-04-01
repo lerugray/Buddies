@@ -936,7 +936,8 @@ class BuddyApp(App):
         chat.add_system("  [w] Wiki     [m] Memory   [b] BBS")
         chat.add_system("[bold]Actions[/]")
         chat.add_system("  [r] Hatch    [F1] Save     [F2] Theme")
-        chat.add_system("  [?] Help     [F5] Refresh  [q] Quit")
+        chat.add_system("  [F3] Map     [F4] Export   [F5] Refresh")
+        chat.add_system("  [?] Help     [q] Quit")
         chat.add_system("────────────")
 
     def action_hatch_new(self):

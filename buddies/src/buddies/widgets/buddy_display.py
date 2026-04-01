@@ -130,8 +130,12 @@ class StatsDisplay(Static):
         color = rarity_colors.get(rarity, "white")
         shiny_tag = " ✨SHINY✨" if state.shiny else ""
 
+        # Scale XP bar and truncation to available width
+        panel_w = self.size.width if self.size.width > 10 else 30
+        text_limit = max(20, panel_w - 4)
+        xp_bar_width = max(6, min(16, panel_w - 18))
+
         xp_next = xp_for_next_level(state.level)
-        xp_bar_width = 12  # Reduced from 16 for narrow terminals
         xp_progress = min(state.xp / max(xp_next, 1), 1.0)
         filled = int(xp_progress * xp_bar_width)
         xp_bar = "█" * filled + "░" * (xp_bar_width - filled)
@@ -145,8 +149,7 @@ class StatsDisplay(Static):
         }
         mood_icon = mood_icons.get(state.mood, "😐")
 
-        # Truncate description to 28 chars at word boundary
-        desc = self._truncate_at_word(state.species.description, 28)
+        desc = self._truncate_at_word(state.species.description, text_limit)
 
         # Truncate owned hats: show first 3, then +N count
         owned_hats = state.hats_owned if state.hats_owned else []
@@ -176,8 +179,7 @@ class StatsDisplay(Static):
         ]
 
         if state.soul_description:
-            # Truncate soul description to 28 chars at word boundary
-            soul_text = self._truncate_at_word(state.soul_description, 28)
+            soul_text = self._truncate_at_word(state.soul_description, text_limit)
             lines.append("")
             lines.append(f"[dim italic]\"{soul_text}\"[/]")
 

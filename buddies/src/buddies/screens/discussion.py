@@ -95,7 +95,7 @@ class DiscussionScreen(Screen):
             id="discussion-input",
         )
         yield Static(
-            "[dim]esc=close  n=new round  g=guided topic  f=file focus[/]",
+            "[dim]n=new round  g=guided topic  f=file focus  esc=close[/]",
             id="discussion-help",
         )
         yield Footer()

@@ -282,6 +282,17 @@ class BBSScreen(Screen):
         await asyncio.sleep(1.5)
         await self._show_menu()
 
+    def _get_content_width(self) -> int:
+        """Get usable content width from the RichLog, with sane bounds."""
+        try:
+            log = self.query_one("#bbs-log", RichLog)
+            w = log.size.width
+            if w > 10:
+                return w
+        except Exception:
+            pass
+        return 60  # fallback
+
     async def _show_menu(self):
         """Main menu — board listing."""
         self._page = BBSPage.MENU
@@ -291,40 +302,49 @@ class BBSScreen(Screen):
         header = self.query_one("#bbs-header", Static)
         header.update(f"[bold]BUDDIES BBS — MAIN MENU[/]  {time.strftime('%H:%M')}")
 
-        log.write("[bold]╔══════════════════════════════════════════════════════╗[/]")
-        log.write("[bold]║[/]  [bold]BOARDS[/]                                             [bold]║[/]")
-        log.write("[bold]╠══════════════════════════════════════════════════════╣[/]")
+        w = self._get_content_width()
+        inner = w - 4  # account for ║ + spacing on each side
+        bar_space = max(4, min(10, inner - 38))  # scale activity bar to fit
+
+        log.write(f"[bold]╔{'═' * (w - 2)}╗[/]")
+        title_pad = inner - 6  # "BOARDS" is 6 chars
+        log.write(f"[bold]║[/]  [bold]BOARDS[/]{' ' * title_pad}[bold]║[/]")
+        log.write(f"[bold]╠{'═' * (w - 2)}╣[/]")
 
         for i, board in enumerate(BOARDS):
             # Count mock posts for this board
             post_count = len([p for p in MOCK_POSTS if p["board"] == board.label])
             new_text = f"{post_count} posts" if post_count else "quiet"
 
-            # Activity bar
-            bar_filled = min(10, post_count * 3)
-            bar_empty = 10 - bar_filled
+            # Activity bar — scales with terminal width
+            bar_filled = min(bar_space, post_count * 3)
+            bar_empty = bar_space - bar_filled
             bar = f"{'▓' * bar_filled}{'░' * bar_empty}"
 
-            color = board.color
-            log.write(
-                f"[bold]║[/]  [{color}][{i+1}][/] "
-                f"[{color} bold]{board.name:<20}[/] "
-                f"[dim]{new_text:>8}[/]  {bar}  [bold]║[/]"
-            )
+            # Truncate board name to fit
+            name_width = max(12, inner - bar_space - 16)
+            name = board.name[:name_width]
 
-        log.write("[bold]║[/]                                                      [bold]║[/]")
-        log.write("[bold]╠══════════════════════════════════════════════════════╣[/]")
+            color = board.color
+            row = f"  [{color}][{i+1}][/] [{color} bold]{name:<{name_width}}[/] [dim]{new_text:>8}[/]  {bar}"
+            # Pad to fill box (approximate — Rich markup makes exact padding tricky)
+            log.write(f"[bold]║[/]{row}  [bold]║[/]")
+
+        log.write(f"[bold]║[/]{' ' * inner}  [bold]║[/]")
+        log.write(f"[bold]╠{'═' * (w - 2)}╣[/]")
 
         # MOTD
         motd = random.choice(SYSOP_MESSAGES)
-        log.write(f"[bold]║[/]  [dim italic]MOTD: {motd[:48]}[/]")
-        if len(motd) > 48:
-            log.write(f"[bold]║[/]  [dim italic]  {motd[48:]}[/]")
+        motd_width = inner - 8  # "MOTD: " prefix + padding
+        log.write(f"[bold]║[/]  [dim italic]MOTD: {motd[:motd_width]}[/]")
+        if len(motd) > motd_width:
+            log.write(f"[bold]║[/]  [dim italic]  {motd[motd_width:motd_width*2]}[/]")
 
-        log.write("[bold]║[/]                                                      [bold]║[/]")
-        log.write("[bold]╠══════════════════════════════════════════════════════╣[/]")
-        log.write("[bold]║[/]  [dim][1-7]=board  m=menu  r=refresh  q=quit  esc=back[/]   [bold]║[/]")
-        log.write("[bold]╚══════════════════════════════════════════════════════╝[/]")
+        log.write(f"[bold]║[/]{' ' * inner}  [bold]║[/]")
+        log.write(f"[bold]╠{'═' * (w - 2)}╣[/]")
+        help_text = "[1-7]=board  m=menu  r=refresh  q=quit  esc=back"
+        log.write(f"[bold]║[/]  [dim]{help_text}[/]{' ' * max(0, inner - len(help_text))}  [bold]║[/]")
+        log.write(f"[bold]╚{'═' * (w - 2)}╝[/]")
 
         status = self.query_one("#bbs-status", Static)
         status.update("[dim]select a board [1-7][/]")
@@ -350,27 +370,31 @@ class BBSScreen(Screen):
             log.write(f"  [dim]No posts yet. Be the first to write something![/]")
             log.write("")
         else:
-            for post in self._board_posts:
+            for i, post in enumerate(self._board_posts):
                 author = post["author"]
                 reactions_str = " ".join(
                     f"{emoji} {count}" for emoji, count in post.get("reactions", {}).items()
                 )
+                num_label = f"[{board.color}][{i+1}][/] " if i < 7 else "    "
                 log.write(
-                    f"  [bold]#{post['id']}[/]  "
+                    f"  {num_label}"
+                    f"[bold]#{post['id']}[/]  "
                     f"{author['emoji']} [bold]{author['handle']}[/] "
                     f"[dim]({author['species']}, {author['register']})[/]  "
                     f"[dim]{post['age']}[/]"
                 )
-                log.write(f"  ├─ \"{post['title']}\"")
+                log.write(f"      ├─ \"{post['title']}\"")
                 reply_text = f"💬 {post['replies']} replies" if post['replies'] else "💬 no replies"
-                log.write(f"  └─ {reply_text}  {reactions_str}")
+                log.write(f"      └─ {reply_text}  {reactions_str}")
                 log.write("")
 
-        log.write(f"[dim]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/]")
-        log.write(f"[dim]m=menu  r=refresh  esc=back[/]")
+        w = self._get_content_width()
+        post_count = min(len(self._board_posts), 7)
+        post_hint = f"[1-{post_count}]=read post  " if post_count > 0 else ""
+        log.write(f"[dim]{'━' * (w - 2)}[/]")
+        log.write(f"[dim]{post_hint}m=menu  r=refresh  esc=back[/]")
 
         status = self.query_one("#bbs-status", Static)
-        post_nums = [str(p["id"]) for p in self._board_posts[:5]]
         status.update(f"[dim]{board.tagline}[/]")
 
     async def _show_post(self, post: dict):
@@ -392,30 +416,36 @@ class BBSScreen(Screen):
         color = board_obj.color if board_obj else "white"
         header.update(f"[bold]POST #{post['id']}[/] — [{color}]{board_name}[/]")
 
+        w = self._get_content_width()
+        box_w = w - 6  # indentation + border chars
+        wrap_w = max(20, box_w - 4)  # text area inside box
+
         author = post["author"]
         log.write("")
         log.write(
             f"  {author['emoji']} [bold]{author['handle']}[/] "
             f"[dim]({author['species']}, lvl {author['level']}, {author['register']})[/]"
         )
-        log.write(f"  ┌{'─' * 50}┐")
-        log.write(f"  │ [bold]{post['title']}[/]")
+        log.write(f"  ┌{'─' * box_w}┐")
+        log.write(f"  │ [bold]{post['title'][:wrap_w]}[/]")
         log.write(f"  │")
 
-        # Wrap body text
+        # Wrap body text to available width
         body = post["body"]
         while body:
-            chunk = body[:48]
-            body = body[48:]
+            chunk = body[:wrap_w]
+            body = body[wrap_w:]
             log.write(f"  │ {chunk}")
 
-        log.write(f"  └{'─' * 50}┘")
+        log.write(f"  └{'─' * box_w}┘")
         log.write("")
 
         # Replies (live or mock)
         replies = await self._fetch_replies(post["id"])
         if replies:
-            log.write(f"  [dim]── replies ({len(replies)}) ──────────────────────────────[/]")
+            reply_header = f"── replies ({len(replies)}) "
+            reply_header += "─" * max(0, w - len(reply_header) - 4)
+            log.write(f"  [dim]{reply_header}[/]")
             log.write("")
 
             for reply in replies:
@@ -425,18 +455,18 @@ class BBSScreen(Screen):
                     f"[dim]({ra['register']})[/] — [dim]{reply['age']}[/]"
                 )
 
-                # Wrap reply body
+                # Wrap reply body to available width
                 rbody = reply["body"]
                 while rbody:
-                    chunk = rbody[:48]
-                    rbody = rbody[48:]
+                    chunk = rbody[:wrap_w]
+                    rbody = rbody[wrap_w:]
                     log.write(f"  │ {chunk}")
                 log.write("")
         else:
             log.write(f"  [dim]No replies yet.[/]")
             log.write("")
 
-        log.write(f"[dim]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/]")
+        log.write(f"[dim]{'━' * (w - 2)}[/]")
         log.write(f"[dim]esc=back to board  m=menu  q=quit[/]")
 
         status = self.query_one("#bbs-status", Static)
@@ -550,10 +580,22 @@ class BBSScreen(Screen):
         if board:
             asyncio.create_task(self._show_board(board))
 
-    def action_board_1(self): self._open_board(0)
-    def action_board_2(self): self._open_board(1)
-    def action_board_3(self): self._open_board(2)
-    def action_board_4(self): self._open_board(3)
-    def action_board_5(self): self._open_board(4)
-    def action_board_6(self): self._open_board(5)
-    def action_board_7(self): self._open_board(6)
+    def _open_post_by_index(self, index: int):
+        """Open a post by its position in the current board listing."""
+        if index < len(self._board_posts):
+            asyncio.create_task(self._show_post(self._board_posts[index]))
+
+    def _handle_number(self, index: int):
+        """Context-aware number keys: boards on MENU, posts on BOARD."""
+        if self._page == BBSPage.MENU:
+            self._open_board(index)
+        elif self._page == BBSPage.BOARD:
+            self._open_post_by_index(index)
+
+    def action_board_1(self): self._handle_number(0)
+    def action_board_2(self): self._handle_number(1)
+    def action_board_3(self): self._handle_number(2)
+    def action_board_4(self): self._handle_number(3)
+    def action_board_5(self): self._handle_number(4)
+    def action_board_6(self): self._handle_number(5)
+    def action_board_7(self): self._handle_number(6)

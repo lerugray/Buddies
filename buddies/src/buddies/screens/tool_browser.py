@@ -99,7 +99,7 @@ class ToolBrowserScreen(Screen):
                     yield Static("", id="tools-count")
                     yield Vertical(id="tools-list")
                     yield Static(
-                        "[dim]esc=close  /=search  ↑↓=navigate[/]",
+                        "[dim]↑↓=navigate  /=search  esc=close[/]",
                         id="tools-help",
                     )
         yield Footer()

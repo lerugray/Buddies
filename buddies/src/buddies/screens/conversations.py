@@ -99,7 +99,7 @@ class ConversationsScreen(Screen):
                     yield Static("", id="convos-count")
                     yield Vertical(id="convos-list")
                     yield Static(
-                        "[dim]↑↓ navigate  enter=load  n=rename  del=delete  esc=close[/]",
+                        "[dim]↑↓=navigate  enter=load  n=rename  del=delete  esc=close[/]",
                         id="convos-help",
                     )
         yield Footer()
@@ -134,16 +134,24 @@ class ConversationsScreen(Screen):
             except (ValueError, OSError):
                 date_str = "??/??"
 
-            # Truncate name and preview
-            name = convo.name[:35]
-            preview = convo.preview[:50] if convo.preview else ""
-            buddy = convo.buddy_name[:15] if convo.buddy_name else ""
+            # Scale column widths to available space
+            try:
+                list_w = convos_list.size.width
+            except Exception:
+                list_w = 70
+            name_w = max(15, min(40, list_w - 40))
+            buddy_w = max(8, min(15, list_w - name_w - 25))
+            preview_w = max(0, list_w - name_w - buddy_w - 25)
+
+            name = convo.name[:name_w]
+            preview = (convo.preview[:preview_w] if convo.preview else "") if preview_w > 0 else ""
+            buddy = convo.buddy_name[:buddy_w] if convo.buddy_name else ""
 
             text = (
                 f"{is_selected}"
-                f"[bold]{name:<35}[/] "
+                f"[bold]{name:<{name_w}}[/] "
                 f"[dim]{date_str}[/] "
-                f"[cyan]{buddy:<15}[/] "
+                f"[cyan]{buddy:<{buddy_w}}[/] "
                 f"[dim]{convo.message_count:>3} msgs[/] "
                 f"[dim italic]{preview}[/]"
                 f"{end_tag}"

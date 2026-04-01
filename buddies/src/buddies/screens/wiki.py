@@ -98,7 +98,7 @@ class WikiScreen(Screen):
                 yield Static("", id="wiki-sessions")
                 yield Static("", id="wiki-action-log")
                 yield Static(
-                    "[dim]g=generate all  s=species  a=arch  d=decisions  r=refresh  esc=close[/]",
+                    "[dim]g=generate  s=species  a=arch  d=decisions  r=refresh  esc=close[/]",
                     id="wiki-help",
                 )
         yield Footer()
