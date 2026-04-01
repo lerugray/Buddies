@@ -19,6 +19,8 @@ A tamagotchi-style AI companion that lives in your terminal and watches your Cla
 - **Multi-buddy collection** — hatch, switch, rename, customize
 - **Config intelligence** — grades your CLAUDE.md health (A-F), scaffolds .claude/rules/, auto-learns rules from corrections
 - **Token guardian** — rolling session summaries, early warnings at 50/70/90% context, quick-save [F1], session handoff
+- **33 achievements** across 5 categories (collection, mastery, social, exploration, secret)
+- **6 themes** — default, midnight, forest, ocean, sunset, light — cycle with [F2], persisted
 - **Session awareness** — watches Claude Code activity, detects patterns, suggests config rules
 - **AI cost guardrails** — cost_tier config prevents buddy chatter from ever using expensive models
 - **Zero token cost** — everything runs locally except tiny MCP payloads to Claude
@@ -88,7 +90,9 @@ python -m buddies.setup_mcp
 - **[t]** — Tool Browser — see installed MCP servers and skills
 - **[c]** — Conversations — browse, rename, load, delete saved chats
 - **[g]** — Config Health — CLAUDE.md grade, suggestions, scaffold .claude/rules/
+- **[a]** — Achievements — view unlocked/locked achievements across 5 categories
 - **[F1]** — Quick Save — dump session state + write handoff file for next session
+- **[F2]** — Cycle Theme — 6 themes (default, midnight, forest, ocean, sunset, light)
 - **[n]** — Rename selected buddy (in Party screen)
 - **[h]** — Cycle hats (in Party screen)
 - **[?]** — Help
@@ -98,11 +102,11 @@ python -m buddies.setup_mcp
 
 ## Species & Rarity
 
-**Common (11):** Duck, Cat, Frog, Hamster, Bee, Slime, Gorby, Corgi, Pig, Rat, Cow, Potato, Anchor, Taco
-**Uncommon (14):** Owl, Fox, Axolotl, Penguin, Raccoon, Parrot, Dolphin, Panda, Crab, Moth, Snail, Goblin, Imp, Box, Coopa, Bat, Dice
-**Rare (14):** Dragon, Capybara, Mushroom, Octopus, Wolf, Orca, Basilisk, Cane Toad, Mantis Shrimp, Doobie, Jellyfish, Sanic, Kobold, Joe Camel, Coffee, Dali Clock, Bac Man
-**Epic (9):** Phoenix, Kraken, Unicorn, Robot, Chonk, Tardigrade, Burger, Beholder, Mimic, Clippy, Comrade, Kilowatt
-**Legendary (8):** Ghost, Cosmic Whale, Tree, Void Cat, Starspawn, Claude, Illuminati, Yog-Sothoth, Zorak
+**Common (14):** Anchor, Bee, Cat, Corgi, Cow, Duck, Frog, Gorby, Hamster, Pig, Potato, Rat, Slime, Taco
+**Uncommon (18):** Axolotl, Bat, Box, Coopa, Crab, Dice, Dolphin, Fox, Goblin, Imp, Moth, Owl, Panda, Parrot, Penguin, Raccoon, Rooster, Snail
+**Rare (17):** Bac Man, Basilisk, Cane Toad, Capybara, Coffee, Dali Clock, Doobie, Dragon, Jellyfish, Joe Camel, Kobold, Mantis Shrimp, Mushroom, Octopus, Orca, Sanic, Wolf
+**Epic (12):** Beholder, Burger, Chonk, Clippy, Comrade, Kilowatt, Kraken, Mimic, Phoenix, Robot, Tardigrade, Unicorn
+**Legendary (9):** Claude, Cosmic Whale, Ghost, Illuminati, Starspawn, Tree, Void Cat, Yog-Sothoth, Zorak
 
 Your starting species is seeded from your username (same user = same buddy).
 
@@ -190,13 +194,15 @@ buddies/
 │   │   ├── ai_router.py          # Complexity routing + cost guardrails
 │   │   ├── rule_suggester.py     # Pattern -> rule suggestions
 │   │   ├── config_intel.py       # CLAUDE.md health, linting, scaffolding, auto-learn
-│   │   └── token_guardian.py     # Rolling summaries, token warnings, session handoff
+│   │   ├── token_guardian.py     # Rolling summaries, token warnings, session handoff
+│   │   └── achievements.py      # 33 achievements, checking, tracking
 │   ├── screens/
 │   │   ├── party.py              # Buddy collection management
 │   │   ├── discussion.py         # Party focus group screen
 │   │   ├── tool_browser.py       # MCP/skills browser screen
 │   │   ├── conversations.py      # Saved conversations browser
-│   │   └── config_health.py      # Config health dashboard
+│   │   ├── config_health.py      # Config health dashboard
+│   │   └── achievements.py      # Achievements viewer screen
 │   ├── widgets/
 │   │   ├── buddy_display.py      # Animated sprite + stats + evolution
 │   │   ├── chat.py               # Chat pane with auto-save
@@ -240,11 +246,34 @@ Press **[d]** to open the discussion screen. Your buddies will talk to each othe
 
 Works with zero AI — pure prose engine. Each buddy speaks in their register (clinical, sarcastic, absurdist, philosophical, calm) and reacts to what other buddies said.
 
+## Achievements (33)
+
+Press **[a]** to view your achievements. They unlock automatically as you play.
+
+| Category | Count | Examples |
+|----------|-------|---------|
+| Collection | 12 | First Steps, Zookeeper, Shiny Hunter, Fashion Icon |
+| Mastery | 6 | Growing Up, Elder Wisdom, Specialist, Well-Rounded |
+| Social | 3 | Town Hall, Chatty, Storyteller |
+| Exploration | 6 | Watchful Eye, Token Miser, Clean Config, Safety First |
+| Secret | 6 | ???  (discover them yourself!) |
+
+## Themes
+
+Press **[F2]** to cycle through 6 themes. Your choice is saved between sessions.
+
+| Theme | Vibe |
+|-------|------|
+| Default | Deep blue / purple |
+| Midnight | Dark violet / magenta |
+| Forest | Green / earth tones |
+| Ocean | Blue / teal |
+| Sunset | Warm orange / red |
+| Light | Light mode for bright environments |
+
 ## What's Next
 
 - Social buddies — buddies talk to each other across users via MCP
-- Theme customization (dark/light/custom)
-- Buddy achievements and milestone tracking
 - More species and animation frames
 
 ## Requirements

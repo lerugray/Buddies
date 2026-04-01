@@ -169,3 +169,25 @@ class BuddyStore:
     async def mark_notes_read(self):
         await self.db.execute("UPDATE buddy_notes SET read = 1 WHERE read = 0")
         await self.db.commit()
+
+    # --- Achievements ---
+
+    async def get_unlocked_achievements(self) -> set[str]:
+        """Get set of unlocked achievement IDs."""
+        try:
+            async with self.db.execute("SELECT id FROM achievements") as cursor:
+                rows = await cursor.fetchall()
+                return {row[0] for row in rows}
+        except Exception:
+            return set()
+
+    async def unlock_achievement(self, achievement_id: str) -> None:
+        """Mark an achievement as unlocked."""
+        try:
+            await self.db.execute(
+                "INSERT OR IGNORE INTO achievements (id) VALUES (?)",
+                (achievement_id,),
+            )
+            await self.db.commit()
+        except Exception:
+            pass

@@ -22,6 +22,7 @@ A tamagotchi-style local AI companion **collection** that runs alongside Claude 
 - **Fun Phase**: DONE — party discussions, tool browser, conversation saving, styled output, 70 species
 - **Phase 9** (CC Config Intelligence): DONE — CLAUDE.md health grading, auto-learn rules, config scaffolding
 - **Phase 10** (Token Guardian): DONE — rolling summaries, token warnings, quick-save, session handoff
+- **Polish**: DONE — 6 themes, 33 achievements, species count audit
 - **Hatch screen**: Working — named buddies, seed-based or random, name input on hatch
 - **Party screen**: NEW — switch between buddies, equip hats, hatch new
 - **Hats**: NEW — crown (debug), wizard (wisdom), propeller (chaos), tinyduck (starter)
@@ -100,13 +101,15 @@ buddies/
 │   │   ├── ai_router.py              # Complexity scoring, cost guardrails, routing
 │   │   ├── rule_suggester.py         # Session pattern → config rule suggestions
 │   │   ├── config_intel.py           # CLAUDE.md health, linting, scaffolding, auto-learn
-│   │   └── token_guardian.py         # Rolling summaries, token warnings, session handoff
+│   │   ├── token_guardian.py         # Rolling summaries, token warnings, session handoff
+│   │   └── achievements.py          # 33 achievements, checking, tracking
 │   ├── screens/
 │   │   ├── party.py                  # Buddy collection management
 │   │   ├── discussion.py             # Party focus group screen
 │   │   ├── tool_browser.py           # MCP/skills browser screen
 │   │   ├── conversations.py          # Saved conversations browser
-│   │   └── config_health.py          # Config health dashboard screen
+│   │   ├── config_health.py          # Config health dashboard screen
+│   │   └── achievements.py          # Achievements viewer screen
 │   ├── widgets/
 │   │   ├── buddy_display.py          # Animated sprite + stats + evolution
 │   │   ├── chat.py                   # Chat pane with auto-save
@@ -351,15 +354,18 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 
 ## Session Notes (2026-04-01 — Home)
 
-### Completed (4 commits)
+### Completed (6 commits)
 - ✅ Phase 9: CC Config Intelligence — CLAUDE.md health grading, linting, scaffolding, auto-learn, session summary
 - ✅ Phase 10: Token Guardian — rolling summaries, token warnings, quick-save [F1], session handoff
 - ✅ CLAUDE.md created (local/gitignored) with routing to HANDOFF.md and .claude/rules/
 - ✅ .claude/rules/ scaffolded: preferences.md, decisions.md, project-context.md, buddy-learned.md
-- ✅ .gitignore updated to exclude CLAUDE.md
-- ✅ 3 new files, 1 modified file, plus config scaffolding
-- ✅ README and HANDOFF updated
+- ✅ 6 themes: default, midnight, forest, ocean, sunset, light — cycle [F2], persisted to config
+- ✅ 33 achievements across 5 categories (collection, mastery, social, exploration, secret)
+- ✅ Achievements DB table, periodic checker, notification system, [a] screen
+- ✅ Species count audit — fixed README (was showing wrong per-rarity counts)
+- ✅ 6 new files, 4 modified files, plus config scaffolding
+- ✅ README and HANDOFF fully updated
 
 ### Direction
-- Buddies is now a full "CC maintenance layer" — monitors config health, warns about token usage, auto-saves session state, learns from corrections
-- Next direction: Phase 11 ideas (social buddies, themes, achievements) or more species/polish
+- Buddies is feature-complete as a "CC maintenance layer" with gamification
+- Ideas Bank: social buddies, more species, more animation frames

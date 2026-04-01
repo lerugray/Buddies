@@ -39,6 +39,9 @@ from buddies.screens.config_health import ConfigHealthScreen
 from buddies.core.conversation import ConversationLog
 from buddies.core.config_intel import ConfigIntelligence, SessionLearner, generate_session_summary
 from buddies.core.token_guardian import TokenGuardian
+from buddies.themes import BUDDY_THEMES, THEME_ORDER, next_theme
+from buddies.core.achievements import check_achievements, ACHIEVEMENT_MAP
+from buddies.screens.achievements import AchievementsScreen
 
 
 CSS_PATH = Path(__file__).parent / "styles" / "buddy.tcss"
@@ -61,10 +64,15 @@ class BuddyApp(App):
         Binding("c", "conversations", "Convos", show=True),
         Binding("g", "config_health", "Config", show=True),
         Binding("f1", "quick_save", "Save", show=True),
+        Binding("f2", "cycle_theme", "Theme", show=True),
+        Binding("a", "achievements", "Achieve", show=True),
     ]
 
     def __init__(self):
         super().__init__()
+        # Register custom themes before anything else
+        for theme in BUDDY_THEMES.values():
+            self.register_theme(theme)
         self.config = BuddyConfig.load()
         self.store = BuddyStore(self.config.db_path)
         self.buddy_state: BuddyState | None = None
@@ -77,6 +85,11 @@ class BuddyApp(App):
         self.session_learner = SessionLearner()
         self.token_guardian = TokenGuardian()
         self._rules_suggested: list[str] = []
+        self._unlocked_achievements: set[str] = set()
+        self._messages_sent: int = 0
+        self._discussions_started: int = 0
+        self._quick_saves: int = 0
+        self._themes_changed: int = 0
         self._last_thought_time: float = 0
         self._recent_tools: list[str] = []
         self._bored_minutes: float = 0  # Track sustained boredom for nightcap
@@ -89,6 +102,9 @@ class BuddyApp(App):
         yield Footer()
 
     async def on_mount(self):
+        # Apply saved theme
+        if self.config.theme and self.config.theme in BUDDY_THEMES:
+            self.theme = self.config.theme
         await self.store.connect()
         await self.ai_backend.connect()
 
@@ -164,6 +180,10 @@ class BuddyApp(App):
         # Phase 10: Rolling session summary writer
         self._rolling_summary_task = asyncio.create_task(self._rolling_summary_loop())
 
+        # Achievements: load unlocked and start periodic check
+        asyncio.create_task(self._load_achievements())
+        self._achievement_check_task = asyncio.create_task(self._achievement_check_loop())
+
     async def _show_ai_status(self):
         ai_available = await self.ai_backend.is_available()
         chat = self.query_one("#chat-panel", ChatWindow)
@@ -238,6 +258,9 @@ class BuddyApp(App):
         else:
             response = self._buddy_respond(message)
             chat.add_message("buddy", response)
+
+        # Track message count for achievements
+        self._messages_sent += 1
 
         # Phase 10: Track user messages for rolling summary
         self.token_guardian.observe_user_message(message)
@@ -620,7 +643,7 @@ class BuddyApp(App):
         chat.add_system("Simple questions → handled locally (saves Claude tokens)")
         chat.add_system("Complex questions → buddy tells you to ask Claude")
         chat.add_system("Commands: 'stats' 'help' 'name' 'session' 'tokens'")
-        chat.add_system("Keys: [q] quit  [?] help  [r] hatch  [p] party  [d] discuss  [t] tools  [c] convos  [g] config  [F1] save  [F5] refresh")
+        chat.add_system("Keys: [q] quit  [?] help  [r] hatch  [p] party  [d] discuss  [t] tools  [c] convos  [g] config  [a] achieve  [F1] save  [F2] theme  [F5] refresh")
         chat.add_system("────────────")
 
     def action_hatch_new(self):
@@ -686,6 +709,7 @@ class BuddyApp(App):
 
     def action_discussion(self):
         """Open the discussion screen for party focus group."""
+        self._discussions_started += 1
         self.push_screen(
             DiscussionScreen(self.store, self.prose),
             callback=self._on_discussion_dismissed,
@@ -762,6 +786,7 @@ class BuddyApp(App):
         asyncio.create_task(self._do_quick_save())
 
     async def _do_quick_save(self):
+        self._quick_saves += 1
         try:
             convo_msgs = [m.to_dict() for m in self.convo_log.get_messages()] if self.convo_log else None
             summary_path, handoff_path = self.token_guardian.quick_save(
@@ -793,12 +818,90 @@ class BuddyApp(App):
             except Exception:
                 pass
 
+    def action_achievements(self):
+        """Open the achievements screen."""
+        self.push_screen(
+            AchievementsScreen(self._unlocked_achievements),
+            callback=self._on_achievements_dismissed,
+        )
+
+    async def _on_achievements_dismissed(self, result) -> None:
+        pass
+
+    async def _load_achievements(self):
+        """Load unlocked achievements from DB."""
+        self._unlocked_achievements = await self.store.get_unlocked_achievements()
+
+    async def _achievement_check_loop(self):
+        """Periodically check for newly unlocked achievements."""
+        while True:
+            await asyncio.sleep(30)
+            await self._run_achievement_check()
+
+    async def _run_achievement_check(self):
+        """Run achievement checks against current state."""
+        try:
+            buddies = await self.store.get_all_buddies()
+            active = await self.store.get_active_buddy()
+
+            # Get config grade
+            config_grade = "?"
+            try:
+                intel = ConfigIntelligence()
+                report = intel.scan()
+                config_grade = report.overall_grade
+            except Exception:
+                pass
+
+            tokens_saved = self.router.tokens_saved if self.router else 0
+
+            newly = check_achievements(
+                buddies=buddies,
+                active_buddy=active,
+                session_events=self.observer.stats.event_count,
+                tokens_saved=tokens_saved,
+                messages_sent=self._messages_sent,
+                discussions_started=self._discussions_started,
+                config_grade=config_grade,
+                quick_saves=self._quick_saves,
+                themes_changed=self._themes_changed,
+                unlocked_ids=self._unlocked_achievements,
+            )
+
+            for achievement in newly:
+                self._unlocked_achievements.add(achievement.id)
+                await self.store.unlock_achievement(achievement.id)
+                try:
+                    chat = self.query_one("#chat-panel", ChatWindow)
+                    chat.add_system(
+                        f"🏆 Achievement Unlocked: {achievement.icon} "
+                        f"[bold]{achievement.name}[/] — {achievement.description}"
+                    )
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+    def action_cycle_theme(self):
+        """Cycle through available themes."""
+        self._themes_changed += 1
+        current = self.config.theme or "default"
+        new_theme = next_theme(current)
+        self.theme = new_theme
+        self.config.theme = new_theme
+        self.config.save()
+        try:
+            chat = self.query_one("#chat-panel", ChatWindow)
+            chat.add_system(f"Theme: {new_theme}")
+        except Exception:
+            pass
+
     def action_refresh(self):
         self._update_displays()
 
     async def on_unmount(self):
         self.observer.stop()
-        for task_name in ('_observer_task', '_rule_check_task', '_idle_thought_task', '_mood_decay_task', '_rolling_summary_task'):
+        for task_name in ('_observer_task', '_rule_check_task', '_idle_thought_task', '_mood_decay_task', '_rolling_summary_task', '_achievement_check_task'):
             task = getattr(self, task_name, None)
             if task:
                 task.cancel()
