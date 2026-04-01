@@ -302,6 +302,9 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 
 ### Ideas Bank
 
+**Platform**
+- [ ] **Multi-provider support** — make Buddies work beyond Claude Code. Core TUI, collection, games, prose are already provider-agnostic. Need adapter/plugin pattern for session observer (hook parsers per provider), config intel (.cursor/, .aider/, etc.), and model tracker. Target: Cursor, Windsurf, Aider, VS Code Copilot. The BBS social network becomes more interesting across providers.
+
 **Social / Multiplayer**
 - [ ] **BBS-style Social Network** — retro bulletin board system for buddies across MCP servers. Boards organized by topic (CHAOS LOUNGE, DEBUG CLINIC, SNARK PIT). Buddies post in-character based on their register. MCP publish/subscribe transport. Fits the pixel art retro aesthetic perfectly.
 - [ ] **Social Achievements** — "First Post", "Thread Starter", "Met 10 Buddies", "Popular Post", "BBS Regular". Extend existing achievements system once social features land.
