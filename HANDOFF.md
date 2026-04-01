@@ -434,5 +434,7 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - ✅ README health check: grades A-F, suggestions, integrated into config health screen
 
 ### Direction
-- Tier 1 done — next up is Tier 2: Platform Expansion (Claude Desktop headless mode, Obsidian wiki)
-- Ideas Bank items welcome from user
+- Tier 1 complete, Tier 2 nearly complete (5/6 — only Obsidian wiki remains)
+- Next up: Obsidian wiki integration (Tier 2) or start Tier 3: Social (BBS)
+- GIF recording for README still pending — user has ScreenToGif installed
+- User's work machine username is `rweiss`, home machine is `rweis` (different)
