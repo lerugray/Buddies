@@ -582,13 +582,24 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - `screens/game_trivia.py` — TriviaScreen (quiz UI with A/B/C/D input)
 - `screens/game_holdem.py` — HoldemScreen (ASCII poker table, 90s card game aesthetic)
 - `screens/game_whist.py` — WhistScreen (numbered card selection, trick display)
+- `core/games/dungeon.py` — DungeonGame engine (rooms, encounters, cooperative combat)
+- `screens/game_dungeon.py` — DungeonScreen (choice-based exploration UI)
+- `core/personality_drift.py` — Stat drift rules and application functions
+- `core/idle_life.py` — IdleLife event generator with 50+ templates
+- `core/relationships.py` — RelationshipManager with stat compatibility and affinity tracking
 
 - ✅ **Texas Hold'em** — ASCII poker table with buddy profile pics at seats, full hand evaluator, personality-driven betting AI
 - ✅ **Whist** — 4-player trick-taking with team partnerships, trump suits, suit-following rules
 - ✅ Games Arcade now loads party buddies for multiplayer games (Hold'em, Whist)
+- ✅ **Dungeon Crawl** — cooperative roguelike (8th game). 5 floors, random encounters (12 monsters, 3 bosses, 6 traps, 8 treasures, 6 mysteries). Buddy assists based on stats (DEBUGGING spots traps, CHAOS goes berserk, WISDOM finds secrets, PATIENCE heals).
+- ✅ **Personality Drift** — stats evolve from play patterns. Games boost specific stats (trivia→WISDOM, battles→DEBUGGING). Session tools, chat, and idle time all cause drift. Visible "personality shift" notifications.
+- ✅ **Idle Life** — buddies do things while you code. 50+ event templates across 5 categories (explore, find items, journal, trouble, social). Events appear in session monitor. Social events between party buddies.
+- ✅ **Buddy Relationships** — buddies develop opinions about each other based on stat compatibility and shared activities. Relationship types: stranger→acquaintance→friend→best friend, or rival→nemesis. Affects discussion dynamics.
 
 ### Direction
-- All 7 planned games complete! (RPS, Blackjack, Battle, Pong, Trivia, Hold'em, Whist)
+- All 8 arcade games complete! (RPS, Blackjack, Battle, Pong, Trivia, Hold'em, Whist, Dungeon)
+- Three new core systems: personality drift, idle life, relationships
+- User setting up Claude Desktop with computer use for visual testing — this is cross-project infrastructure, not a Buddies feature
 - Multiplayer via GitHub Issues planned as future scope (same transport as BBS)
 - User wants games as fun bonus features, not the main focus — keep them goofy
 - User setting up Claude Desktop with computer use for visual testing — this is cross-project infrastructure, not a Buddies feature

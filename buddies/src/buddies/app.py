@@ -122,6 +122,8 @@ class BuddyApp(App):
         self._last_thought_time: float = 0
         self._recent_tools: list[str] = []
         self._bored_minutes: float = 0  # Track sustained boredom for nightcap
+        self.idle_life: "IdleLife | None" = None
+        self.relationships: "RelationshipManager | None" = None
         self._typing_timer = None  # Debounce timer for typing detection
 
     def compose(self) -> ComposeResult:
@@ -224,6 +226,22 @@ class BuddyApp(App):
         # Achievements: load unlocked and start periodic check
         asyncio.create_task(self._load_achievements())
         self._achievement_check_task = asyncio.create_task(self._achievement_check_loop())
+
+        # Idle Life: buddies do things while you code
+        try:
+            from buddies.core.idle_life import IdleLife
+            self.idle_life = IdleLife()
+            self._idle_life_task = asyncio.create_task(self._idle_life_loop())
+        except Exception:
+            pass
+
+        # Relationships: buddies form opinions about each other
+        try:
+            from buddies.core.relationships import RelationshipManager
+            self.relationships = RelationshipManager()
+            asyncio.create_task(self._init_relationships())
+        except Exception:
+            pass
 
         # Phase 11: Model tracker — show initial model and start phase checks
         self._model_phase_task = asyncio.create_task(self._model_phase_loop())
@@ -409,13 +427,18 @@ class BuddyApp(App):
                         f"now '{value[:40]}'"
                     )
 
-        # Gain XP for interaction (mood-modified)
+        # Gain XP for interaction (mood-modified) + personality drift from chatting
         if self.buddy_state:
             old_level = self.buddy_state.level
             mood_mod = get_mood_modifier(self.buddy_state.mood)
             xp_gain = int(5 * mood_mod["xp_multiplier"])
             leveled = self.buddy_state.gain_xp(xp_gain)
             self.buddy_state.adjust_mood(2)
+            try:
+                from buddies.core.personality_drift import drift_for_chat
+                drift_for_chat(self.buddy_state.stats)
+            except Exception:
+                pass
             await self.store.update_buddy_by_id(
                 self.buddy_state.buddy_id,
                 xp=self.buddy_state.xp,
@@ -600,13 +623,12 @@ class BuddyApp(App):
             mood_mod = get_mood_modifier(self.buddy_state.mood)
             xp_gain = max(1, int(1 * mood_mod["xp_multiplier"]))
             self.buddy_state.gain_xp(xp_gain)
-            # Specific stat boosts based on what Claude is doing
-            if event.tool_name in ("Edit", "Write"):
-                self.buddy_state.stats["debugging"] = min(99, self.buddy_state.stats["debugging"] + 1)
-            elif event.tool_name == "Agent":
-                self.buddy_state.stats["wisdom"] = min(99, self.buddy_state.stats["wisdom"] + 1)
-            elif event.tool_name == "Bash":
-                self.buddy_state.stats["chaos"] = min(99, self.buddy_state.stats["chaos"] + 1)
+            # Personality drift from session tools
+            try:
+                from buddies.core.personality_drift import drift_for_session_tool
+                drift_for_session_tool(self.buddy_state.stats, event.tool_name)
+            except Exception:
+                pass
             # Mood bonus stat (bored = patience, grumpy = snark)
             bonus_stat = mood_mod.get("bonus_stat")
             if bonus_stat:
@@ -905,6 +927,52 @@ class BuddyApp(App):
             if self.buddy_state.mood != old_mood:
                 self._update_displays()
 
+    async def _init_relationships(self):
+        """Initialize buddy relationships from stat compatibility."""
+        try:
+            all_data = await self.store.get_all_buddies()
+            party = []
+            for b in all_data:
+                try:
+                    party.append(BuddyState.from_db(b))
+                except Exception:
+                    pass
+            if self.relationships and len(party) > 1:
+                self.relationships.initialize_from_stats(party)
+        except Exception:
+            pass
+
+    async def _idle_life_loop(self):
+        """Periodically generate idle life events for party buddies."""
+        while True:
+            await asyncio.sleep(30)  # Check every 30 seconds
+            if not self.idle_life or not self.buddy_state:
+                continue
+            try:
+                # Get all party buddies
+                all_buddies_data = await self.store.get_all_buddies()
+                party = []
+                for b in all_buddies_data:
+                    try:
+                        party.append(BuddyState.from_db(b))
+                    except Exception:
+                        pass
+
+                new_events = self.idle_life.tick(party)
+                if new_events:
+                    try:
+                        session = self.query_one("#session-panel", SessionMonitor)
+                        for event in new_events:
+                            session.log_event(
+                                "idle",
+                                f"{event.buddy_emoji} {event.text}",
+                                0,
+                            )
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+
     async def _periodic_rule_check(self):
         """Periodically analyze session patterns and suggest rules."""
         while True:
@@ -1143,6 +1211,20 @@ class BuddyApp(App):
                 score=json.dumps(result.score),
                 xp_earned=result.xp_for_outcome,
             )
+        except Exception:
+            pass
+
+        # Personality drift from game
+        try:
+            from buddies.core.personality_drift import drift_for_game
+            won = result.outcome.value == "win"
+            drift = drift_for_game(self.buddy_state.stats, result.game_type.value, won)
+            if drift.has_changes:
+                try:
+                    chat = self.query_one("#chat-panel", ChatWindow)
+                    chat.add_system(f"📊 Personality shift: {drift.summary()}")
+                except Exception:
+                    pass
         except Exception:
             pass
 

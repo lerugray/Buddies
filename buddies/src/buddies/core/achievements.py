@@ -69,6 +69,7 @@ ACHIEVEMENTS: list[Achievement] = [
     Achievement("battle_veteran", "Battle Veteran", "Win 10 battles", "⚔️", "mastery"),
     Achievement("trivia_master", "Trivia Master", "Score 10/10 on trivia", "🧠", "mastery"),
     Achievement("pong_champion", "Pong Champion", "Win a game of Pong", "🏓", "mastery"),
+    Achievement("dungeon_master", "Dungeon Master", "Clear all 5 floors of the dungeon", "🏰", "mastery"),
     Achievement("arcade_regular", "Arcade Regular", "Play 25 total games", "🕹️", "mastery"),
     Achievement("all_in_chaos", "ALL IN!", "Win a game with a high-CHAOS buddy", "🎰", "secret"),
 
@@ -256,6 +257,7 @@ def check_achievements(
         )
         battles_won = by_type.get("battle", {}).get("won", 0)
         pong_won = by_type.get("pong", {}).get("won", 0)
+        dungeon_won = by_type.get("dungeon", {}).get("won", 0)
         trivia_perfect = game_stats.get("trivia_perfect", False)
 
         _check("first_game", gp >= 1)
@@ -264,6 +266,7 @@ def check_achievements(
         _check("card_shark", cards_won >= 10)
         _check("battle_veteran", battles_won >= 10)
         _check("pong_champion", pong_won >= 1)
+        _check("dungeon_master", dungeon_won >= 1)
         _check("trivia_master", trivia_perfect)
         _check("arcade_regular", gp >= 25)
 
