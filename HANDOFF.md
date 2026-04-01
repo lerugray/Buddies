@@ -149,6 +149,15 @@ buddies/
 - **Zero Claude token cost** — everything runs locally except the MCP tools (tiny payloads)
 - **claw-code integration planned** — for Phase 3+, can use instructkr/claw-code's tool harness to give local model agentic capabilities (read/edit/bash)
 
+### MUD Narrative Direction
+The StackHaven MUD's lore carries a deeper editorial point beneath the absurdist comedy. Inspired by Dark Souls' environmental storytelling and the reading of the undead curse as a capitalism parable:
+
+- **The "curse" of StackHaven** is the forgetting and devaluing of software engineering craft. The world is funny on the surface, but the lore fragments tell a story of genuine brilliance being buried under shortcuts, scope creep, and institutional amnesia.
+- **The Founders** weren't just funny — they were people who built something extraordinary by hand, under impossible constraints, before AI existed. The legacy code isn't just broken — it was someone's best work. The tech debt isn't just a joke — it's the accumulated weight of real pressures on real people.
+- **The humor comes from respect.** The user has developed deep respect for software engineers through this project. Every parody NPC, every absurd item description, every coding trope — it's a love letter to the craft, not mockery of it.
+- **Discoverable lore** — Dark Souls-style item descriptions, environmental storytelling, lore fragments scattered across rooms that tell a larger story when pieced together. Not just flavor text — a coherent narrative about what happens when craft is taken for granted.
+- **Blobber combat** should lean toward Wizardry VI style — more tactical, party positioning, distinct class roles — to distinguish it from the simpler MUD combat and honor the tactical depth of the CRPGs we're referencing.
+
 ### MCP Tools (available to Claude)
 1. `buddy_status` — Check buddy's mood, species, stats, level
 2. `buddy_note` — Leave a note for the user via buddy's chat
