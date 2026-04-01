@@ -19,10 +19,11 @@ A tamagotchi-style local AI companion **collection** that runs alongside Claude 
 - **Phase 3** (Intelligence): DONE — AI backend, query router, rule suggester
 - **Phase 4** (MCP Integration): DONE — MCP server with 5 tools, setup scripts
 - **Phase 5** (Refactor + Cosmetics): DONE — multi-buddy collection, hats, stat-based unlocking, new species
+- **Fun Phase**: DONE — party discussions, tool browser, conversation saving, styled output, 70 species
 - **Hatch screen**: Working — named buddies, seed-based or random, name input on hatch
 - **Party screen**: NEW — switch between buddies, equip hats, hatch new
 - **Hats**: NEW — crown (debug), wizard (wisdom), propeller (chaos), tinyduck (starter)
-- **Species**: 25 total (16 original + 9 new: bee, slime, raccoon, parrot, octopus, wolf, robot, tree, void_cat)
+- **Species**: 70 total (see buddy_brain.py for full catalog)
 - **Animation**: Working — 1-second idle frame cycling per buddy
 - **Stats**: DEBUGGING, CHAOS, SNARK, WISDOM, PATIENCE (already in code, now more visible)
 
@@ -85,16 +86,31 @@ buddies/
 │   ├── screens/
 │   │   └── party.py                  # Party screen for buddy collection management
 │   ├── core/
-│   │   ├── buddy_brain.py            # Species, stats, personality, gacha, leveling
+│   │   ├── buddy_brain.py            # 70 species, stats, personality, gacha, leveling
+│   │   ├── prose.py                  # Personality prose engine + discussion templates
+│   │   ├── discussion.py             # Multi-buddy discussion orchestrator
+│   │   ├── conversation.py           # Chat auto-save/load persistence
+│   │   ├── tool_scanner.py           # MCP/skills browser scanner
+│   │   ├── agent.py                  # Agentic tool loop (read/grep/bash)
 │   │   ├── hooks.py                  # Claude Code hook receiver (writes events.jsonl)
 │   │   ├── session_observer.py       # Watches events, detects patterns, tracks tokens
 │   │   ├── ai_backend.py             # Ollama/OpenAI-compatible API connector
-│   │   ├── ai_router.py              # Complexity scoring, local vs Claude routing
+│   │   ├── ai_router.py              # Complexity scoring, cost guardrails, routing
 │   │   └── rule_suggester.py         # Session pattern → config rule suggestions
+│   ├── screens/
+│   │   ├── party.py                  # Buddy collection management
+│   │   ├── discussion.py             # Party focus group screen
+│   │   ├── tool_browser.py           # MCP/skills browser screen
+│   │   └── conversations.py          # Saved conversations browser
+│   ├── widgets/
+│   │   ├── buddy_display.py          # Animated sprite + stats + evolution
+│   │   ├── chat.py                   # Chat pane with auto-save
+│   │   ├── styling.py                # Centralized Rich markup styles
+│   │   └── session_monitor.py        # Activity feed
 │   ├── mcp/
 │   │   └── server.py                 # MCP server (5 tools for Claude)
 │   ├── art/
-│   │   ├── sprites.py                # 25 species, 2 frames each, Unicode art
+│   │   ├── sprites.py                # 70 species, 10 hats (half-block pixel art)
 │   │   └── animations.py             # Frame cycling controller
 │   ├── db/
 │   │   ├── models.py                 # SQLite schema
@@ -218,6 +234,18 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 - ✅ Safety: path traversal blocked, destructive commands blocked, output truncated
 - ✅ AI router auto-detects when to use agent mode vs simple chat
 
+### Fun Phase — DONE
+- ✅ Party Focus Group: buddies discuss topics and react to each other (3 modes: open/guided/file)
+- ✅ Tool Browser: scans .claude/ for MCP servers and skills, searchable TUI
+- ✅ Conversation Persistence: auto-saves every chat message, browse/rename/load/delete
+- ✅ Styled Output: rarity-colored buddy messages, bordered discussion mode, register accent colors
+- ✅ AI Cost Guardrails: cost_tier config, router blocks expensive models from chat traffic
+- ✅ 35 new species (70 total) across 4 batches — highlights: Zorak, Clippy, Joe Camel, Sanic, Mimic, Beholder, Illuminati, Doobie, Comrade, Kilowatt
+- ✅ New keybindings: [d] discuss, [t] tools, [c] conversations
+- ✅ Discussion prose templates: discussion_open, discussion_topic, discussion_file, discussion_react
+- ✅ Register-flavored commentary system (5 registers × 4 contexts)
+- ✅ New files: core/discussion.py, core/conversation.py, core/tool_scanner.py, screens/discussion.py, screens/conversations.py, screens/tool_browser.py, widgets/styling.py
+
 ## Next Steps
 
 ### Phase 9: CC Config Intelligence (NEXT)
@@ -244,7 +272,7 @@ Key insight: Buddies becomes the **memory that survives between sessions**. The 
 
 ### Phase 11+: Ideas Bank
 - [ ] **Social Buddies (MCP)** — buddies talk to each other across users via MCP. Share notes, stories, suggestions. "Your friend's buddy just helped them fix something similar."
-- [ ] **Local party focus group** — buddies in your party "discuss" a topic, each weighing in based on personality stats. High-DEBUG buddy focuses on technical risks, high-CHAOS suggests wild alternatives, high-WISDOM considers long-term. Like a personal advisory council. Works offline with prose engine — no AI needed.
+- [x] ~~**Local party focus group**~~ — DONE (Fun Phase)
 - [ ] Input box integration — buddy sits beside chat input, reacts to typing
 - [ ] Theme customization (dark/light/custom)
 - [ ] Buddy achievements and milestone tracking
@@ -292,3 +320,21 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 ### Direction
 - Buddies is evolving from "tamagotchi that watches you code" into "tamagotchi that actively makes Claude Code better at its job"
 - Phase 9 focus: CC config intelligence (CLAUDE.md health, auto-learned rules, session summaries)
+
+## Session Notes (2026-03-31 — Home, Session 2)
+
+### Completed (5 commits)
+- ✅ Fun Phase: party discussions (3 modes), tool browser, styled output, cost guardrails
+- ✅ Conversation persistence: auto-save, browse, rename, load, delete
+- ✅ 35 new species across 4 batches (35→70 total)
+  - User ideas: corgi, pig, doobie, claude, illuminati, burger, beholder, mimic, sanic, rat, rooster, cow, yog_sothoth, clippy, goblin, imp, kobold, joe_camel, dali_clock, comrade, box, bac_man, coopa, kilowatt, zorak
+  - Claude ideas: crab, moth, snail, jellyfish, potato, bat, coffee, anchor, dice, taco
+- ✅ New keybindings: [d] discuss, [t] tools, [c] conversations
+- ✅ 7 new files, 8 modified files
+- ✅ README and HANDOFF fully updated
+
+### What's Ready for Next Session
+- Phase 9 (CC Config Intelligence) or Phase 10 (Token Guardian) are next
+- More species ideas welcome — the system scales easily
+- Could add more animation frames (4-frame) for the newer species
+- Discussion mode could be enhanced with AI-powered file analysis when Ollama is available
