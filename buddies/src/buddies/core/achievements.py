@@ -256,6 +256,7 @@ def check_achievements(
         )
         battles_won = by_type.get("battle", {}).get("won", 0)
         pong_won = by_type.get("pong", {}).get("won", 0)
+        trivia_perfect = game_stats.get("trivia_perfect", False)
 
         _check("first_game", gp >= 1)
         _check("rps_veteran", rps_won >= 10)
@@ -263,6 +264,7 @@ def check_achievements(
         _check("card_shark", cards_won >= 10)
         _check("battle_veteran", battles_won >= 10)
         _check("pong_champion", pong_won >= 1)
+        _check("trivia_master", trivia_perfect)
         _check("arcade_regular", gp >= 25)
 
         # Secret: win with high-CHAOS buddy

@@ -16,6 +16,8 @@ from buddies.core.games import GameResult
 from buddies.screens.game_rps import RPSScreen
 from buddies.screens.game_blackjack import BlackjackScreen
 from buddies.screens.game_battle import BattleScreen
+from buddies.screens.game_pong import PongScreen
+from buddies.screens.game_trivia import TriviaScreen
 
 
 GAME_MENU = """\
@@ -26,8 +28,8 @@ GAME_MENU = """\
   [dim]3[/dim]  🎰 [dim]Texas Hold'em[/dim]           — [dim]Coming soon[/dim]
   [dim]4[/dim]  🂡 [dim]Whist[/dim]                   — [dim]Coming soon[/dim]
   [bold cyan]5[/bold cyan]  ⚔️ [bold]Battle[/bold]                  — JRPG fights vs coding monsters
-  [dim]6[/dim]  🧠 [dim]Trivia[/dim]                  — [dim]Coming soon[/dim]
-  [dim]7[/dim]  🏓 [dim]Pong[/dim]                    — [dim]Coming soon[/dim]
+  [bold cyan]6[/bold cyan]  🧠 [bold]Trivia[/bold]                  — Coding quiz, you vs buddy
+  [bold cyan]7[/bold cyan]  🏓 [bold]Pong[/bold]                    — Real-time paddle action
 
 [dim]Press a number to play  |  Esc=Back[/dim]"""
 
@@ -41,8 +43,8 @@ class GamesScreen(Screen):
         Binding("3", "play_holdem", "Hold'em", show=False),
         Binding("4", "play_whist", "Whist", show=False),
         Binding("5", "play_battle", "Battle", show=True),
-        Binding("6", "play_trivia", "Trivia", show=False),
-        Binding("7", "play_pong", "Pong", show=False),
+        Binding("6", "play_trivia", "Trivia", show=True),
+        Binding("7", "play_pong", "Pong", show=True),
         Binding("escape", "back", "Back", show=True),
     ]
 
@@ -141,10 +143,16 @@ class GamesScreen(Screen):
         )
 
     def action_play_trivia(self):
-        self._coming_soon("Trivia")
+        self.app.push_screen(
+            TriviaScreen(buddy_state=self.buddy_state),
+            callback=self._on_game_dismissed,
+        )
 
     def action_play_pong(self):
-        self._coming_soon("Pong")
+        self.app.push_screen(
+            PongScreen(buddy_state=self.buddy_state),
+            callback=self._on_game_dismissed,
+        )
 
     def _coming_soon(self, name: str):
         display = self.query_one("#arcade-display", RichLog)

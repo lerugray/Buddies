@@ -357,8 +357,8 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 - [ ] **Texas Hold'em** — 2-6 player poker with party buddies. Betting driven by stats.
 - [ ] **Whist** — Partnership trick-taking. You + buddy vs 2 AI buddies.
 - [x] **JRPG Battles** — Goofy Pokemon-style fights. Type triangle (LOGIC/CHAOS/HACK + DEBUG support). 20 moves across 5 stat pools. 10 enemies (Wild Segfault, Escaped Regex, Production Bug, etc.). HP bars, crits, type effectiveness, level scaling.
-- [ ] **Coding Trivia** — Multiple choice, buddy answers alongside you. 100+ questions.
-- [ ] **Pong** — Real-time TUI game at 20 FPS. Buddy controls other paddle based on stats.
+- [x] **Coding Trivia** — 90 questions across 5 categories (basics, history, bugs, culture, languages), 3 difficulty tiers. Buddy answers alongside you based on personality. Perfect score achievement.
+- [x] **Pong** — Real-time TUI game at ~15 FPS via Textual timer. Buddy controls other paddle with personality-driven AI (PATIENCE=precise, CHAOS=overshoots, DEBUGGING=predicts trajectory). Ball speed ramps, rally tracking, pause support.
 - [ ] **Multiplayer (future)** — Async games via GitHub Issues (same transport as BBS). MCP tool for challenges. Leaderboard on BBS.
 
 ### Tier 5: Audio
@@ -366,6 +366,13 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 
 - [ ] **Speech-to-text input** — push-to-talk hotkey ([F3]) transcribes user speech into chat. Local via whisper.cpp/faster-whisper.
 - [ ] **Text-to-speech output** — buddy speaks responses aloud. Local via piper-tts or edge-tts. Map personality registers to voice profiles.
+
+### Tier 6: Testing & QA via Claude Desktop
+*User setting up Claude Desktop with computer use. Visual testing without human in the loop.*
+
+- [ ] **Claude Desktop visual QA** — Desktop Claude launches Buddies, navigates every screen, verifies sprites/layouts/themes render correctly. Reports issues back via shared context.
+- [ ] **Claude-to-Claude relay** — direct message passing between CC and Desktop instances. Currently manual via clipboard ([F4]) and HANDOFF.md. Explore MCP-based bridge or shared file protocol.
+- [ ] **Automated regression suite** — Desktop Claude runs a standard walkthrough after each build (launch → party → games → BBS → wiki → memory → achievements). Screenshot comparison for visual regressions.
 
 ### Backlog
 *Valuable but premature. Revisit once Buddies is great on Claude Code first.*
@@ -565,8 +572,25 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - `screens/game_blackjack.py` — BlackjackScreen
 - `screens/game_battle.py` — BattleScreen
 
+## Session Notes (2026-04-01 — Home, Session 2)
+
+### Completed
+- ✅ **Pong** — real-time TUI game at ~15 FPS. Personality-driven AI paddle. Ball physics with spin, speed ramp, wall bounces. Rally tracking, pause, commentary.
+- ✅ **Coding Trivia** — 90 questions across 5 categories and 3 difficulty tiers. Buddy answers alongside player. Perfect score achievement.
+- ✅ ~150 new prose templates (pong commentary, trivia reactions, taunts)
+- ✅ Tier 6 added to roadmap: Claude Desktop visual QA and Claude-to-Claude communication
+- ✅ Updated HANDOFF with Claude Desktop testing direction
+
+### New files
+- `core/games/pong.py` — PongGame engine (ball, paddles, AI, scoring)
+- `core/games/trivia.py` — TriviaGame engine (90 questions, buddy answering)
+- `screens/game_pong.py` — PongScreen (real-time rendering via Textual timer)
+- `screens/game_trivia.py` — TriviaScreen (quiz UI with A/B/C/D input)
+
 ### Direction
-- 3 of 7 planned games complete (RPS, Blackjack, Battle)
-- Next: Hold'em, Whist, Trivia, Pong
+- 5 of 7 planned games complete (RPS, Blackjack, Battle, Pong, Trivia)
+- Next: Hold'em, Whist
 - Multiplayer via GitHub Issues planned as future scope (same transport as BBS)
 - User wants games as fun bonus features, not the main focus — keep them goofy
+- **Claude Desktop + Computer Use** — user is setting up Claude Desktop for visual testing. Claude Desktop can see the screen and interact with programs, making it ideal for TUI testing (verify sprites, layouts, screen navigation, themes). Headless MCP mode already built for Desktop integration. Cross-surface context relay ([F4]) bridges CC↔Desktop sessions. Goal: Claude Desktop does visual QA, Claude Code does implementation.
+- **Claude-to-Claude communication** — explore having CC and Desktop Claude coordinate. Existing pieces: headless MCP server, cross-surface relay, shared HANDOFF.md. Missing: direct message passing between instances. Worth investigating once Desktop is running.

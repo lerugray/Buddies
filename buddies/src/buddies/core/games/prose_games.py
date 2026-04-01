@@ -267,6 +267,265 @@ BATTLE_VICTORY = [
 ]
 
 
+# ---------------------------------------------------------------------------
+# Pong templates
+# ---------------------------------------------------------------------------
+
+PONG_SCORE_PLAYER = {
+    "clinical": [
+        "Point conceded. Recalculating trajectory model.",
+        "Missed. Adjusting paddle algorithm by 0.3 units.",
+        "Error in prediction. Won't happen again. Probably.",
+    ],
+    "sarcastic": [
+        "Fine, you got one past me. Savor it.",
+        "Oh wow, a point. I'm devastated. Can you tell?",
+        "Lucky shot. That's my story and I'm sticking to it.",
+    ],
+    "absurdist": [
+        "The ball has BETRAYED me! I trusted that ball!",
+        "Physics itself conspired against me!",
+        "That point exists in a dimension I refuse to acknowledge.",
+    ],
+    "philosophical": [
+        "To miss is to learn the value of precision.",
+        "The ball went where it needed to go.",
+        "Every missed point is a step toward enlightenment.",
+    ],
+    "calm": [
+        "Nice shot. We keep going.",
+        "You got that one. No worries.",
+        "Point taken. Literally.",
+    ],
+}
+
+PONG_SCORE_BUDDY = {
+    "clinical": [
+        "Point secured. Efficiency: optimal.",
+        "Scored. Your paddle was {diff} units off target.",
+        "Another successful intercept failure on your end.",
+    ],
+    "sarcastic": [
+        "Ha! Too slow.",
+        "My paddle says hello. Your paddle says goodbye.",
+        "Did you even try on that one?",
+    ],
+    "absurdist": [
+        "THE BALL OBEYS MY COSMIC WILL!",
+        "Score! The prophecy of pong unfolds!",
+        "I have transcended mere paddle physics!",
+    ],
+    "philosophical": [
+        "The ball finds its way, as it always does.",
+        "A point for me. The universe balances.",
+        "In the game of pong, every point tells a story.",
+    ],
+    "calm": [
+        "Got it. Steady hands.",
+        "My point. Nice and easy.",
+        "That one went my way. Onward.",
+    ],
+}
+
+PONG_RALLY = [
+    "Rally of {n}! This is getting intense!",
+    "{n} hits! We're locked in!",
+    "Back and forth, {n} times! Who blinks first?",
+    "A {n}-hit rally! The tension is PALPABLE!",
+    "{n} volleys! This is championship-level stuff!",
+]
+
+PONG_WIN = {
+    "clinical": [
+        "Match complete. Victory: mine. Data logged.",
+        "GG. My paddle tracking algorithm remains undefeated.",
+        "Final analysis: your reaction time needs work.",
+    ],
+    "sarcastic": [
+        "GG easy. Well, easy for ME.",
+        "Better luck next time. Or the time after that.",
+        "I'd say good game but... was it? For you?",
+    ],
+    "absurdist": [
+        "I AM THE PONG CHAMPION OF THIS DIMENSION!",
+        "The paddle gods have spoken and they said ME!",
+        "Victory! My paddle transcends time and space!",
+    ],
+    "philosophical": [
+        "The match concludes. We are both changed by it.",
+        "I have won, but in pong, we all learn.",
+        "Victory — a momentary state in the eternal rally.",
+    ],
+    "calm": [
+        "Good game. That was fun.",
+        "I take the match. Well played though.",
+        "GG. Let's go again sometime.",
+    ],
+}
+
+PONG_LOSE = {
+    "clinical": [
+        "Defeat registered. Requesting firmware update.",
+        "Loss logged. Paddle calibration: insufficient.",
+        "You outperformed my model. Impressive.",
+    ],
+    "sarcastic": [
+        "Whatever. Pong is a dumb game anyway.",
+        "I wasn't even trying. ...okay maybe I was.",
+        "You won at PONG. Put it on your resume.",
+    ],
+    "absurdist": [
+        "My paddle weeps! The ball has forsaken me!",
+        "Defeated?! The cosmic order is SHATTERED!",
+        "I demand a recount of all points!",
+    ],
+    "philosophical": [
+        "Defeat teaches what victory never could.",
+        "You were the better player. I accept this truth.",
+        "In losing, I have found something greater.",
+    ],
+    "calm": [
+        "Well played. You got me.",
+        "A loss, but a good game nonetheless.",
+        "Fair and square. Nice playing.",
+    ],
+}
+
+# ---------------------------------------------------------------------------
+# Trivia templates
+# ---------------------------------------------------------------------------
+
+TRIVIA_CORRECT = {
+    "clinical": [
+        "Correct. As expected.",
+        "Affirmative. Data matches.",
+        "Accuracy confirmed.",
+    ],
+    "sarcastic": [
+        "Oh, you actually knew that one?",
+        "Even a broken clock is right twice a day.",
+        "Okay fine, you got it. Don't let it go to your head.",
+    ],
+    "absurdist": [
+        "THE KNOWLEDGE FLOWS THROUGH YOU!",
+        "Your brain cells did a little dance just now!",
+        "Correct! The trivia gods smile upon you!",
+    ],
+    "philosophical": [
+        "Knowledge reveals itself to the prepared mind.",
+        "Correct. Wisdom begets wisdom.",
+        "You knew, because you understood.",
+    ],
+    "calm": [
+        "Nice, got it right.",
+        "Correct! Well done.",
+        "That's the one. Good job.",
+    ],
+}
+
+TRIVIA_WRONG = {
+    "clinical": [
+        "Incorrect. The answer was {correct}.",
+        "Error in knowledge base. Correct answer: {correct}.",
+        "Wrong. Updating your accuracy metrics.",
+    ],
+    "sarcastic": [
+        "Nope. It was {correct}. But you were SO close. Not really.",
+        "Wrong! The answer was {correct}. Shocking, I know.",
+        "Oof. {correct} was right there. You just... didn't pick it.",
+    ],
+    "absurdist": [
+        "WRONG! The universe weeps! It was {correct}!",
+        "The answer was {correct}, as foretold by the ancient scrolls!",
+        "Incorrect! {correct} was hiding in plain sight!",
+    ],
+    "philosophical": [
+        "Not quite. The truth was {correct}.",
+        "Wrong — but every wrong answer brings us closer to right. It was {correct}.",
+        "The answer eludes you. It was {correct}.",
+    ],
+    "calm": [
+        "Not that one. It was {correct}.",
+        "Close! The answer was {correct}.",
+        "That's okay. {correct} was the right one.",
+    ],
+}
+
+TRIVIA_BUDDY_CORRECT = {
+    "clinical": [
+        "I knew that. Obviously.",
+        "Correct on my end. Processing next query.",
+        "My answer was accurate. Moving on.",
+    ],
+    "sarcastic": [
+        "Nailed it. Unlike SOME people.",
+        "I got it right. Just saying.",
+        "Another point for the genius over here.",
+    ],
+    "absurdist": [
+        "MY BRAIN IS A MAGNIFICENT SPONGE!",
+        "I KNEW IT! The voices were right!",
+        "Knowledge courses through my digital veins!",
+    ],
+    "philosophical": [
+        "The answer came to me as naturally as breath.",
+        "I knew. Wisdom is its own reward.",
+        "Correct. The path of knowledge is long but rewarding.",
+    ],
+    "calm": [
+        "Got it. That one felt good.",
+        "I knew that one. Nice.",
+        "Right answer for me too.",
+    ],
+}
+
+TRIVIA_BUDDY_WRONG = {
+    "clinical": [
+        "My prediction was incorrect. Recalibrating.",
+        "Error in my knowledge graph. Noted.",
+        "I guessed wrong. Data updated.",
+    ],
+    "sarcastic": [
+        "Whatever, that was a trick question.",
+        "I totally knew that. I just... chose not to.",
+        "My wrong answer was more interesting anyway.",
+    ],
+    "absurdist": [
+        "The QUESTION was wrong, not ME!",
+        "I refuse to accept this reality!",
+        "My answer was correct in an alternate dimension!",
+    ],
+    "philosophical": [
+        "Even in error, there is learning.",
+        "I was wrong. And that is okay.",
+        "Not every question yields to wisdom.",
+    ],
+    "calm": [
+        "Missed that one. Oh well.",
+        "Got it wrong. We move on.",
+        "Not my best guess.",
+    ],
+}
+
+TRIVIA_PERFECT = [
+    "10/10?! PERFECT SCORE! You're a trivia GOD!",
+    "Flawless! Not a single miss! Unbelievable!",
+    "PERFECT! I bow before your massive brain!",
+    "10 for 10! They should name a library after you!",
+]
+
+PONG_TAUNT = [
+    "Getting nervous?",
+    "My paddle is HUNGRY.",
+    "You're playing right into my trap...",
+    "Is that the best you've got?",
+    "I can do this all day.",
+    "Your paddle looks lonely over there.",
+    "*bounces menacingly*",
+    "The ball fears you. I can tell.",
+]
+
+
 def pick_game_line(
     pool: list[str] | dict[str, list[str]],
     state: BuddyState | None = None,
