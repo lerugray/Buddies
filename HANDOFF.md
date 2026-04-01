@@ -198,30 +198,44 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 - `pyproject.toml`: name="buddies" (was "buddy"), version="0.2.0" (was "0.1.0")
 - MCP server title: "Buddies" (was "Buddy")
 
-## Next Steps (Phase 6+)
+## Completed Phases
 
-### Phase 6: Buddy Thoughts & Personality Prose (IN PROGRESS)
-- [ ] Prose engine — Veridian-inspired template pools driven by personality stats + mood
-- [ ] Contextual thoughts — buddy reacts to session events (edits, tests, errors, idle time)
-- [ ] Register system — stat-driven tone (SNARK→sarcastic, WISDOM→philosophical, etc.)
-- [ ] Template suppression — track last-used template, prevent repetition
-- [ ] Compositional templates — opener + body + closer for varied output
+### Phase 6: Buddy Thoughts & Personality Prose — DONE
+- ✅ Prose engine with 5 registers, ~80 templates, compositional closers
+- ✅ Context-aware animation (excited/normal/sleepy speeds)
+- ✅ 4-frame animations for 7 species (expressions, idle behaviors)
+- ✅ Mood-reactive gameplay (XP multipliers, bonus stats, hat discovery)
 
-### Phase 7: Polish & QoL
-- [ ] Hat cosmetics UI — show owned hats, indicator for locked hats
-- [ ] Rename buddies in Party screen (inline Input modal)
-- [ ] More animation frames for smoother idle
-- [ ] Evolution system — buddy appearance changes at level thresholds
+### Phase 7: Polish & QoL — DONE
+- ✅ 10 new species (35 total), 6 new hats (10 total)
+- ✅ Evolution system (Hatchling → Juvenile → Adult → Elder) with visual borders
+- ✅ Party screen polish, inline rename with [n], evolution stage display
+- ✅ Mood decay system (drifts toward neutral, neglect has consequences)
+- ✅ One-click setup.bat/launch.bat for non-programmers
 
-### Phase 8: Agentic Local AI (claw-code inspired)
-- [ ] Python agent loop — send messages to Ollama, parse tool_use, execute, loop
-- [ ] Tool implementations — file read, edit, bash (lightweight, from claw-code Rust reference)
-- [ ] Permission system — user approves before buddy touches files
+### Phase 8: Agentic Local AI — DONE
+- ✅ Agent loop with tool calling (read_file, list_files, grep_search, run_command)
+- ✅ Safety: path traversal blocked, destructive commands blocked, output truncated
+- ✅ AI router auto-detects when to use agent mode vs simple chat
 
-### Phase 9+: Ideas Bank
-- [ ] **Social Buddies (MCP)** — buddies can talk to each other across users via MCP. Share notes, stories, jokes. Buddy A sees what Buddy B's user is working on and suggests "hey, your friend just solved something similar." Needs: discovery protocol, message format, trust/permissions, opt-in sharing. Makes the MCP integration much more compelling.
+## Next Steps
+
+### Phase 9: CC Config Intelligence (NEXT)
+The key insight: **Buddies should be the maintenance layer for your Claude Code config.**
+
+- [ ] **CLAUDE.md health monitor** — watch file size, warn when bloated (>150 lines), suggest splitting into `.claude/rules/` files
+- [ ] **Auto-learn from sessions** — detect repeated corrections ("user keeps telling Claude not to do X"), suggest or auto-write rules to `.claude/rules/buddy-learned.md`
+- [ ] **Session summaries** — at session end, generate compact summary of what happened and what was learned
+- [ ] **CLAUDE.md linting** — detect missing sections, suggest restructuring as routing file instead of knowledge dump
+- [ ] **Config scaffolding** — if no `.claude/rules/` exists, offer to create the recommended structure (memory, preferences, decisions, sessions)
+
+Design principle: CLAUDE.md should be a routing file (<150 lines), not a knowledge dump. Buddy enforces this.
+
+### Phase 10+: Ideas Bank
+- [ ] **Social Buddies (MCP)** — buddies talk to each other across users via MCP. Share notes, stories, suggestions. "Your friend's buddy just helped them fix something similar."
 - [ ] Input box integration — buddy sits beside chat input, reacts to typing
 - [ ] Theme customization (dark/light/custom)
+- [ ] Buddy achievements and milestone tracking
 
 ## Prose Generation Reference (from Veridian Contraption)
 The user's project at `../Veridian Contraption/src/gen/prose_gen.rs` has battle-tested prose systems:
@@ -249,12 +263,20 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 
 ## Session Notes (2026-03-31 — Home)
 
-### Completed
-- ✅ Cloned repo to home machine
-- ✅ v0.2.1 cleanup: 11 bugs fixed, 3 dead code files removed, CSS moved into package
-- ✅ Hatch screen scrollability fix, quit binding added
-- ✅ Home GPU identified: RTX 3050 4GB — too small for 27B models, use 3B instead
-- ✅ claw-code analyzed, Veridian prose systems studied
+### Completed (12 commits)
+- ✅ Cloned repo, identified home GPU (RTX 3050 4GB — use 3B models)
+- ✅ v0.2.1: 11 bug fixes, dead code cleanup, CSS moved into package
+- ✅ Phase 6: Prose engine, context-aware animations, mood modifiers
+- ✅ 10 new species (35 total): dolphin, orca, chonk, panda, starspawn, basilisk, cane_toad, gorby, tardigrade, mantis_shrimp
+- ✅ Evolution system: 4 stages with visual borders
+- ✅ 6 new hats (10 total) with varied unlock conditions
+- ✅ Mood decay: drifts toward neutral, boredom unlocks nightcap hat
+- ✅ Party screen: polish, rename, evolution display
+- ✅ 4-frame animations for 7 species (expressions, idle behaviors)
+- ✅ Phase 8: Agentic local AI with tool-calling loop
+- ✅ One-click setup.bat/launch.bat for non-programmers
+- ✅ README fully updated with all features documented
 
-### In Progress
-- Phase 6: Buddy Thoughts & Personality Prose system
+### Direction
+- Buddies is evolving from "tamagotchi that watches you code" into "tamagotchi that actively makes Claude Code better at its job"
+- Phase 9 focus: CC config intelligence (CLAUDE.md health, auto-learned rules, session summaries)
