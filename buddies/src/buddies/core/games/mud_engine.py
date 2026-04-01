@@ -25,6 +25,11 @@ from buddies.core.games.mud_multiplayer import (
     format_note_display, format_bloodstain_display, format_phantom_display,
 )
 from buddies.core.games.mud_transport import MudTransport
+from buddies.core.games.mud_negotiate import (
+    NEGOTIATION_TREES, NEGOTIATE_COMMENTARY, NEGOTIATE_GIFTS,
+    NegotiationState, NegotiateOutcome,
+    resolve_negotiation, get_available_responses,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -94,6 +99,8 @@ class MudState:
     notes_rated: int = 0
     # Flags
     game_over: bool = False
+    # Negotiation
+    negotiation: NegotiationState | None = None
     # Async multiplayer
     mp_store: MudMultiplayerStore | None = None
     mp_transport: MudTransport | None = None
@@ -669,7 +676,16 @@ def _handle_examine(state: MudState, target: str) -> list[str]:
 
 
 def _handle_talk(state: MudState, target: str) -> list[str]:
-    """Talk to an NPC."""
+    """Talk to an NPC. During combat, negotiate with the enemy."""
+    # If in combat, negotiate with the current enemy
+    if state.combat and state.combat.active:
+        if state.negotiation:
+            return ["You're already negotiating! Pick a numbered response."]
+        npc = state.npcs.get(state.combat.npc_id)
+        if npc:
+            return _start_negotiation(state, npc)
+        return ["There's nobody to talk to in this fight."]
+
     room = state.rooms[state.current_room]
 
     # Find NPC — if no target, talk to first non-hostile NPC
@@ -693,7 +709,7 @@ def _handle_talk(state: MudState, target: str) -> list[str]:
         return ["There's nobody here to talk to."]
 
     if npc.disposition == NPCDisposition.HOSTILE:
-        return [f"{npc.emoji} {npc.name} doesn't seem interested in conversation. Try [bold]attack[/bold] instead."]
+        return _start_negotiation(state, npc)
 
     # Determine which dialogue to use based on quest state
     lines = []
@@ -1315,6 +1331,275 @@ def _handle_rumors(state: MudState, _arg: str) -> list[str]:
     return lines
 
 
+# ---------------------------------------------------------------------------
+# Negotiation system (SMT-style)
+# ---------------------------------------------------------------------------
+
+def _negotiate_comment(party: list, context: str) -> str | None:
+    """Get a buddy commentary line for negotiation events."""
+    if not party:
+        return None
+    buddy = random.choice(party)
+    from buddies.core.prose import REGISTERS
+    dominant = max(buddy.stats, key=buddy.stats.get)
+    register = REGISTERS.get(dominant, "calm")
+    pool = NEGOTIATE_COMMENTARY.get(context, {}).get(register, [])
+    if not pool:
+        return None
+    line = random.choice(pool)
+    return line.format(name=f"{buddy.species.emoji} {buddy.name}")
+
+
+def _start_negotiation(state: MudState, npc) -> list[str]:
+    """Begin negotiation with a hostile NPC."""
+    tree = NEGOTIATION_TREES.get(npc.id)
+    if not tree:
+        return [f"{npc.emoji} {npc.name} snarls at you. It doesn't seem like the talking type."]
+
+    # Create negotiation state
+    state.negotiation = NegotiationState(npc_id=npc.id)
+
+    lines = [
+        f"\n[bold yellow]🗣️ NEGOTIATION: {npc.emoji} {npc.name}[/bold yellow]",
+        f"{'─' * 50}",
+    ]
+
+    comment = _negotiate_comment(state.party, "negotiate_start")
+    if comment:
+        lines.append(comment)
+        lines.append("")
+
+    # Show first exchange
+    lines.extend(_show_negotiate_exchange(state))
+
+    return lines
+
+
+def _show_negotiate_exchange(state: MudState) -> list[str]:
+    """Display the current negotiation exchange."""
+    if not state.negotiation:
+        return []
+
+    tree = NEGOTIATION_TREES.get(state.negotiation.npc_id, [])
+    stage = state.negotiation.stage
+
+    if stage >= len(tree):
+        return _finish_negotiation(state)
+
+    exchange = tree[stage]
+    npc = state.npcs.get(state.negotiation.npc_id)
+    npc_emoji = npc.emoji if npc else "❓"
+
+    lines = [f"\n{npc_emoji} {exchange.npc_line}", ""]
+
+    # Get buddy stats for filtering responses
+    buddy_stats = {}
+    if state.party:
+        # Use the party leader's stats for stat-gated options
+        for stat, val in state.party[0].stats.items():
+            # Use max across party so any buddy's strength helps
+            buddy_stats[stat] = max(val, buddy_stats.get(stat, 0))
+        for buddy in state.party[1:]:
+            for stat, val in buddy.stats.items():
+                buddy_stats[stat] = max(val, buddy_stats.get(stat, 0))
+
+    available = get_available_responses(exchange, buddy_stats)
+
+    lines.append("[bold]Your response:[/bold]")
+    for display_idx, (_, resp) in enumerate(available):
+        stat_tag = ""
+        if resp.stat_requirement:
+            stat_name = resp.stat_requirement.upper()
+            stat_tag = f" [dim cyan][{stat_name}][/dim cyan]"
+        lines.append(f"  [bold cyan]{display_idx + 1}[/bold cyan]. {resp.text}{stat_tag}")
+
+    lines.append("")
+    lines.append("[dim]Type a number to respond, or [bold]attack[/bold] to fight instead.[/dim]")
+
+    return lines
+
+
+def _handle_negotiate_response(state: MudState, choice: int) -> list[str]:
+    """Handle the player's numbered response during negotiation."""
+    if not state.negotiation:
+        return [f"You're not negotiating with anyone. (Did you mean something else?)"]
+
+    tree = NEGOTIATION_TREES.get(state.negotiation.npc_id, [])
+    stage = state.negotiation.stage
+
+    if stage >= len(tree):
+        return _finish_negotiation(state)
+
+    exchange = tree[stage]
+
+    # Get available responses (filtered by stats)
+    buddy_stats = {}
+    if state.party:
+        for buddy in state.party:
+            for stat, val in buddy.stats.items():
+                buddy_stats[stat] = max(val, buddy_stats.get(stat, 0))
+
+    available = get_available_responses(exchange, buddy_stats)
+
+    # Validate choice (1-indexed from player's perspective)
+    idx = choice - 1
+    if idx < 0 or idx >= len(available):
+        return [f"Choose a number between 1 and {len(available)}."]
+
+    _, resp = available[idx]
+    lines = []
+
+    # Show player's choice
+    lines.append(f"\n[bold green]> \"{resp.text}\"[/bold green]")
+
+    # Apply mood change
+    state.negotiation.mood += resp.mood_change
+
+    # Handle gold demands
+    if exchange.demand_gold > 0 and resp.tag == "pay":
+        if state.inventory.gold >= exchange.demand_gold:
+            state.inventory.gold -= exchange.demand_gold
+            state.negotiation.demands_met += 1
+            lines.append(f"[yellow]-{exchange.demand_gold} gold[/yellow]")
+        else:
+            lines.append("[red]You don't have enough gold![/red]")
+            state.negotiation.mood -= 10  # Broken promise
+
+    # Mood feedback
+    if resp.mood_change >= 20:
+        npc = state.npcs.get(state.negotiation.npc_id)
+        emoji = npc.emoji if npc else "❓"
+        lines.append(f"\n[dim]{emoji} seems genuinely moved by your words.[/dim]")
+    elif resp.mood_change >= 10:
+        lines.append("[dim]That seemed to resonate.[/dim]")
+    elif resp.mood_change <= -15:
+        lines.append("[dim]That... did not go well.[/dim]")
+    elif resp.mood_change <= -5:
+        lines.append("[dim]It narrows its eyes.[/dim]")
+
+    # Advance to next stage
+    state.negotiation.stage += 1
+
+    # Show next exchange or resolve
+    if state.negotiation.stage >= len(tree):
+        lines.extend(_finish_negotiation(state))
+    else:
+        lines.extend(_show_negotiate_exchange(state))
+
+    return lines
+
+
+def _finish_negotiation(state: MudState) -> list[str]:
+    """Resolve the negotiation and apply its outcome."""
+    if not state.negotiation:
+        return []
+
+    outcome, flavor = resolve_negotiation(state.negotiation)
+    npc_id = state.negotiation.npc_id
+    npc = state.npcs.get(npc_id)
+
+    lines = [
+        "",
+        f"{'─' * 50}",
+        f"[italic]{flavor}[/italic]",
+    ]
+
+    if outcome == NegotiateOutcome.GIFT:
+        # Enemy gives an item and leaves
+        gift_id = NEGOTIATE_GIFTS.get(npc_id)
+        gift_item = state.items.get(gift_id) if gift_id else None
+        if gift_item and state.inventory.add_item(gift_item):
+            lines.append(f"\n[green]Received: {gift_item.emoji} {gift_item.name}[/green]")
+            state.items_collected += 1
+        if npc:
+            npc.defeated = True
+            state.npcs_defeated += 1
+        gold_gift = random.randint(5, 15)
+        state.inventory.gold += gold_gift
+        state.gold_earned += gold_gift
+        lines.append(f"[yellow]+{gold_gift} gold[/yellow]")
+        lines.append(f"\n[bold green]🕊️ {npc.emoji if npc else ''} {npc.name if npc else 'The enemy'} departs peacefully.[/bold green]")
+        comment = _negotiate_comment(state.party, "negotiate_gift")
+        if comment:
+            lines.append(f"\n{comment}")
+        # Check quest progress
+        if gift_id:
+            _check_quest_progress(state, "fetch", gift_id)
+        _check_quest_progress(state, "kill", npc_id)
+        state.combat = None
+
+    elif outcome == NegotiateOutcome.PEACE:
+        if npc:
+            npc.defeated = True
+            state.npcs_defeated += 1
+        lines.append(f"\n[bold green]🕊️ {npc.emoji if npc else ''} {npc.name if npc else 'The enemy'} departs peacefully.[/bold green]")
+        comment = _negotiate_comment(state.party, "negotiate_success")
+        if comment:
+            lines.append(f"\n{comment}")
+        _check_quest_progress(state, "kill", npc_id)
+        state.combat = None
+
+    elif outcome == NegotiateOutcome.BRIBE:
+        # Offer to pay 20 gold for peace
+        if state.inventory.gold >= 20:
+            state.inventory.gold -= 20
+            lines.append("[yellow]-20 gold[/yellow]")
+            if npc:
+                npc.defeated = True
+                state.npcs_defeated += 1
+            lines.append(f"\n[bold green]🕊️ {npc.emoji if npc else ''} {npc.name if npc else 'The enemy'} takes the gold and leaves.[/bold green]")
+            _check_quest_progress(state, "kill", npc_id)
+            state.combat = None
+        else:
+            lines.append("[red]You can't afford the bribe! It attacks![/red]")
+            outcome = NegotiateOutcome.ANGRY  # Fall through to angry
+
+    elif outcome == NegotiateOutcome.SCAM:
+        # Takes gold and attacks anyway
+        stolen = min(state.inventory.gold, random.randint(10, 25))
+        if stolen > 0:
+            state.inventory.gold -= stolen
+            lines.append(f"[red]-{stolen} gold stolen![/red]")
+        lines.append("\n[bold red]⚔️ It was a trap! Combat resumes![/bold red]")
+        comment = _negotiate_comment(state.party, "negotiate_scam")
+        if comment:
+            lines.append(f"\n{comment}")
+        # Combat continues — enemy gets a free hit
+        if state.combat and state.combat.active:
+            enemy_dmg = max(1, state.combat.enemy.attack - state.combat.player.defense)
+            state.combat.player.hp = max(0, state.combat.player.hp - enemy_dmg)
+            lines.append(f"{state.combat.enemy.emoji} Sucker-punches you for [bold red]{enemy_dmg}[/bold red] damage!")
+            if not state.combat.player.alive:
+                lines.extend(_combat_defeat(state))
+
+    if outcome == NegotiateOutcome.ANGRY:
+        # Enemy gets attack buff
+        if state.combat:
+            state.combat.enemy.attack = int(state.combat.enemy.attack * 1.3)
+            lines.append(f"\n[bold red]⚔️ {npc.emoji if npc else ''} is ENRAGED! (+30% ATK)[/bold red]")
+        elif npc:
+            # Start combat with the now-angry enemy (if not in combat yet)
+            lines.append("\n[bold red]⚔️ It attacks![/bold red]")
+            lines.extend(_start_combat(state, npc_id))
+            if state.combat:
+                state.combat.enemy.attack = int(state.combat.enemy.attack * 1.3)
+                lines.append(f"[bold red]{npc.emoji} is ENRAGED! (+30% ATK)[/bold red]")
+        comment = _negotiate_comment(state.party, "negotiate_fail")
+        if comment:
+            lines.append(f"\n{comment}")
+
+    elif outcome == NegotiateOutcome.NOTHING:
+        lines.append("\n[yellow]The negotiation fizzled. Combat continues.[/yellow]")
+        comment = _negotiate_comment(state.party, "negotiate_fail")
+        if comment:
+            lines.append(f"\n{comment}")
+
+    # Clear negotiation state
+    state.negotiation = None
+
+    return lines
+
+
 def _handle_help(state: MudState, _arg: str) -> list[str]:
     """Show available commands."""
     return [
@@ -1335,6 +1620,7 @@ def _handle_help(state: MudState, _arg: str) -> list[str]:
         "",
         "[bold cyan]Combat:[/bold cyan]",
         "  [bold]attack[/bold]          — Fight a hostile NPC",
+        "  [bold]talk[/bold]            — Negotiate with hostile NPCs (SMT-style!)",
         "  [bold]flee[/bold]            — Run from combat",
         "",
         "[bold cyan]Commerce:[/bold cyan]",
@@ -1415,7 +1701,7 @@ def _start_combat(state: MudState, npc_id: str) -> list[str]:
     # Status
     lines.append(f"\n  You:  {player.hp_bar()}")
     lines.append(f"  {npc.emoji}: {enemy.hp_bar()}")
-    lines.append(f"\n[dim]Commands: [bold]attack[/bold] — strike | [bold]use[/bold] <item> — heal | [bold]flee[/bold] — run away[/dim]")
+    lines.append(f"\n[dim]Commands: [bold]attack[/bold] — strike | [bold]talk[/bold] — negotiate | [bold]use[/bold] <item> — heal | [bold]flee[/bold] — run away[/dim]")
 
     comment = _buddy_comment(state.party, "combat_start")
     if comment:
@@ -1664,8 +1950,15 @@ def process_command(state: MudState, raw_input: str) -> list[str]:
 
     # In combat, restrict commands
     if state.combat and state.combat.active:
-        if cmd not in ("attack", "flee", "use", "inventory", "help"):
-            return ["You're in combat! [bold]attack[/bold], [bold]use[/bold] <item>, or [bold]flee[/bold]."]
+        # Allow numbered responses during negotiation
+        if state.negotiation and cmd.isdigit():
+            return _handle_negotiate_response(state, int(cmd))
+        if cmd not in ("attack", "flee", "use", "inventory", "help", "talk"):
+            return ["You're in combat! [bold]attack[/bold], [bold]talk[/bold], [bold]use[/bold] <item>, or [bold]flee[/bold]."]
+
+    # Handle numbered responses during negotiation (outside combat too)
+    if state.negotiation and cmd.isdigit():
+        return _handle_negotiate_response(state, int(cmd))
 
     handler = COMMAND_HANDLERS.get(cmd)
     if handler:

@@ -743,8 +743,34 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - `tests/test_prompt_builder.py` — 24 tests for prompt builder
 - `tests/test_mud_transport.py` — 21 tests for transport + rumors
 
+- ✅ **SMT-style Negotiation System** — talk your way through MUD encounters
+  - Every hostile NPC (7 total) gets a 3-exchange dialogue tree with 4-5 responses each
+  - Tech-themed questions: "Do you prefer rebasing or merging?", "Do you believe in null?", "What does .* match?"
+  - Buddy stats unlock bonus dialogue options (high SNARK → sarcastic options, high DEBUGGING → technical insights)
+  - 6 possible outcomes: peace, gift (item+gold), bribe, angry (+30% ATK buff), scam (steals gold), stall
+  - Works pre-combat (talk to hostile NPCs) AND mid-combat (talk command in fight)
+  - 25+ negotiation-specific buddy commentary lines across 5 registers × 5 contexts
+  - The Null Pointer asks if you believe in null. The Technical Debt Dragon asks if you'll pay it down. CrashLoopBackoff asks about death.
+  - Outcome depends on accumulated mood from responses — semi-random like SMT, no "right answer" FAQ
+  - 24 tests for negotiation system
+  - Zero AI cost — pure template prose
+
+- ✅ **314 tests passing** (23 new: negotiation)
+
+### New files (updated)
+- `core/prompt_builder.py` — Layered prompt assembly (PromptBuilder, 6 convenience factories)
+- `core/games/mud_transport.py` — GitHub Issues transport for MUD multiplayer
+- `core/games/mud_negotiate.py` — SMT-style negotiation system (dialogue trees, outcomes, commentary)
+- `tests/test_prompt_builder.py` — 24 tests for prompt builder
+- `tests/test_mud_transport.py` — 21 tests for transport + rumors
+- `tests/test_negotiate.py` — 24 tests for negotiation system
+
 ### Direction
 - Phase 12 fully complete (all 5 items checked off)
 - MUD Phase 2 multiplayer transport is built — needs `mud-soapstone` and `mud-bloodstain` labels created on the `lerugray/buddies-bbs` repo
+- MUD combat now has TWO distinct modes: fight (attack/flee) or negotiate (talk/respond) — clearly different from blobber's tactical party combat
+- **Future ideas discussed but not yet built:**
+  - **Buddy fusion** (SMT-style) — combine 2 buddies to create special/unique species. Needs design work on fusion catalog, meaningful outcomes, and collection loop integration.
+  - **Nonlinear TTRPG interactions** — skill checks, environmental puzzles, multiple quest solutions. Can be layered in gradually.
 - Phase 3 (Economy) and Phase 4 (Living World) are next on the MUD roadmap
 - Could also explore: expanding the world (more rooms/zones), multiplayer leaderboards on BBS, or tackling Tier 5 audio
