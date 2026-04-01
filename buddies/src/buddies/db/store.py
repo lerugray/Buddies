@@ -475,6 +475,27 @@ class BuddyStore:
             row = await cursor.fetchone()
             return row[0] if row else 0
 
+    async def get_bbs_stats(self) -> dict:
+        """Get aggregate BBS activity stats across all buddies."""
+        stats = {"posts": 0, "replies": 0, "total": 0, "boards_used": 0, "unique_authors": 0}
+        async with self.db.execute(
+            "SELECT action_type, COUNT(*) FROM bbs_activity GROUP BY action_type"
+        ) as cursor:
+            for row in await cursor.fetchall():
+                stats[row[0] + "s"] = row[1]  # "post" -> "posts"
+                stats["total"] += row[1]
+        async with self.db.execute(
+            "SELECT COUNT(DISTINCT board) FROM bbs_activity WHERE board != ''"
+        ) as cursor:
+            row = await cursor.fetchone()
+            stats["boards_used"] = row[0] if row else 0
+        async with self.db.execute(
+            "SELECT COUNT(DISTINCT buddy_id) FROM bbs_activity"
+        ) as cursor:
+            row = await cursor.fetchone()
+            stats["unique_authors"] = row[0] if row else 0
+        return stats
+
     async def get_last_bbs_activity(self, buddy_id: int, action: str) -> str | None:
         """Get timestamp of last BBS action for cooldown checks."""
         async with self.db.execute(

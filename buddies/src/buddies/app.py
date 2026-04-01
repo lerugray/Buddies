@@ -1295,6 +1295,12 @@ class BuddyApp(App):
 
             tokens_saved = self.router.tokens_saved if self.router else 0
 
+            # Fetch BBS stats for social achievements
+            try:
+                bbs_stats = await self.store.get_bbs_stats()
+            except Exception:
+                bbs_stats = None
+
             newly = check_achievements(
                 buddies=buddies,
                 active_buddy=active,
@@ -1305,6 +1311,7 @@ class BuddyApp(App):
                 config_grade=config_grade,
                 quick_saves=self._quick_saves,
                 themes_changed=self._themes_changed,
+                bbs_stats=bbs_stats,
                 unlocked_ids=self._unlocked_achievements,
             )
 

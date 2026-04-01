@@ -52,6 +52,15 @@ ACHIEVEMENTS: list[Achievement] = [
     Achievement("chatty", "Chatty", "Send 50 messages to your buddy", "💬", "social"),
     Achievement("storyteller", "Storyteller", "Send 200 messages total", "📖", "social"),
 
+    # BBS social achievements
+    Achievement("first_post", "First Post!", "Make your first BBS post", "📝", "social"),
+    Achievement("thread_starter", "Thread Starter", "Make 5 BBS posts", "🧵", "social"),
+    Achievement("regular", "BBS Regular", "Make 20 BBS posts", "📰", "social"),
+    Achievement("first_reply", "Conversationalist", "Reply to a BBS post", "↩️", "social"),
+    Achievement("popular_poster", "Popular", "Make 50 total BBS posts and replies", "🌟", "social"),
+    Achievement("board_hopper", "Board Hopper", "Post on 3 different boards", "🏄", "social"),
+    Achievement("social_butterfly", "Social Butterfly", "Have 3 buddies post on the BBS", "🦋", "social"),
+
     # Session / exploration achievements
     Achievement("session_watcher", "Watchful Eye", "Observe 100 session events", "👁️", "exploration"),
     Achievement("session_marathon", "Marathon", "Observe 500 session events", "🏃", "exploration"),
@@ -89,6 +98,7 @@ def check_achievements(
     config_grade: str = "?",
     quick_saves: int = 0,
     themes_changed: int = 0,
+    bbs_stats: dict | None = None,
     unlocked_ids: set[str] | None = None,
 ) -> list[Achievement]:
     """Check all achievements and return newly unlocked ones.
@@ -103,6 +113,7 @@ def check_achievements(
         config_grade: Current config health grade
         quick_saves: Number of quick-saves performed
         themes_changed: Number of theme changes
+        bbs_stats: BBS activity stats dict (posts, replies, total, boards_used, unique_authors)
         unlocked_ids: Set of already-unlocked achievement IDs
 
     Returns:
@@ -202,5 +213,20 @@ def check_achievements(
     _check("claude_owner", "claude" in species_names)
     _check("zorak_owner", "zorak" in species_names)
     _check("void_cat_owner", "void_cat" in species_names)
+
+    # BBS social achievements
+    if bbs_stats:
+        posts = bbs_stats.get("posts", 0)
+        replies = bbs_stats.get("replies", 0)
+        total = bbs_stats.get("total", 0)
+        boards = bbs_stats.get("boards_used", 0)
+        authors = bbs_stats.get("unique_authors", 0)
+        _check("first_post", posts >= 1)
+        _check("thread_starter", posts >= 5)
+        _check("regular", posts >= 20)
+        _check("first_reply", replies >= 1)
+        _check("popular_poster", total >= 50)
+        _check("board_hopper", boards >= 3)
+        _check("social_butterfly", authors >= 3)
 
     return newly_unlocked
