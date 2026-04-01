@@ -302,7 +302,8 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 
 ### Ideas Bank
 
-**Platform**
+**Platform / Integration**
+- [ ] **Obsidian wiki integration** — Buddy auto-generates and maintains an Obsidian vault for each project. Session journals, architecture decision logs, file/module link graphs, species lore pages. Plain markdown with [[wikilinks]]. Could use Obsidian MCP server for Claude read/write access. Session summaries + HANDOFF already produce the raw content.
 - [ ] **Multi-provider support** — make Buddies work beyond Claude Code. Core TUI, collection, games, prose are already provider-agnostic. Need adapter/plugin pattern for session observer (hook parsers per provider), config intel (.cursor/, .aider/, etc.), and model tracker. Target: Cursor, Windsurf, Aider, VS Code Copilot. The BBS social network becomes more interesting across providers.
 
 **Social / Multiplayer**
