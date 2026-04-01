@@ -18,6 +18,12 @@ from buddies.core.games.mud_world import (
     NPCDisposition, ItemType, RoomExit, MudInventory,
     build_starter_items, build_starter_npcs, build_starter_rooms, build_starter_quests,
 )
+from buddies.core.games.mud_multiplayer import (
+    MudMultiplayerStore, SoapstoneNote, Bloodstain, Phantom,
+    TEMPLATES, SUBJECTS, PHANTOM_ACTIONS,
+    build_note_message, get_template_list, get_subject_list,
+    format_note_display, format_bloodstain_display, format_phantom_display,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -83,8 +89,12 @@ class MudState:
     quests_completed: int = 0
     gold_earned: int = 0
     turns: int = 0
+    notes_left: int = 0
+    notes_rated: int = 0
     # Flags
     game_over: bool = False
+    # Async multiplayer
+    mp_store: MudMultiplayerStore | None = None
 
 
 def create_mud_game(party: list[BuddyState]) -> MudState:
@@ -94,6 +104,13 @@ def create_mud_game(party: list[BuddyState]) -> MudState:
     rooms = build_starter_rooms()
     quests = build_starter_quests()
 
+    # Try to load multiplayer store (fails gracefully if data dir unavailable)
+    mp_store = None
+    try:
+        mp_store = MudMultiplayerStore()
+    except Exception:
+        pass
+
     return MudState(
         rooms=rooms,
         npcs=npcs,
@@ -101,6 +118,7 @@ def create_mud_game(party: list[BuddyState]) -> MudState:
         quests=quests,
         inventory=MudInventory(gold=10),
         party=party,
+        mp_store=mp_store,
     )
 
 
@@ -143,6 +161,10 @@ def parse_command(raw: str) -> tuple[str, str]:
         "inventory": "inventory", "inv": "inventory", "i": "inventory",
         "buy": "buy", "shop": "buy", "purchase": "buy",
         "sell": "sell",
+        "note": "note", "write": "note", "message": "note",
+        "rate": "rate", "upvote": "rate", "downvote": "rate",
+        "notes": "notes", "messages": "notes",
+        "bloodstain": "bloodstain", "bloodstains": "bloodstain", "deaths": "bloodstain",
         "quest": "quest", "quests": "quest", "q": "quest",
         "help": "help", "h": "help", "?": "help",
         "map": "map",
@@ -483,6 +505,26 @@ def _handle_look(state: MudState, arg: str) -> list[str]:
             exits_text.append(f"[bold cyan]{ex.direction}[/bold cyan]")
     lines.append(f"[bold]Exits:[/bold] {', '.join(exits_text) if exits_text else '[dim]none[/dim]'}")
 
+    # Async multiplayer: notes, bloodstains, phantoms
+    if state.mp_store:
+        # Notes
+        notes = state.mp_store.get_notes_for_room(room.id, limit=2)
+        if notes:
+            lines.append("")
+            for note in notes:
+                lines.append(format_note_display(note))
+
+        # Bloodstains
+        stains = state.mp_store.get_bloodstains_for_room(room.id, limit=1)
+        if stains:
+            for stain in stains:
+                lines.append(format_bloodstain_display(stain))
+
+        # Phantom sighting
+        phantom = state.mp_store.get_phantom_for_room(room.id)
+        if phantom:
+            lines.append(format_phantom_display(phantom))
+
     # Ambient
     if room.ambient and random.random() < 0.6:
         lines.append(f"\n[dim italic]{random.choice(room.ambient)}[/dim italic]")
@@ -534,6 +576,18 @@ def _handle_go(state: MudState, direction: str) -> list[str]:
         state.rooms_visited += 1
 
     lines.extend(_handle_look(state, ""))
+
+    # Record phantom trace of our presence
+    if state.mp_store and state.party:
+        buddy = state.party[0]
+        phantom = Phantom(
+            room_id=state.current_room,
+            buddy_name=buddy.name,
+            buddy_emoji=buddy.species.emoji,
+            buddy_species=buddy.species.name,
+            action=random.choice(PHANTOM_ACTIONS),
+        )
+        state.mp_store.add_phantom(phantom)
 
     # Buddy commentary — room-specific reactions first, then generic
     reaction = _room_reaction(state.party, state.current_room)
@@ -927,6 +981,153 @@ def _handle_sell(state: MudState, target: str) -> list[str]:
     return [f"You don't have '{target}' to sell."]
 
 
+# ---------------------------------------------------------------------------
+# Async multiplayer command handlers
+# ---------------------------------------------------------------------------
+
+def _handle_note(state: MudState, arg: str) -> list[str]:
+    """Leave a soapstone note in the current room."""
+    if not state.mp_store:
+        return ["[dim]Multiplayer features unavailable.[/dim]"]
+
+    if not state.inventory.has_item("orange_soapstone"):
+        return ["You need the [bold]Orange Soapstone[/bold] to leave notes. The Rubber Duck Sage in the Codebase Ruins might have one."]
+
+    if not arg:
+        # Show note builder
+        lines = [
+            "\n[bold]🧡 Soapstone Note[/bold]",
+            f"{'─' * 50}",
+            "Build a message by combining a template with a subject.",
+            "",
+            "[bold]Step 1:[/bold] Type [bold]note <template#> <subject#>[/bold]",
+            "",
+            "[bold]Templates:[/bold]",
+        ]
+        lines.extend(get_template_list())
+        lines.append("")
+        lines.append("[bold]Subjects:[/bold]")
+        lines.extend(get_subject_list())
+        lines.append("")
+        lines.append("[dim]Example: [bold]note 0 2[/bold] → \"Try coffee\"[/dim]")
+        return lines
+
+    # Parse template and subject indices
+    parts = arg.split()
+    if len(parts) != 2:
+        return ["Usage: [bold]note <template#> <subject#>[/bold]. Type [bold]note[/bold] to see options."]
+
+    try:
+        t_idx = int(parts[0])
+        s_idx = int(parts[1])
+    except ValueError:
+        return ["Both arguments must be numbers. Type [bold]note[/bold] to see options."]
+
+    message = build_note_message(t_idx, s_idx)
+    if not message:
+        return ["Invalid template or subject number. Type [bold]note[/bold] to see options."]
+
+    # Get author info from first party buddy
+    if state.party:
+        author_name = state.party[0].name
+        author_emoji = state.party[0].species.emoji
+    else:
+        author_name = "Anonymous"
+        author_emoji = "👤"
+
+    import time as _time
+    note = SoapstoneNote(
+        id=f"player_{state.current_room}_{int(_time.time())}",
+        room_id=state.current_room,
+        message=message,
+        author_name=author_name,
+        author_emoji=author_emoji,
+    )
+    state.mp_store.add_note(note)
+    state.notes_left += 1
+
+    return [
+        f"\n[yellow]🧡 You inscribed a message on the ground:[/yellow]",
+        f"  [bold]\"{message}\"[/bold]",
+        "[dim]Other adventurers may find this note.[/dim]",
+    ]
+
+
+def _handle_rate(state: MudState, arg: str) -> list[str]:
+    """Rate a soapstone note in the current room."""
+    if not state.mp_store:
+        return ["[dim]Multiplayer features unavailable.[/dim]"]
+
+    notes = state.mp_store.get_notes_for_room(state.current_room, limit=10)
+    if not notes:
+        return ["There are no notes here to rate."]
+
+    if not arg:
+        lines = [
+            "\n[bold]Rate a Note[/bold]",
+            f"{'─' * 40}",
+            "",
+        ]
+        for i, note in enumerate(notes):
+            lines.append(f"  [bold cyan]{i}[/bold cyan]. {format_note_display(note)}")
+        lines.append("")
+        lines.append("[dim]Type [bold]rate <#> up[/bold] or [bold]rate <#> down[/bold][/dim]")
+        return lines
+
+    parts = arg.split()
+    if len(parts) < 2:
+        return ["Usage: [bold]rate <note#> up[/bold] or [bold]rate <note#> down[/bold]"]
+
+    try:
+        note_idx = int(parts[0])
+    except ValueError:
+        return ["First argument must be a note number."]
+
+    if note_idx < 0 or note_idx >= len(notes):
+        return [f"Invalid note number. Valid range: 0-{len(notes) - 1}"]
+
+    upvote = parts[1].lower() in ("up", "upvote", "good", "yes", "+", "helpful")
+    note = notes[note_idx]
+
+    if state.mp_store.rate_note(note.id, upvote):
+        state.notes_rated += 1
+        emoji = "👍" if upvote else "👎"
+        return [f"{emoji} You rated the note \"{note.message}\" — {note.rating_text}"]
+    else:
+        return ["You've already rated this note."]
+
+
+def _handle_notes(state: MudState, _arg: str) -> list[str]:
+    """View all notes in the current room."""
+    if not state.mp_store:
+        return ["[dim]Multiplayer features unavailable.[/dim]"]
+
+    notes = state.mp_store.get_notes_for_room(state.current_room, limit=10)
+    if not notes:
+        return ["There are no notes in this room."]
+
+    lines = ["\n[bold]📜 Notes in this room[/bold]", f"{'─' * 50}"]
+    for i, note in enumerate(notes):
+        lines.append(f"  [bold cyan]{i}[/bold cyan]. {format_note_display(note)}")
+    lines.append(f"\n[dim]Type [bold]rate <#> up/down[/bold] to rate a note.[/dim]")
+    return lines
+
+
+def _handle_bloodstain(state: MudState, _arg: str) -> list[str]:
+    """View bloodstains (death markers) in the current room."""
+    if not state.mp_store:
+        return ["[dim]Multiplayer features unavailable.[/dim]"]
+
+    stains = state.mp_store.get_bloodstains_for_room(state.current_room, limit=5)
+    if not stains:
+        return ["No adventurers have fallen here. Yet."]
+
+    lines = ["\n[bold red]💀 Bloodstains[/bold red]", f"{'─' * 50}"]
+    for stain in stains:
+        lines.append(format_bloodstain_display(stain))
+    return lines
+
+
 def _handle_quest(state: MudState, _arg: str) -> list[str]:
     """Show active and completed quests."""
     lines = ["\n[bold]📋 Quest Log[/bold]", f"{'─' * 40}"]
@@ -1010,6 +1211,12 @@ def _handle_help(state: MudState, _arg: str) -> list[str]:
         "[bold cyan]Commerce:[/bold cyan]",
         "  [bold]buy[/bold]             — Browse/buy from merchants",
         "  [bold]sell[/bold]            — Sell items to merchants (half value)",
+        "",
+        "[bold cyan]Multiplayer:[/bold cyan]",
+        "  [bold]note[/bold]            — Leave a soapstone message (needs Orange Soapstone)",
+        "  [bold]notes[/bold]           — View notes in this room",
+        "  [bold]rate[/bold]            — Rate a note (up/down)",
+        "  [bold]bloodstain[/bold]      — View death markers in this room",
         "",
         "[bold cyan]Status:[/bold cyan]",
         "  [bold]inventory[/bold] (i)   — Check your items",
@@ -1210,6 +1417,21 @@ def _combat_defeat(state: MudState) -> list[str]:
     if comment:
         lines.append(f"\n{comment}")
 
+    # Leave a bloodstain
+    if state.combat and state.mp_store and state.party:
+        import time as _time
+        buddy = state.party[0]
+        stain = Bloodstain(
+            id=f"death_{state.current_room}_{int(_time.time())}",
+            room_id=state.current_room,
+            cause_of_death=state.combat.enemy.name,
+            buddy_name=buddy.name,
+            buddy_emoji=buddy.species.emoji,
+            buddy_level=buddy.level,
+        )
+        state.mp_store.add_bloodstain(stain)
+        lines.append("[dim]💀 A bloodstain marks where you fell...[/dim]")
+
     # Restore enemy HP for re-attempts
     if state.combat:
         npc = state.npcs.get(state.combat.npc_id)
@@ -1287,6 +1509,10 @@ COMMAND_HANDLERS = {
     "inventory": _handle_inventory,
     "buy": _handle_buy,
     "sell": _handle_sell,
+    "note": _handle_note,
+    "rate": _handle_rate,
+    "notes": _handle_notes,
+    "bloodstain": _handle_bloodstain,
     "quest": _handle_quest,
     "map": _handle_map,
     "wait": _handle_wait,
@@ -1312,7 +1538,7 @@ def process_command(state: MudState, raw_input: str) -> list[str]:
     if handler:
         result = handler(state, arg)
         # Random world events after non-meta commands
-        if cmd not in ("help", "inventory", "quest", "map") and not state.combat:
+        if cmd not in ("help", "inventory", "quest", "map", "note", "notes", "rate", "bloodstain") and not state.combat:
             event = _maybe_world_event()
             if event:
                 result.append(f"\n{event}")

@@ -277,6 +277,9 @@ def build_starter_items() -> dict[str, Item]:
         Item("artisanal_semicolon", "Artisanal Semicolon", "Hand-crafted. Organic. Gluten-free. ;", ItemType.COSMETIC, 50, emoji="✨"),
         Item("nft_nothing", "NFT That Does Nothing", "You own this nothing. On the blockchain.", ItemType.COSMETIC, 1, emoji="🖼️"),
 
+        # --- Soapstone (async multiplayer) ---
+        Item("orange_soapstone", "Orange Soapstone", "A warm, glowing stone. Leave messages for other adventurers to find. Use 'note' to write, 'rate' to vote.", ItemType.KEY, 0, emoji="🧡"),
+
         # --- New: QA Lab items ---
         Item("flaky_test", "Captured Flaky Test", "It passes sometimes. Fails sometimes. Nobody knows why. Schrödinger's assertion.", ItemType.JUNK, 4, emoji="🦋"),
         Item("test_pyramid", "Miniature Test Pyramid", "A tiny desk ornament. The bottom says UNIT, the middle says INTEGRATION, the top says E2E. Someone has drawn a huge blob labeled 'MANUAL' next to it.", ItemType.JUNK, 6, emoji="🔺"),
@@ -416,12 +419,13 @@ def build_starter_npcs(items: dict[str, Item]) -> dict[str, NPC]:
         id="rubber_duck_sage",
         name="The Rubber Duck Sage",
         title="Enlightened Debugging Master",
-        description="A 3-foot-tall rubber duck sitting on a meditation cushion. It says nothing. It has never said anything. And yet, explaining your problems to it always helps. It radiates an aura of profound, squeaky wisdom.",
+        description="A 3-foot-tall rubber duck sitting on a meditation cushion. It says nothing. It has never said anything. And yet, explaining your problems to it always helps. It radiates an aura of profound, squeaky wisdom. A warm, orange stone sits at its feet.",
         disposition=NPCDisposition.FRIENDLY,
         emoji="🦆",
         dialogue={
             "greeting": DialogueLine(
-                "\"...\"  (The duck stares at you serenely. You feel compelled to explain your current bug. As you do, the solution becomes obvious.)",
+                "\"...\"  (The duck stares at you serenely. You feel compelled to explain your current bug. As you do, the solution becomes obvious. The duck nudges a glowing orange stone toward you with its beak.)",
+                gives_item="orange_soapstone",
             ),
             "idle": DialogueLine(
                 "\"...\"  (Squeak.)",

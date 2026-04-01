@@ -162,6 +162,13 @@ class MudScreen(Screen):
         if n_items:
             party_lines.append(f"[dim]📦 {n_items} item(s)[/dim]")
 
+        # Soapstone status
+        has_soapstone = self.mud_state.inventory.has_item("orange_soapstone")
+        if has_soapstone:
+            party_lines.append(f"[yellow]🧡 Soapstone[/yellow]")
+        if self.mud_state.notes_left:
+            party_lines.append(f"[dim]📜 {self.mud_state.notes_left} note(s) left[/dim]")
+
         party_widget.update("\n".join(party_lines))
 
     def action_quit_mud(self):
