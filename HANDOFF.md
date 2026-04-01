@@ -329,8 +329,8 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 
 - [x] **Three-tier memory** — episodic (sessions/events), semantic (facts/preferences with contradiction detection), procedural (patterns/rules). SQLite-backed, keyword/tag retrieval, no vector DB needed. Memory screen via [m] key. Session events auto-buffered, semantic statements detected from chat, procedural memories from rule suggestions. Background flush every 30s, decay cleanup on startup.
 - [ ] **Working memory compaction** — auto-trim HANDOFF.md when it exceeds a threshold. Keep recent session notes, compress older ones.
-- [ ] **Self-evolution safety gates** — validate rule suggestions against existing rules before auto-applying. Conflict detection, rollback on regression.
-- [ ] **Golden suite** — save successful rule applications as reference examples. Future suggestions checked against the golden set.
+- [x] **Self-evolution safety gates** — 5-gate validation (duplicate, conflict, size, golden consistency, scope) runs on every rule suggestion before presentation. Prevents contradictory or bloating rules.
+- [x] **Golden suite** — accepted rules auto-saved as reference. Future suggestions checked against golden set for consistency. Loaded from DB on startup.
 - [ ] **Layered prompt assembly** — composable prompt building (personality + preferences + context + memory). Deferred until AI interactions get richer.
 
 ### Tier 3: Social

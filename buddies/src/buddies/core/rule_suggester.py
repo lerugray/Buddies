@@ -35,6 +35,7 @@ class RuleSuggester:
         self.store = store
         self._suggestions_made: set[str] = set()  # Track what we've already suggested
         self._dismissed: set[str] = set()  # Track dismissed suggestions
+        self._safety_gates: SafetyGates | None = None
 
     async def load_dismissed(self):
         """Load previously dismissed suggestions from DB."""
@@ -64,6 +65,15 @@ class RuleSuggester:
             and s.config_snippet not in self._dismissed
             and s.confidence >= 0.5
         ]
+
+        # Run through safety gates if available
+        if self._safety_gates:
+            validated = []
+            for s in new_suggestions:
+                result = self._safety_gates.validate(s)
+                if result.passed:
+                    validated.append(s)
+            new_suggestions = validated
 
         # Save new suggestions to DB
         for s in new_suggestions:
@@ -200,9 +210,222 @@ class RuleSuggester:
         await self.store.db.commit()
 
     async def accept(self, suggestion: RuleSuggestion):
-        """Mark a suggestion as accepted."""
+        """Mark a suggestion as accepted and add to golden suite."""
         await self.store.db.execute(
             "UPDATE rule_suggestions SET status = 'accepted' WHERE rule_content = ?",
             (suggestion.config_snippet,),
         )
         await self.store.db.commit()
+
+        # Add to golden suite
+        if self._safety_gates:
+            await self._safety_gates.add_to_golden_suite(suggestion)
+
+    def set_safety_gates(self, gates: SafetyGates):
+        """Attach safety gates for validation."""
+        self._safety_gates = gates
+
+
+# ---------------------------------------------------------------------------
+# Safety Gates — validate rules before auto-application
+# ---------------------------------------------------------------------------
+
+@dataclass
+class ValidationResult:
+    """Result of running a suggestion through safety gates."""
+    passed: bool
+    gate_results: dict[str, bool]  # gate_name -> passed
+    reason: str = ""
+
+
+@dataclass
+class GoldenRule:
+    """A successful rule application stored for reference."""
+    rule_type: str
+    content: str
+    reason: str
+    applied_at: str
+    effectiveness: float  # 0.0-1.0
+
+
+class SafetyGates:
+    """Validates rule suggestions through multiple safety checks before application.
+
+    Five gates:
+    1. Duplicate check — is this rule already in the config?
+    2. Conflict check — does this contradict an existing rule?
+    3. Size check — will this make CLAUDE.md too large?
+    4. Golden suite check — is this consistent with known-good rules?
+    5. Scope check — is this change small enough to auto-apply?
+    """
+
+    def __init__(self, project_path: Path | None = None, store: BuddyStore | None = None):
+        self.project_path = project_path or Path.cwd()
+        self.store = store
+        self._golden_suite: list[GoldenRule] = []
+
+    async def load_golden_suite(self):
+        """Load golden rules from DB."""
+        if not self.store:
+            return
+        try:
+            async with self.store.db.execute(
+                "SELECT rule_type, rule_content, reason, timestamp FROM rule_suggestions "
+                "WHERE status = 'accepted' ORDER BY timestamp DESC LIMIT 50"
+            ) as cursor:
+                rows = await cursor.fetchall()
+                self._golden_suite = [
+                    GoldenRule(
+                        rule_type=row[0],
+                        content=row[1],
+                        reason=row[2],
+                        applied_at=row[3],
+                        effectiveness=1.0,
+                    )
+                    for row in rows
+                ]
+        except Exception:
+            pass
+
+    def validate(self, suggestion: RuleSuggestion) -> ValidationResult:
+        """Run a suggestion through all safety gates."""
+        gates = {}
+
+        gates["duplicate"] = self._gate_duplicate(suggestion)
+        gates["conflict"] = self._gate_conflict(suggestion)
+        gates["size"] = self._gate_size(suggestion)
+        gates["golden"] = self._gate_golden_consistency(suggestion)
+        gates["scope"] = self._gate_scope(suggestion)
+
+        passed = all(gates.values())
+        failed_gates = [name for name, ok in gates.items() if not ok]
+
+        reason = ""
+        if not passed:
+            reason = f"Failed gates: {', '.join(failed_gates)}"
+
+        return ValidationResult(passed=passed, gate_results=gates, reason=reason)
+
+    def _gate_duplicate(self, suggestion: RuleSuggestion) -> bool:
+        """Gate 1: Check if this rule already exists in the config."""
+        if suggestion.rule_type == "tip":
+            return True  # Tips aren't applied to files
+
+        if suggestion.rule_type == "claude_md":
+            claude_md = self.project_path / "CLAUDE.md"
+            if claude_md.exists():
+                content = claude_md.read_text(encoding="utf-8", errors="replace")
+                # Check if the core content is already present
+                snippet_lines = suggestion.config_snippet.strip().split("\n")
+                for line in snippet_lines:
+                    line = line.strip()
+                    if line and len(line) > 10 and line in content:
+                        return False  # Duplicate found
+
+        if suggestion.rule_type == "settings":
+            settings_path = self.project_path / ".claude" / "settings.json"
+            if settings_path.exists():
+                try:
+                    existing = json.loads(settings_path.read_text(encoding="utf-8"))
+                    snippet = json.loads(suggestion.config_snippet)
+                    # Check if all keys in snippet already exist with same values
+                    if all(existing.get(k) == v for k, v in snippet.items()):
+                        return False
+                except (json.JSONDecodeError, ValueError):
+                    pass
+
+        return True  # Not a duplicate
+
+    def _gate_conflict(self, suggestion: RuleSuggestion) -> bool:
+        """Gate 2: Check if this rule contradicts existing rules."""
+        rules_dir = self.project_path / ".claude" / "rules"
+        if not rules_dir.exists():
+            return True  # No rules to conflict with
+
+        snippet_lower = suggestion.config_snippet.lower()
+
+        # Read all existing rule files
+        for rule_file in rules_dir.glob("*.md"):
+            try:
+                content = rule_file.read_text(encoding="utf-8", errors="replace").lower()
+
+                # Simple heuristic: look for contradictory directives
+                # "always X" vs "never X", "use X" vs "don't use X"
+                for keyword in _extract_action_keywords(snippet_lower):
+                    negated = f"don't {keyword}" if f"don't {keyword}" not in snippet_lower else keyword
+                    if negated in content and keyword in snippet_lower:
+                        return False  # Potential conflict
+            except OSError:
+                continue
+
+        return True  # No conflicts detected
+
+    def _gate_size(self, suggestion: RuleSuggestion) -> bool:
+        """Gate 3: Will applying this make CLAUDE.md too large?"""
+        if suggestion.rule_type != "claude_md":
+            return True
+
+        claude_md = self.project_path / "CLAUDE.md"
+        current_lines = 0
+        if claude_md.exists():
+            current_lines = len(claude_md.read_text(encoding="utf-8", errors="replace").split("\n"))
+
+        new_lines = len(suggestion.config_snippet.split("\n"))
+        return (current_lines + new_lines) < 150  # CLAUDE.md should stay under 150 lines
+
+    def _gate_golden_consistency(self, suggestion: RuleSuggestion) -> bool:
+        """Gate 4: Is this consistent with the golden suite?"""
+        if not self._golden_suite:
+            return True  # No golden rules yet, pass by default
+
+        # Check if any golden rule explicitly contradicts this suggestion
+        snippet_lower = suggestion.config_snippet.lower()
+        for golden in self._golden_suite:
+            golden_lower = golden.content.lower()
+            # Very simple: if golden says "use X" and suggestion says "don't use X" (or vice versa)
+            for keyword in _extract_action_keywords(snippet_lower):
+                negated = f"don't {keyword}"
+                if negated in golden_lower and keyword in snippet_lower:
+                    return False
+                if keyword in golden_lower and negated in snippet_lower:
+                    return False
+
+        return True
+
+    def _gate_scope(self, suggestion: RuleSuggestion) -> bool:
+        """Gate 5: Is this change small enough to auto-apply?"""
+        if suggestion.rule_type == "tip":
+            return True  # Tips are just messages
+
+        # Reject large config snippets
+        line_count = len(suggestion.config_snippet.split("\n"))
+        return line_count <= 20  # Max 20 lines for auto-application
+
+    async def add_to_golden_suite(self, suggestion: RuleSuggestion):
+        """Add a successfully accepted rule to the golden suite."""
+        self._golden_suite.append(GoldenRule(
+            rule_type=suggestion.rule_type,
+            content=suggestion.config_snippet,
+            reason=suggestion.reason,
+            applied_at=time.strftime("%Y-%m-%d %H:%M"),
+            effectiveness=1.0,
+        ))
+
+    def get_golden_suite(self) -> list[GoldenRule]:
+        """Get the current golden suite for display."""
+        return self._golden_suite.copy()
+
+
+def _extract_action_keywords(text: str) -> list[str]:
+    """Extract action-oriented keywords from a rule text for conflict detection."""
+    import re
+    # Look for "use X", "prefer X", "always X", "avoid X", "never X"
+    patterns = [
+        r"(?:use|prefer|always|require)\s+(\w+)",
+        r"(?:avoid|never|don't use|skip)\s+(\w+)",
+    ]
+    keywords = []
+    for pattern in patterns:
+        for match in re.finditer(pattern, text):
+            keywords.append(match.group(1))
+    return keywords

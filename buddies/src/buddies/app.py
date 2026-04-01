@@ -23,7 +23,7 @@ from buddies.core.buddy_brain import (
 from buddies.core.ai_backend import create_backend
 from buddies.core.prose import ProseEngine
 from buddies.core.ai_router import AIRouter
-from buddies.core.rule_suggester import RuleSuggester
+from buddies.core.rule_suggester import RuleSuggester, SafetyGates
 from buddies.core.session_observer import SessionObserver, SessionEvent
 from buddies.db.store import BuddyStore
 from buddies.first_run import HatchScreen
@@ -159,6 +159,11 @@ class BuddyApp(App):
         # Initialize AI router and rule suggester
         self.router = AIRouter(self.ai_backend, self.buddy_state)
         self.rule_suggester = RuleSuggester(self.store)
+
+        # Phase 12: Attach safety gates to rule suggester
+        self.safety_gates = SafetyGates(store=self.store)
+        self.rule_suggester.set_safety_gates(self.safety_gates)
+        asyncio.create_task(self.safety_gates.load_golden_suite())
 
         # Start a new conversation (auto-saves every message)
         buddy_name = self.buddy_state.name if self.buddy_state else "Buddy"
