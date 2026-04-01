@@ -102,7 +102,8 @@ buddies/
 │   │   ├── rule_suggester.py         # Session pattern → config rule suggestions
 │   │   ├── config_intel.py           # CLAUDE.md health, linting, scaffolding, auto-learn
 │   │   ├── token_guardian.py         # Rolling summaries, token warnings, session handoff
-│   │   └── achievements.py          # 33 achievements, checking, tracking
+│   │   ├── achievements.py          # 33 achievements, checking, tracking
+│   │   └── model_tracker.py         # Model detection, phase classification, mismatch alerts
 │   ├── screens/
 │   │   ├── party.py                  # Buddy collection management
 │   │   ├── discussion.py             # Party focus group screen
@@ -278,15 +279,35 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 - ✅ New file: core/token_guardian.py
 - ✅ New keybinding: [F1] quick-save
 
+### Phase 11: Smart Model Router — DONE
+- ✅ Model display — session monitor shows current CC model, color-coded by tier (Opus=magenta, Sonnet=cyan, Haiku=green)
+- ✅ Model detection — captures model from SessionStart hook events, detects /model commands via regex
+- ✅ Phase detection — classifies work into planning/implementing/exploring/maintenance based on tool usage
+- ✅ Mismatch alerts — buddy suggests switching when model doesn't match work phase
+- ✅ Model routing rules — .claude/rules/model-routing.md tells CC when to suggest cheaper/better models
+- ✅ hooks.py updated to pass model field from SessionStart stdin
+- ✅ New file: core/model_tracker.py
+- ✅ Constraint: mid-session /model switches only detected via regex; waiting on anthropics/claude-code#37817 for native CLAUDECODE_MODEL env var
+
+### Polish Pass — DONE
+- ✅ 6 themes: default, midnight, forest, ocean, sunset, light — cycle [F2], persisted to config
+- ✅ 33 achievements across 5 categories (collection, mastery, social, exploration, secret)
+- ✅ Achievements DB table, periodic checker, notification system, [a] screen
+- ✅ Footer audit — reduced to 6 visible bindings, rest hidden but functional
+- ✅ Screen CSS audit — fixed hardcoded max-widths, responsive layouts for 80-col terminals
+- ✅ Species count audit — fixed README (was showing wrong per-rarity numbers)
+- ✅ New files: themes.py, core/achievements.py, screens/achievements.py
+
 ## Next Steps
 
-### Phase 11+: Ideas Bank
+### Ideas Bank
 - [ ] **Social Buddies (MCP)** — buddies talk to each other across users via MCP. Share notes, stories, suggestions.
 - [x] ~~**Local party focus group**~~ — DONE (Fun Phase)
+- [x] ~~**Theme customization**~~ — DONE (Polish Pass)
+- [x] ~~**Buddy achievements**~~ — DONE (Polish Pass)
 - [ ] Input box integration — buddy sits beside chat input, reacts to typing
-- [ ] Theme customization (dark/light/custom)
-- [ ] Buddy achievements and milestone tracking
 - [ ] More animation frames (4-frame) for newer species
+- [ ] More hats
 - [ ] AI-powered file analysis in discussion mode when Ollama is available
 
 ## Prose Generation Reference (from Veridian Contraption)
@@ -354,18 +375,19 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 
 ## Session Notes (2026-04-01 — Home)
 
-### Completed (6 commits)
+### Completed (11 commits)
 - ✅ Phase 9: CC Config Intelligence — CLAUDE.md health grading, linting, scaffolding, auto-learn, session summary
 - ✅ Phase 10: Token Guardian — rolling summaries, token warnings, quick-save [F1], session handoff
+- ✅ Phase 11: Smart Model Router — model display, phase detection, mismatch alerts, routing rules
 - ✅ CLAUDE.md created (local/gitignored) with routing to HANDOFF.md and .claude/rules/
-- ✅ .claude/rules/ scaffolded: preferences.md, decisions.md, project-context.md, buddy-learned.md
+- ✅ .claude/rules/ scaffolded: preferences.md, decisions.md, project-context.md, buddy-learned.md, model-routing.md
 - ✅ 6 themes: default, midnight, forest, ocean, sunset, light — cycle [F2], persisted to config
 - ✅ 33 achievements across 5 categories (collection, mastery, social, exploration, secret)
-- ✅ Achievements DB table, periodic checker, notification system, [a] screen
-- ✅ Species count audit — fixed README (was showing wrong per-rarity counts)
-- ✅ 6 new files, 4 modified files, plus config scaffolding
+- ✅ Footer + screen CSS audit — responsive layouts, cleaner footer
+- ✅ Species count audit — fixed README
+- ✅ 9 new files, many modified
 - ✅ README and HANDOFF fully updated
 
 ### Direction
-- Buddies is feature-complete as a "CC maintenance layer" with gamification
-- Ideas Bank: social buddies, more species, more animation frames
+- Buddies is feature-complete as a "CC maintenance layer" with gamification and model routing
+- Ideas Bank: social buddies, more species, more hats, more animation frames

@@ -19,6 +19,7 @@ A tamagotchi-style AI companion that lives in your terminal and watches your Cla
 - **Multi-buddy collection** — hatch, switch, rename, customize
 - **Config intelligence** — grades your CLAUDE.md health (A-F), scaffolds .claude/rules/, auto-learns rules from corrections
 - **Token guardian** — rolling session summaries, early warnings at 50/70/90% context, quick-save [F1], session handoff
+- **Smart model router** — displays current CC model, detects work phase, suggests switching models to save tokens
 - **33 achievements** across 5 categories (collection, mastery, social, exploration, secret)
 - **6 themes** — default, midnight, forest, ocean, sunset, light — cycle with [F2], persisted
 - **Session awareness** — watches Claude Code activity, detects patterns, suggests config rules
@@ -195,7 +196,8 @@ buddies/
 │   │   ├── rule_suggester.py     # Pattern -> rule suggestions
 │   │   ├── config_intel.py       # CLAUDE.md health, linting, scaffolding, auto-learn
 │   │   ├── token_guardian.py     # Rolling summaries, token warnings, session handoff
-│   │   └── achievements.py      # 33 achievements, checking, tracking
+│   │   ├── achievements.py      # 33 achievements, checking, tracking
+│   │   └── model_tracker.py     # Model detection, phase classification, routing
 │   ├── screens/
 │   │   ├── party.py              # Buddy collection management
 │   │   ├── discussion.py         # Party focus group screen
@@ -274,7 +276,7 @@ Press **[F2]** to cycle through 6 themes. Your choice is saved between sessions.
 ## What's Next
 
 - Social buddies — buddies talk to each other across users via MCP
-- More species and animation frames
+- More hats, species, and animation frames
 
 ## Requirements
 
