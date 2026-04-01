@@ -315,6 +315,10 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 - [ ] **Card games with buddies** — Texas Hold'em and Blackjack in-TUI. Buddy stats influence AI playstyle: high CHAOS bluffs, high WISDOM plays tight, high SNARK trash-talks. New screen via [m] keybinding.
 - [ ] **Simple games** — Rock-paper-scissors tournaments, coding trivia (buddy asks questions), battle system where stats matter.
 
+**Voice**
+- [ ] **Speech-to-text input** — push-to-talk hotkey ([F3]) transcribes user speech into chat. Local via whisper.cpp/faster-whisper. Talk to your buddy while coding.
+- [ ] **Text-to-speech output** — buddy speaks responses aloud. Local via piper-tts or edge-tts. Map personality registers to voice profiles (snarky buddy sounds different than calm buddy). Toggle with hotkey.
+
 **Polish / Content**
 - [x] ~~**Local party focus group**~~ — DONE (Fun Phase)
 - [x] ~~**Theme customization**~~ — DONE (Polish Pass)
