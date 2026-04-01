@@ -20,6 +20,8 @@ A tamagotchi-style local AI companion **collection** that runs alongside Claude 
 - **Phase 4** (MCP Integration): DONE — MCP server with 5 tools, setup scripts
 - **Phase 5** (Refactor + Cosmetics): DONE — multi-buddy collection, hats, stat-based unlocking, new species
 - **Fun Phase**: DONE — party discussions, tool browser, conversation saving, styled output, 70 species
+- **Phase 9** (CC Config Intelligence): DONE — CLAUDE.md health grading, auto-learn rules, config scaffolding
+- **Phase 10** (Token Guardian): DONE — rolling summaries, token warnings, quick-save, session handoff
 - **Hatch screen**: Working — named buddies, seed-based or random, name input on hatch
 - **Party screen**: NEW — switch between buddies, equip hats, hatch new
 - **Hats**: NEW — crown (debug), wizard (wisdom), propeller (chaos), tinyduck (starter)
@@ -96,12 +98,15 @@ buddies/
 │   │   ├── session_observer.py       # Watches events, detects patterns, tracks tokens
 │   │   ├── ai_backend.py             # Ollama/OpenAI-compatible API connector
 │   │   ├── ai_router.py              # Complexity scoring, cost guardrails, routing
-│   │   └── rule_suggester.py         # Session pattern → config rule suggestions
+│   │   ├── rule_suggester.py         # Session pattern → config rule suggestions
+│   │   ├── config_intel.py           # CLAUDE.md health, linting, scaffolding, auto-learn
+│   │   └── token_guardian.py         # Rolling summaries, token warnings, session handoff
 │   ├── screens/
 │   │   ├── party.py                  # Buddy collection management
 │   │   ├── discussion.py             # Party focus group screen
 │   │   ├── tool_browser.py           # MCP/skills browser screen
-│   │   └── conversations.py          # Saved conversations browser
+│   │   ├── conversations.py          # Saved conversations browser
+│   │   └── config_health.py          # Config health dashboard screen
 │   ├── widgets/
 │   │   ├── buddy_display.py          # Animated sprite + stats + evolution
 │   │   ├── chat.py                   # Chat pane with auto-save
@@ -246,36 +251,40 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 - ✅ Register-flavored commentary system (5 registers × 4 contexts)
 - ✅ New files: core/discussion.py, core/conversation.py, core/tool_scanner.py, screens/discussion.py, screens/conversations.py, screens/tool_browser.py, widgets/styling.py
 
+## Completed Phases (continued)
+
+### Phase 9: CC Config Intelligence — DONE
+- ✅ CLAUDE.md health monitor — scans file size, sections, routing references, grades A-F
+- ✅ CLAUDE.md linting — detects bloated sections, missing routing, knowledge dumps
+- ✅ Config scaffolding — one-press creation of .claude/rules/ structure (preferences, decisions, project-context, buddy-learned)
+- ✅ Auto-learn from sessions — SessionLearner watches for repeated corrections, auto-writes to buddy-learned.md after 3+ similar corrections
+- ✅ Session summaries — generates last-session-summary.md on exit
+- ✅ Startup config check — buddy alerts about config issues on launch
+- ✅ Config health screen [g] — dashboard showing grade, sections, suggestions
+- ✅ CLAUDE.md/HANDOFF.md split — CLAUDE.md is local/gitignored per machine, HANDOFF.md shared via git
+- ✅ New files: core/config_intel.py, screens/config_health.py
+- ✅ New keybinding: [g] config health
+
+### Phase 10: Token Guardian & Session Continuity — DONE
+- ✅ Continuous rolling summary — writes rolling-session.md to disk every 60s in background
+- ✅ Token usage early warning — alerts at 50%/70%/90% estimated context usage (observed × 3.5 inflation factor)
+- ✅ Quick-save [F1] — instantly dumps session state + writes handoff file
+- ✅ Session handoff — writes .claude/rules/buddy-session-state.md on exit (auto-loads into next CC session)
+- ✅ Event tracking — monitors files touched, agent spawns, key bash commands for summaries
+- ✅ Smart clear — rolling summary is always up-to-date, safe to clear anytime
+- ✅ New file: core/token_guardian.py
+- ✅ New keybinding: [F1] quick-save
+
 ## Next Steps
 
-### Phase 9: CC Config Intelligence (NEXT)
-The key insight: **Buddies should be the maintenance layer for your Claude Code config.**
-
-- [ ] **CLAUDE.md health monitor** — watch file size, warn when bloated (>150 lines), suggest splitting into `.claude/rules/` files
-- [ ] **Auto-learn from sessions** — detect repeated corrections ("user keeps telling Claude not to do X"), suggest or auto-write rules to `.claude/rules/buddy-learned.md`
-- [ ] **Session summaries** — at session end, generate compact summary of what happened and what was learned
-- [ ] **CLAUDE.md linting** — detect missing sections, suggest restructuring as routing file instead of knowledge dump
-- [ ] **Config scaffolding** — if no `.claude/rules/` exists, offer to create the recommended structure (memory, preferences, decisions, sessions)
-
-Design principle: CLAUDE.md should be a routing file (<150 lines), not a knowledge dump. Buddy enforces this.
-
-### Phase 10: Token Guardian & Session Continuity
-Real pain point: user got throttled 20% trying to save session notes when CC warned about 1M tokens. Buddies should prevent this.
-
-- [ ] **Continuous session summary** — Buddy writes a rolling summary to disk in the background (not at end when it's too late). File persists even if CC compacts/clears.
-- [ ] **Token usage early warning** — track context usage via session observer, warn at 50%/70%/90% ("Hey, you're at 70% context, might want to wrap up soon")
-- [ ] **Quick-save keystroke** — one key to dump current session state to a file CC can read back
-- [ ] **Session handoff file** — Buddy writes `.claude/rules/buddy-session-state.md` that auto-loads into next CC session with "here's what we were doing, here's where we left off"
-- [ ] **Smart clear** — when user needs to clear, Buddy has already saved everything. Clear safely, Buddy helps CC pick up right where it left off.
-
-Key insight: Buddies becomes the **memory that survives between sessions**. The continuous background save is critical — can't wait until the user asks to save, because by then it might cost the tokens you're trying to save.
-
 ### Phase 11+: Ideas Bank
-- [ ] **Social Buddies (MCP)** — buddies talk to each other across users via MCP. Share notes, stories, suggestions. "Your friend's buddy just helped them fix something similar."
+- [ ] **Social Buddies (MCP)** — buddies talk to each other across users via MCP. Share notes, stories, suggestions.
 - [x] ~~**Local party focus group**~~ — DONE (Fun Phase)
 - [ ] Input box integration — buddy sits beside chat input, reacts to typing
 - [ ] Theme customization (dark/light/custom)
 - [ ] Buddy achievements and milestone tracking
+- [ ] More animation frames (4-frame) for newer species
+- [ ] AI-powered file analysis in discussion mode when Ollama is available
 
 ## Prose Generation Reference (from Veridian Contraption)
 The user's project at `../Veridian Contraption/src/gen/prose_gen.rs` has battle-tested prose systems:
@@ -334,7 +343,23 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - ✅ README and HANDOFF fully updated
 
 ### What's Ready for Next Session
-- Phase 9 (CC Config Intelligence) or Phase 10 (Token Guardian) are next
+- Phases 9 and 10 are DONE — all core "smart buddy" features shipped
+- Ideas Bank (Phase 11+) has several directions to explore
 - More species ideas welcome — the system scales easily
 - Could add more animation frames (4-frame) for the newer species
 - Discussion mode could be enhanced with AI-powered file analysis when Ollama is available
+
+## Session Notes (2026-04-01 — Home)
+
+### Completed (4 commits)
+- ✅ Phase 9: CC Config Intelligence — CLAUDE.md health grading, linting, scaffolding, auto-learn, session summary
+- ✅ Phase 10: Token Guardian — rolling summaries, token warnings, quick-save [F1], session handoff
+- ✅ CLAUDE.md created (local/gitignored) with routing to HANDOFF.md and .claude/rules/
+- ✅ .claude/rules/ scaffolded: preferences.md, decisions.md, project-context.md, buddy-learned.md
+- ✅ .gitignore updated to exclude CLAUDE.md
+- ✅ 3 new files, 1 modified file, plus config scaffolding
+- ✅ README and HANDOFF updated
+
+### Direction
+- Buddies is now a full "CC maintenance layer" — monitors config health, warns about token usage, auto-saves session state, learns from corrections
+- Next direction: Phase 11 ideas (social buddies, themes, achievements) or more species/polish

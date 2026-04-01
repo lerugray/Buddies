@@ -17,6 +17,8 @@ A tamagotchi-style AI companion that lives in your terminal and watches your Cla
 - **Mood system** — mood decays over time, affects XP gain and stat growth
 - **Agentic local AI** — buddy can read files, search code, and run commands via Ollama
 - **Multi-buddy collection** — hatch, switch, rename, customize
+- **Config intelligence** — grades your CLAUDE.md health (A-F), scaffolds .claude/rules/, auto-learns rules from corrections
+- **Token guardian** — rolling session summaries, early warnings at 50/70/90% context, quick-save [F1], session handoff
 - **Session awareness** — watches Claude Code activity, detects patterns, suggests config rules
 - **AI cost guardrails** — cost_tier config prevents buddy chatter from ever using expensive models
 - **Zero token cost** — everything runs locally except tiny MCP payloads to Claude
@@ -85,6 +87,8 @@ python -m buddies.setup_mcp
 - **[d]** — Open Discussion screen — buddies talk to each other
 - **[t]** — Tool Browser — see installed MCP servers and skills
 - **[c]** — Conversations — browse, rename, load, delete saved chats
+- **[g]** — Config Health — CLAUDE.md grade, suggestions, scaffold .claude/rules/
+- **[F1]** — Quick Save — dump session state + write handoff file for next session
 - **[n]** — Rename selected buddy (in Party screen)
 - **[h]** — Cycle hats (in Party screen)
 - **[?]** — Help
@@ -184,12 +188,15 @@ buddies/
 │   │   ├── session_observer.py   # Watches Claude Code events
 │   │   ├── ai_backend.py         # Ollama/OpenAI connector
 │   │   ├── ai_router.py          # Complexity routing + cost guardrails
-│   │   └── rule_suggester.py     # Pattern -> rule suggestions
+│   │   ├── rule_suggester.py     # Pattern -> rule suggestions
+│   │   ├── config_intel.py       # CLAUDE.md health, linting, scaffolding, auto-learn
+│   │   └── token_guardian.py     # Rolling summaries, token warnings, session handoff
 │   ├── screens/
 │   │   ├── party.py              # Buddy collection management
 │   │   ├── discussion.py         # Party focus group screen
 │   │   ├── tool_browser.py       # MCP/skills browser screen
-│   │   └── conversations.py      # Saved conversations browser
+│   │   ├── conversations.py      # Saved conversations browser
+│   │   └── config_health.py      # Config health dashboard
 │   ├── widgets/
 │   │   ├── buddy_display.py      # Animated sprite + stats + evolution
 │   │   ├── chat.py               # Chat pane with auto-save
@@ -235,11 +242,10 @@ Works with zero AI — pure prose engine. Each buddy speaks in their register (c
 
 ## What's Next
 
-- CC Config Intelligence — CLAUDE.md health monitoring, auto-learned rules
-- Token Guardian — context usage warnings, session handoff files
 - Social buddies — buddies talk to each other across users via MCP
 - Theme customization (dark/light/custom)
 - Buddy achievements and milestone tracking
+- More species and animation frames
 
 ## Requirements
 
