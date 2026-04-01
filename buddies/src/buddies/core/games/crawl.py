@@ -24,6 +24,89 @@ from buddies.core.games.battle import (
 # Grid types
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Class-flavored dungeon dialogue
+# ---------------------------------------------------------------------------
+
+CRAWL_DIALOGUE: dict[str, dict[str, list[str]]] = {
+    "monster_spotted": {
+        "ENG": [
+            "\"Analyzing threat level... it's not great.\"",
+            "\"I can see its weakness. Cover me.\"",
+            "\"Running diagnostics on the enemy...\"",
+        ],
+        "BER": [
+            "\"FINALLY! Something to hit!\"",
+            "\"Stand back. I've got this.\"",
+            "\"My fists are READY.\"",
+        ],
+        "ROG": [
+            "\"I could sneak past... but where's the fun?\"",
+            "\"Watch for an opening. I'll go for the crit.\"",
+            "\"Dibs on whatever it drops.\"",
+        ],
+        "MAG": [
+            "\"I sense dark energy... well, buggy energy.\"",
+            "\"Let me prepare a refactoring spell.\"",
+            "\"Stand behind me. This could get arcane.\"",
+        ],
+        "PAL": [
+            "\"Stay close. I'll take the hits.\"",
+            "\"We face this together. As a team.\"",
+            "\"Everyone stay calm. We've got this.\"",
+        ],
+    },
+    "combat_victory": {
+        "ENG": ["\"Threat neutralized. Logging results.\"", "\"As predicted.\""],
+        "BER": ["\"WHO'S NEXT?!\"", "\"That was barely a warmup!\""],
+        "ROG": ["\"Too easy. Check for loot.\"", "\"And they never saw it coming.\""],
+        "MAG": ["\"The arcane energies settle.\"", "\"Knowledge is the greatest weapon.\""],
+        "PAL": ["\"Well fought, everyone.\"", "\"The team prevails.\""],
+    },
+    "trap_found": {
+        "ENG": ["\"Wait — I'm detecting anomalies ahead!\""],
+        "BER": ["\"Ow! What was— oh. A trap.\""],
+        "ROG": ["\"Classic trap. I've seen a hundred of these.\""],
+        "MAG": ["\"I sense something... unpleasant.\""],
+        "PAL": ["\"Careful, everyone. Stay behind me.\""],
+    },
+    "treasure_found": {
+        "ENG": ["\"Interesting find. Cataloguing it.\""],
+        "BER": ["\"LOOT! Mine! ...I mean, ours.\""],
+        "ROG": ["\"Now THAT is what I'm here for.\""],
+        "MAG": ["\"Fascinating. The dungeon provides.\""],
+        "PAL": ["\"A welcome discovery. We share equally.\""],
+    },
+    "descend": {
+        "ENG": ["\"Structural analysis: floor below is more dangerous.\""],
+        "BER": ["\"Deeper? DEEPER! Let's GO!\""],
+        "ROG": ["\"Darker down there. I like it.\""],
+        "MAG": ["\"The magical density increases below...\""],
+        "PAL": ["\"Everyone ready? Stay together.\""],
+    },
+    "low_hp": {
+        "ENG": ["\"Warning: party vitals critical.\""],
+        "BER": ["\"Just a scratch! ...okay maybe not.\""],
+        "ROG": ["\"We should find somewhere to rest. Fast.\""],
+        "MAG": ["\"Our life force wanes. We need healing.\""],
+        "PAL": ["\"Hold on, everyone. I'll do what I can.\""],
+    },
+}
+
+
+def _buddy_says(party: list, context: str) -> str | None:
+    """Pick a random alive party member and return a dialogue line."""
+    alive = [m for m in party if m.is_alive]
+    if not alive:
+        return None
+    speaker = random.choice(alive)
+    pool = CRAWL_DIALOGUE.get(context, {}).get(speaker.buddy_class.value, [])
+    if not pool:
+        return None
+    line = random.choice(pool)
+    return f"{speaker.emoji} {speaker.name}: {line}"
+
+
 class CellType(IntEnum):
     WALL = 0
     FLOOR = 1
@@ -503,6 +586,9 @@ class CrawlState:
             return
 
         self.action_log.append(f"\n[bold cyan]═══ DESCENDING TO FLOOR {self.floor} ═══[/bold cyan]")
+        line = _buddy_says(self.party, "descend")
+        if line:
+            self.action_log.append(line)
         self.grid, self.player_y, self.player_x, self.facing = generate_floor(self.floor)
         self._reveal_around(self.player_y, self.player_x)
         self.grid[self.player_y][self.player_x].visited = True
@@ -516,11 +602,17 @@ class CrawlState:
         if enc.kind in (EncounterKind.MONSTER, EncounterKind.BOSS):
             self.action_log.append(f"\n[red bold]⚔ {enc.name} blocks the path![/red bold]")
             self.action_log.append(f"[dim]{enc.description}[/dim]")
+            line = _buddy_says(self.party, "monster_spotted")
+            if line:
+                self.action_log.append(line)
             self._start_combat(enc)
         elif enc.kind == EncounterKind.TREASURE:
             self.gold += enc.loot_value
             self.items.append(enc.loot_name)
             self.action_log.append(f"[yellow]✨ Found {enc.name}! (+{enc.loot_value} gold)[/yellow]")
+            line = _buddy_says(self.party, "treasure_found")
+            if line:
+                self.action_log.append(line)
             enc.resolved = True
         elif enc.kind == EncounterKind.REST:
             heal = 15
@@ -806,6 +898,16 @@ class CrawlState:
                 self.potions += 1
                 self.action_log.append(f"[yellow]Found a potion! ({self.potions} total)[/yellow]")
             self.action_log.append(f"[green bold]Victory! +{gold} gold[/green bold]")
+            line = _buddy_says(self.party, "combat_victory")
+            if line:
+                self.action_log.append(line)
+
+            # Low HP warning
+            worst = min((m.hp / m.max_hp for m in self.party if m.is_alive), default=1.0)
+            if worst < 0.3:
+                line = _buddy_says(self.party, "low_hp")
+                if line:
+                    self.action_log.append(line)
 
             # Resolve the encounter
             cell = self.grid[self.player_y][self.player_x]
@@ -823,6 +925,9 @@ class CrawlState:
         """Handle stepping on a trap."""
         self.action_log.append(f"[red]⚠ {enc.name}![/red]")
         self.action_log.append(f"[dim]{enc.description}[/dim]")
+        line = _buddy_says(self.party, "trap_found")
+        if line:
+            self.action_log.append(line)
 
         # Check for Rogue to disarm
         rogue = next((m for m in self.party if m.buddy_class == BuddyClass.ROGUE and m.is_alive), None)
