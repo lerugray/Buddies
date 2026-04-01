@@ -1,13 +1,13 @@
 # Project Map
 
-Auto-generated code structure for AI navigation. 53 files indexed.
+Auto-generated code structure for AI navigation. 60 files indexed.
 
 ## File Tree
 
 ### (root)/
 - `CLAUDE.md` (27L) — This file is gitignored. Each machine gets its own copy.
-- `HANDOFF.md` (431L) — **Folder Status**: ✅ Renamed to `Buddies` (2026-03-31)
-- `README.md` (323L) — A tamagotchi-style AI companion that lives in your terminal and watches your Cla
+- `HANDOFF.md` (456L) — **Folder Status**: ✅ Renamed to `Buddies` (2026-03-31)
+- `README.md` (270L) — **A tamagotchi-style AI companion collection for your terminal.**
 
 ### buddies/
 - `launch.sh` (11L)
@@ -16,10 +16,11 @@ Auto-generated code structure for AI navigation. 53 files indexed.
 
 ### buddies\src\buddies/
 - `__init__.py` (4L) — Buddy — A tamagotchi-style AI companion for Claude Code.
-- `__main__.py` (6L) — Allow running buddies as: python -m buddies
-- `app.py` (1084L) — Buddy — Main Textual TUI application.
+- `__main__.py` (11L) — Allow running buddies as: python -m buddies
+- `app.py` (1302L) — Buddy — Main Textual TUI application.
 - `config.py` (83L) — Configuration and settings for Buddy.
 - `first_run.py` (180L) — First-run setup screen — species selection with gacha mechanics.
+- `headless.py` (91L) — Headless mode — runs Buddy as a pure MCP server without the TUI.
 - `setup_hooks.py` (115L) — Setup script to register Buddy's hooks with Claude Code.
 - `setup_mcp.py` (79L) — Register Buddy's MCP server with Claude Code.
 - `themes.py` (113L) — Theme definitions for Buddies TUI.
@@ -36,21 +37,25 @@ Auto-generated code structure for AI navigation. 53 files indexed.
 - `ai_router.py` (261L) — Query complexity router — decides whether to handle locally or flag for Claude.
 - `buddy_brain.py` (366L) — Buddy's personality, stats, species, and evolution logic.
 - `code_map.py` (330L) — Code Structure Map — generates a concise project-map.md for AI consumption.
-- `config_intel.py` (543L) — Config Intelligence — CLAUDE.md health, linting, scaffolding, and session learning.
+- `config_intel.py` (640L) — Config Intelligence — CLAUDE.md health, linting, scaffolding, and session learning.
 - `conversation.py` (200L) — Conversation persistence — auto-save, load, rename, delete chat history.
 - `discussion.py` (411L) — Multi-buddy discussion engine — party focus group conversations.
 - `hooks.py` (98L) — Claude Code hook receiver.
+- `machine_detect.py` (215L) — Multi-machine awareness — detects when a project is used across computers.
+- `memory.py` (316L) — Three-tier memory system — episodic, semantic, and procedural.
 - `model_tracker.py` (292L) — Model Tracker — detect current CC model and classify work phases.
+- `obsidian_vault.py` (498L) — Obsidian Wiki Vault — generates and maintains a project wiki as plain markdown.
 - `prose.py` (422L) — Personality-driven prose engine for buddy thoughts and commentary.
-- `rule_suggester.py` (209L) — Rule suggestion engine — detects patterns and suggests Claude Code config improvements.
+- `readme_intel.py` (267L) — README Intelligence — scan, grade, and suggest improvements for README.md.
+- `rule_suggester.py` (432L) — Rule suggestion engine — detects patterns and suggests Claude Code config improvements.
 - `session_observer.py` (286L) — Session observer — watches Claude Code events and detects patterns.
-- `token_guardian.py` (269L) — Token Guardian — rolling session summaries, token warnings, and session handoff.
+- `token_guardian.py` (333L) — Token Guardian — rolling session summaries, token warnings, and session handoff.
 - `tool_scanner.py` (134L) — Scans for installed MCP servers and Claude Code skills.
 
 ### buddies\src\buddies\db/
 - `__init__.py` (1L)
-- `models.py` (67L) — SQLite schema and database initialization.
-- `store.py` (194L) — Data access layer for Buddy's SQLite database.
+- `models.py` (110L) — SQLite schema and database initialization.
+- `store.py` (437L) — Data access layer for Buddy's SQLite database.
 
 ### buddies\src\buddies\mcp/
 - `__init__.py` (1L)
@@ -59,11 +64,13 @@ Auto-generated code structure for AI navigation. 53 files indexed.
 ### buddies\src\buddies\screens/
 - `__init__.py` (2L) — Buddy screens — additional UI panels beyond the main app.
 - `achievements.py` (155L) — AchievementsScreen — view unlocked and locked achievements.
-- `config_health.py` (266L) — ConfigHealthScreen — CLAUDE.md health dashboard and config scaffolding.
+- `config_health.py` (310L) — ConfigHealthScreen — CLAUDE.md health dashboard and config scaffolding.
 - `conversations.py` (241L) — ConversationsScreen — browse, load, rename, and delete saved conversations.
 - `discussion.py` (238L) — DiscussionScreen — party focus group conversations.
+- `memory.py` (183L) — MemoryScreen — browse the three-tier memory system.
 - `party.py` (352L) — PartyScreen — manage your buddy collection.
 - `tool_browser.py` (187L) — ToolBrowserScreen — browse installed MCP servers and skills.
+- `wiki.py` (240L) — WikiScreen — Obsidian vault status and generation controls.
 
 ### buddies\src\buddies\widgets/
 - `__init__.py` (1L)
@@ -82,6 +89,7 @@ Auto-generated code structure for AI navigation. 53 files indexed.
 - **buddies/src/buddies/app.py**: classes: BuddyApp
 - **buddies/src/buddies/config.py**: classes: AIBackendConfig, BuddyConfig | fns: get_data_dir
 - **buddies/src/buddies/first_run.py**: classes: HatchScreen
+- **buddies/src/buddies/headless.py**: fns: run_headless
 - **buddies/src/buddies/setup_hooks.py**: fns: get_claude_settings_path, get_hook_command, setup_hooks, remove_hooks
 - **buddies/src/buddies/setup_mcp.py**: fns: get_claude_settings_path, setup_mcp, remove_mcp
 - **buddies/src/buddies/themes.py**: fns: get_theme, next_theme
@@ -95,8 +103,12 @@ Auto-generated code structure for AI navigation. 53 files indexed.
 - **buddies/src/buddies/core/conversation.py**: classes: Message, ConversationMeta, ConversationLog | fns: list_conversations, delete_conversation, rename_conversation
 - **buddies/src/buddies/core/discussion.py**: classes: DiscussionMessage, DiscussionEngine
 - **buddies/src/buddies/core/hooks.py**: fns: get_events_path, write_event, main
+- **buddies/src/buddies/core/machine_detect.py**: classes: MachineInfo | fns: detect_machine, get_multi_machine_advice
+- **buddies/src/buddies/core/memory.py**: classes: MemoryEvent, MemoryManager
 - **buddies/src/buddies/core/model_tracker.py**: classes: PhaseChange, ModelTracker | fns: classify_model
-- **buddies/src/buddies/core/rule_suggester.py**: classes: RuleSuggestion, RuleSuggester
+- **buddies/src/buddies/core/obsidian_vault.py**: classes: VaultStats, ObsidianVault
+- **buddies/src/buddies/core/readme_intel.py**: classes: ReadmeSection, ReadmeReport | fns: scan_readme, scaffold_readme
+- **buddies/src/buddies/core/rule_suggester.py**: classes: RuleSuggestion, RuleSuggester, ValidationResult, GoldenRule, SafetyGates
 - **buddies/src/buddies/core/session_observer.py**: classes: SessionEvent, SessionStats, SessionObserver
 - **buddies/src/buddies/core/token_guardian.py**: classes: TokenWarning, TokenGuardian
 - **buddies/src/buddies/core/tool_scanner.py**: classes: ToolInfo | fns: scan_all_tools
@@ -106,8 +118,10 @@ Auto-generated code structure for AI navigation. 53 files indexed.
 - **buddies/src/buddies/screens/config_health.py**: classes: ConfigHealthScreen
 - **buddies/src/buddies/screens/conversations.py**: classes: ConversationsScreen
 - **buddies/src/buddies/screens/discussion.py**: classes: DiscussionScreen
+- **buddies/src/buddies/screens/memory.py**: classes: MemoryScreen
 - **buddies/src/buddies/screens/party.py**: classes: PartyScreen
 - **buddies/src/buddies/screens/tool_browser.py**: classes: ToolBrowserScreen
+- **buddies/src/buddies/screens/wiki.py**: classes: WikiScreen
 - **buddies/src/buddies/widgets/buddy_display.py**: classes: SpriteDisplay, StatsDisplay, BuddyDisplay
 - **buddies/src/buddies/widgets/chat.py**: classes: ChatWindow
 - **buddies/src/buddies/widgets/session_monitor.py**: classes: SessionMonitor
@@ -115,9 +129,10 @@ Auto-generated code structure for AI navigation. 53 files indexed.
 
 ## Internal Dependencies
 
-- `buddies/src/buddies/__main__.py` ← buddies.app
-- `buddies/src/buddies/app.py` ← buddies.config, buddies.core.achievements, buddies.core.ai_backend, buddies.core.ai_router, buddies.core.buddy_brain, buddies.core.code_map, buddies.core.config_intel, buddies.core.conversation, buddies.core.model_tracker, buddies.core.prose, buddies.core.rule_suggester, buddies.core.session_observer, buddies.core.token_guardian, buddies.db.store, buddies.first_run, buddies.screens.achievements, buddies.screens.config_health, buddies.screens.conversations, buddies.screens.discussion, buddies.screens.party, buddies.screens.tool_browser, buddies.themes, buddies.widgets.buddy_display, buddies.widgets.chat, buddies.widgets.session_monitor
+- `buddies/src/buddies/__main__.py` ← buddies.app, buddies.headless
+- `buddies/src/buddies/app.py` ← buddies.config, buddies.core.achievements, buddies.core.ai_backend, buddies.core.ai_router, buddies.core.buddy_brain, buddies.core.code_map, buddies.core.config_intel, buddies.core.conversation, buddies.core.machine_detect, buddies.core.memory, buddies.core.model_tracker, buddies.core.obsidian_vault, buddies.core.prose, buddies.core.rule_suggester, buddies.core.session_observer, buddies.core.token_guardian, buddies.db.store, buddies.first_run, buddies.screens.achievements, buddies.screens.config_health, buddies.screens.conversations, buddies.screens.discussion, buddies.screens.memory, buddies.screens.party, buddies.screens.tool_browser, buddies.screens.wiki, buddies.themes, buddies.widgets.buddy_display, buddies.widgets.chat, buddies.widgets.session_monitor
 - `buddies/src/buddies/first_run.py` ← buddies.art.sprites, buddies.core.buddy_brain
+- `buddies/src/buddies/headless.py` ← buddies.config, buddies.core.code_map, buddies.core.session_observer, buddies.core.token_guardian, buddies.mcp.server
 - `buddies/src/buddies/core/achievements.py` ← buddies.core.buddy_brain
 - `buddies/src/buddies/core/agent.py` ← buddies.core.ai_backend
 - `buddies/src/buddies/core/ai_backend.py` ← buddies.config
@@ -125,7 +140,10 @@ Auto-generated code structure for AI navigation. 53 files indexed.
 - `buddies/src/buddies/core/conversation.py` ← buddies.config
 - `buddies/src/buddies/core/discussion.py` ← buddies.core.ai_backend, buddies.core.buddy_brain, buddies.core.prose
 - `buddies/src/buddies/core/hooks.py` ← buddies.config
+- `buddies/src/buddies/core/machine_detect.py` ← buddies.config
+- `buddies/src/buddies/core/memory.py` ← buddies.db.store
 - `buddies/src/buddies/core/model_tracker.py` ← buddies.config
+- `buddies/src/buddies/core/obsidian_vault.py` ← buddies.core.buddy_brain, buddies.core.code_map
 - `buddies/src/buddies/core/prose.py` ← buddies.core.buddy_brain
 - `buddies/src/buddies/core/rule_suggester.py` ← buddies.core.session_observer, buddies.db.store
 - `buddies/src/buddies/core/session_observer.py` ← buddies.core.hooks
@@ -133,10 +151,12 @@ Auto-generated code structure for AI navigation. 53 files indexed.
 - `buddies/src/buddies/db/store.py` ← buddies.db.models
 - `buddies/src/buddies/mcp/server.py` ← buddies.config, buddies.core.ai_backend, buddies.core.hooks, buddies.db.store
 - `buddies/src/buddies/screens/achievements.py` ← buddies.core.achievements
-- `buddies/src/buddies/screens/config_health.py` ← buddies.core.config_intel
+- `buddies/src/buddies/screens/config_health.py` ← buddies.core.config_intel, buddies.core.readme_intel
 - `buddies/src/buddies/screens/conversations.py` ← buddies.core.conversation
 - `buddies/src/buddies/screens/discussion.py` ← buddies.core.ai_backend, buddies.core.buddy_brain, buddies.core.discussion, buddies.core.prose, buddies.db.store, buddies.widgets.styling
+- `buddies/src/buddies/screens/memory.py` ← buddies.core.memory
 - `buddies/src/buddies/screens/party.py` ← buddies.core.buddy_brain, buddies.db.store, buddies.widgets.styling
 - `buddies/src/buddies/screens/tool_browser.py` ← buddies.core.tool_scanner
+- `buddies/src/buddies/screens/wiki.py` ← buddies.core.obsidian_vault
 - `buddies/src/buddies/widgets/buddy_display.py` ← buddies.art.sprites, buddies.core.buddy_brain
 - `buddies/src/buddies/widgets/chat.py` ← buddies.widgets.styling

@@ -453,3 +453,24 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - Next up: Obsidian wiki integration (Tier 2) or start Tier 3: Social (BBS)
 - GIF recording for README still pending — user has ScreenToGif installed
 - User's work machine username is `rweiss`, home machine is `rweis` (different)
+
+## Session Notes (2026-04-01 — Work)
+
+### Completed (4 commits)
+- ✅ Obsidian wiki integration (Tier 2 complete): `.buddy-wiki/` vault with species lore (70 pages), architecture maps, dependency graphs, decision logs, session journals. [w] key for TUI dashboard. Auto-gitignored. Journals auto-written on exit.
+- ✅ Phase 12 part 1: Three-tier memory — episodic/semantic/procedural in SQLite. Episodic from session events (buffered, flushed every 30s). Semantic from chat with contradiction detection. Procedural from rule suggestions. [m] key for memory screen. Cross-tier recall by keyword. Auto-decay on startup.
+- ✅ Phase 12 part 2: Working memory compaction — auto-trims old HANDOFF.md session notes on startup. Keeps 2 most recent verbatim, compresses older ones to one-liners.
+- ✅ Phase 12 parts 3+4: Self-evolution safety gates (5 gates: duplicate, conflict, size, golden consistency, scope) + golden suite (accepted rules saved as reference, future suggestions validated against them).
+- ✅ Inspiration: ghostwright/phantom — borrowed memory tiering, working memory compaction, safety gates, and golden suite patterns. Adapted for local SQLite (no vector DB/embeddings).
+
+### New files
+- `core/memory.py` — MemoryManager (episodic/semantic/procedural)
+- `core/obsidian_vault.py` — ObsidianVault wiki generator
+- `screens/memory.py` — MemoryScreen TUI dashboard
+- `screens/wiki.py` — WikiScreen TUI dashboard
+
+### Direction
+- Tier 2 fully complete
+- Phase 12 nearly complete (4/5 — layered prompt assembly deferred until relevant)
+- Next up: Tier 3 (BBS social), Tier 4 (card games), or new species/features
+- New keybindings: [w] wiki, [m] memory
