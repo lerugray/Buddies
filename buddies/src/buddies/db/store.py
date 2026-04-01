@@ -452,6 +452,62 @@ class BuddyStore:
         )
         await self.db.commit()
 
+    # --- Games ---
+
+    async def log_game_result(self, game_type: str, buddy_id: int,
+                              result: str, score: str = "{}", xp_earned: int = 0) -> None:
+        """Log a completed game result."""
+        await self.db.execute(
+            "INSERT INTO game_results (game_type, buddy_id, result, score, xp_earned) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (game_type, buddy_id, result, score, xp_earned),
+        )
+        await self.db.commit()
+
+    async def get_game_stats(self) -> dict:
+        """Get aggregate game stats across all games and buddies."""
+        stats = {
+            "games_played": 0, "games_won": 0, "games_lost": 0, "games_drawn": 0,
+            "total_xp": 0, "by_type": {},
+        }
+        async with self.db.execute(
+            "SELECT game_type, result, COUNT(*), SUM(xp_earned) "
+            "FROM game_results GROUP BY game_type, result"
+        ) as cursor:
+            for row in await cursor.fetchall():
+                gtype, result, count, xp = row
+                stats["games_played"] += count
+                stats["total_xp"] += xp or 0
+                if result == "win":
+                    stats["games_won"] += count
+                elif result == "lose":
+                    stats["games_lost"] += count
+                else:
+                    stats["games_drawn"] += count
+                if gtype not in stats["by_type"]:
+                    stats["by_type"][gtype] = {"played": 0, "won": 0}
+                stats["by_type"][gtype]["played"] += count
+                if result == "win":
+                    stats["by_type"][gtype]["won"] += count
+        return stats
+
+    async def get_rps_max_streak(self) -> int:
+        """Get the longest player win streak in RPS (from score JSON)."""
+        import json as _json
+        max_streak = 0
+        async with self.db.execute(
+            "SELECT score FROM game_results WHERE game_type = 'rps' AND result = 'win'"
+        ) as cursor:
+            for row in await cursor.fetchall():
+                try:
+                    score = _json.loads(row[0] or "{}")
+                    pw = score.get("player_wins", 0)
+                    if pw > max_streak:
+                        max_streak = pw
+                except (_json.JSONDecodeError, TypeError):
+                    pass
+        return max_streak
+
     # --- BBS ---
 
     async def log_bbs_activity(self, buddy_id: int, action: str,

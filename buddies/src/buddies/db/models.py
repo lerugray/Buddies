@@ -118,6 +118,17 @@ CREATE TABLE IF NOT EXISTS bbs_cache_replies (
     FOREIGN KEY (post_id) REFERENCES bbs_cache_posts(id)
 );
 
+CREATE TABLE IF NOT EXISTS game_results (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+    game_type TEXT NOT NULL,
+    buddy_id INTEGER NOT NULL,
+    result TEXT NOT NULL,
+    score TEXT DEFAULT NULL,
+    xp_earned INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (buddy_id) REFERENCES buddy(id)
+);
+
 CREATE TABLE IF NOT EXISTS memory_procedural (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),

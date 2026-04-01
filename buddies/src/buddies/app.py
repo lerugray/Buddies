@@ -39,6 +39,7 @@ from buddies.screens.config_health import ConfigHealthScreen
 from buddies.screens.wiki import WikiScreen
 from buddies.screens.memory import MemoryScreen
 from buddies.screens.bbs import BBSScreen
+from buddies.screens.games import GamesScreen
 from buddies.core.bbs_transport import BBSTransport
 from buddies.core.bbs_content import BBSContentEngine
 from buddies.core.bbs_nudge import NudgeDetector, NudgeResolver
@@ -75,6 +76,7 @@ class BuddyApp(App):
         Binding("d", "discussion", "Discuss", show=True),
         Binding("a", "achievements", "Achieve", show=True),
         Binding("b", "bbs", "BBS", show=True),
+        Binding("x", "games", "Arcade", show=True),
         # Hidden — accessible but don't crowd the footer (shown in ? help)
         Binding("t", "tools", "Tools", show=False),
         Binding("c", "conversations", "Convos", show=False),
@@ -933,7 +935,7 @@ class BuddyApp(App):
         chat.add_system("[bold]Screens[/]")
         chat.add_system("  [p] Party    [d] Discuss   [a] Achievements")
         chat.add_system("  [t] Tools    [c] Convos    [g] Config Health")
-        chat.add_system("  [w] Wiki     [m] Memory   [b] BBS")
+        chat.add_system("  [w] Wiki     [m] Memory   [b] BBS  [x] Arcade")
         chat.add_system("[bold]Actions[/]")
         chat.add_system("  [r] Hatch    [F1] Save     [F2] Theme")
         chat.add_system("  [F3] Map     [F4] Export   [F5] Refresh")
@@ -1071,6 +1073,57 @@ class BuddyApp(App):
 
     async def _on_bbs_dismissed(self, result) -> None:
         pass
+
+    def action_games(self):
+        """Open the Games Arcade."""
+        self.push_screen(
+            GamesScreen(buddy_state=self.buddy_state),
+            callback=self._on_games_dismissed,
+        )
+
+    async def _on_games_dismissed(self, result) -> None:
+        """Handle game result — award XP, adjust mood, log result."""
+        if result is None:
+            return
+        from buddies.core.games import GameResult
+        if not isinstance(result, GameResult):
+            return
+
+        # Award XP and mood
+        if self.buddy_state:
+            xp = result.xp_for_outcome
+            mood = result.mood_for_outcome
+            leveled = self.buddy_state.gain_xp(xp)
+            self.buddy_state.adjust_mood(mood)
+            self._update_displays()
+
+            # Notify
+            try:
+                chat = self.query_one("#chat-panel", ChatWindow)
+                outcome_str = result.outcome.value.upper()
+                chat.add_system(
+                    f"🕹️ {result.game_type.value.upper()}: {outcome_str} "
+                    f"(+{xp} XP, mood {'+' if mood >= 0 else ''}{mood})"
+                )
+                if leveled:
+                    chat.add_system(f"⬆️ Level up! Now level {self.buddy_state.level}!")
+            except Exception:
+                pass
+
+            # Log to DB
+            try:
+                await self.store.log_game_result(
+                    game_type=result.game_type.value,
+                    buddy_id=result.buddy_id,
+                    result=result.outcome.value,
+                    score=json.dumps(result.score),
+                    xp_earned=result.xp_for_outcome,
+                )
+            except Exception:
+                pass
+
+            # Check hat unlocks after XP gain
+            await self._check_and_unlock_hats()
 
     async def _init_bbs(self):
         """Initialize BBS transport and auto-activity in background."""
@@ -1301,6 +1354,13 @@ class BuddyApp(App):
             except Exception:
                 bbs_stats = None
 
+            # Fetch game stats for arcade achievements
+            try:
+                game_stats = await self.store.get_game_stats()
+                game_stats["rps_max_streak"] = await self.store.get_rps_max_streak()
+            except Exception:
+                game_stats = None
+
             newly = check_achievements(
                 buddies=buddies,
                 active_buddy=active,
@@ -1312,6 +1372,7 @@ class BuddyApp(App):
                 quick_saves=self._quick_saves,
                 themes_changed=self._themes_changed,
                 bbs_stats=bbs_stats,
+                game_stats=game_stats,
                 unlocked_ids=self._unlocked_achievements,
             )
 

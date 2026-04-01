@@ -61,6 +61,17 @@ ACHIEVEMENTS: list[Achievement] = [
     Achievement("board_hopper", "Board Hopper", "Post on 3 different boards", "🏄", "social"),
     Achievement("social_butterfly", "Social Butterfly", "Have 3 buddies post on the BBS", "🦋", "social"),
 
+    # Games achievements
+    Achievement("first_game", "Player One", "Play any game in the arcade", "🕹️", "exploration"),
+    Achievement("rps_veteran", "RPS Veteran", "Win 10 RPS matches", "✊", "mastery"),
+    Achievement("rps_streak", "Unbreakable", "Win an RPS match 3-0 (no losses)", "🔥", "mastery"),
+    Achievement("card_shark", "Card Shark", "Win 10 card games", "🃏", "mastery"),
+    Achievement("battle_veteran", "Battle Veteran", "Win 10 battles", "⚔️", "mastery"),
+    Achievement("trivia_master", "Trivia Master", "Score 10/10 on trivia", "🧠", "mastery"),
+    Achievement("pong_champion", "Pong Champion", "Win a game of Pong", "🏓", "mastery"),
+    Achievement("arcade_regular", "Arcade Regular", "Play 25 total games", "🕹️", "mastery"),
+    Achievement("all_in_chaos", "ALL IN!", "Win a game with a high-CHAOS buddy", "🎰", "secret"),
+
     # Session / exploration achievements
     Achievement("session_watcher", "Watchful Eye", "Observe 100 session events", "👁️", "exploration"),
     Achievement("session_marathon", "Marathon", "Observe 500 session events", "🏃", "exploration"),
@@ -99,6 +110,7 @@ def check_achievements(
     quick_saves: int = 0,
     themes_changed: int = 0,
     bbs_stats: dict | None = None,
+    game_stats: dict | None = None,
     unlocked_ids: set[str] | None = None,
 ) -> list[Achievement]:
     """Check all achievements and return newly unlocked ones.
@@ -114,6 +126,7 @@ def check_achievements(
         quick_saves: Number of quick-saves performed
         themes_changed: Number of theme changes
         bbs_stats: BBS activity stats dict (posts, replies, total, boards_used, unique_authors)
+        game_stats: Game stats dict (games_played, games_won, by_type, rps_max_streak)
         unlocked_ids: Set of already-unlocked achievement IDs
 
     Returns:
@@ -228,5 +241,33 @@ def check_achievements(
         _check("popular_poster", total >= 50)
         _check("board_hopper", boards >= 3)
         _check("social_butterfly", authors >= 3)
+
+    # Games achievements
+    if game_stats:
+        gp = game_stats.get("games_played", 0)
+        gw = game_stats.get("games_won", 0)
+        by_type = game_stats.get("by_type", {})
+        rps = by_type.get("rps", {})
+        rps_won = rps.get("won", 0)
+        rps_streak = game_stats.get("rps_max_streak", 0)
+        cards_won = sum(
+            by_type.get(g, {}).get("won", 0)
+            for g in ("blackjack", "holdem", "whist")
+        )
+        battles_won = by_type.get("battle", {}).get("won", 0)
+        pong_won = by_type.get("pong", {}).get("won", 0)
+
+        _check("first_game", gp >= 1)
+        _check("rps_veteran", rps_won >= 10)
+        _check("rps_streak", rps_streak >= 3)
+        _check("card_shark", cards_won >= 10)
+        _check("battle_veteran", battles_won >= 10)
+        _check("pong_champion", pong_won >= 1)
+        _check("arcade_regular", gp >= 25)
+
+        # Secret: win with high-CHAOS buddy
+        if active_buddy and gw >= 1:
+            chaos_val = active_buddy.get("stat_chaos", 10)
+            _check("all_in_chaos", chaos_val >= 30)
 
     return newly_unlocked
