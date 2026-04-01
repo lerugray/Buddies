@@ -35,7 +35,9 @@ from buddies.screens.party import PartyScreen
 from buddies.screens.discussion import DiscussionScreen
 from buddies.screens.tool_browser import ToolBrowserScreen
 from buddies.screens.conversations import ConversationsScreen
+from buddies.screens.config_health import ConfigHealthScreen
 from buddies.core.conversation import ConversationLog
+from buddies.core.config_intel import ConfigIntelligence, SessionLearner, generate_session_summary
 
 
 CSS_PATH = Path(__file__).parent / "styles" / "buddy.tcss"
@@ -56,6 +58,7 @@ class BuddyApp(App):
         Binding("d", "discussion", "Discuss", show=True),
         Binding("t", "tools", "Tools", show=True),
         Binding("c", "conversations", "Convos", show=True),
+        Binding("g", "config_health", "Config", show=True),
     ]
 
     def __init__(self):
@@ -69,6 +72,8 @@ class BuddyApp(App):
         self.rule_suggester: RuleSuggester | None = None
         self.prose = ProseEngine()
         self.convo_log = ConversationLog()
+        self.session_learner = SessionLearner()
+        self._rules_suggested: list[str] = []
         self._last_thought_time: float = 0
         self._recent_tools: list[str] = []
         self._bored_minutes: float = 0  # Track sustained boredom for nightcap
@@ -150,6 +155,9 @@ class BuddyApp(App):
         self._idle_thought_task = asyncio.create_task(self._idle_thought_loop())
         self._mood_decay_task = asyncio.create_task(self._mood_decay_loop())
 
+        # Phase 9: Config health check on startup
+        asyncio.create_task(self._startup_config_check())
+
     async def _show_ai_status(self):
         ai_available = await self.ai_backend.is_available()
         chat = self.query_one("#chat-panel", ChatWindow)
@@ -224,6 +232,18 @@ class BuddyApp(App):
         else:
             response = self._buddy_respond(message)
             chat.add_message("buddy", response)
+
+        # Phase 9: Session learner — watch for repeated corrections
+        learned_rule = self.session_learner.observe(message)
+        if learned_rule:
+            chat.add_message(
+                "buddy",
+                f"💡 I noticed you keep correcting something. Learned rule:\n"
+                f"[italic]{learned_rule}[/]\n"
+                f"I'll write this to .claude/rules/buddy-learned.md"
+            )
+            self.session_learner.write_rule(learned_rule)
+            self._rules_suggested.append(learned_rule)
 
         # Gain XP for interaction (mood-modified)
         if self.buddy_state:
@@ -573,7 +593,7 @@ class BuddyApp(App):
         chat.add_system("Simple questions → handled locally (saves Claude tokens)")
         chat.add_system("Complex questions → buddy tells you to ask Claude")
         chat.add_system("Commands: 'stats' 'help' 'name' 'session' 'tokens'")
-        chat.add_system("Keys: [q] quit  [?] help  [r] hatch  [p] party  [d] discuss  [t] tools  [c] convos  [F5] refresh")
+        chat.add_system("Keys: [q] quit  [?] help  [r] hatch  [p] party  [d] discuss  [t] tools  [c] convos  [g] config  [F5] refresh")
         chat.add_system("────────────")
 
     def action_hatch_new(self):
@@ -671,6 +691,45 @@ class BuddyApp(App):
             chat.replay_messages(messages)
             chat.add_system(f"Loaded conversation: {self.convo_log.name}")
 
+    def action_config_health(self):
+        """Open the config health dashboard."""
+        self.push_screen(ConfigHealthScreen(), callback=self._on_config_health_dismissed)
+
+    async def _on_config_health_dismissed(self, result) -> None:
+        pass
+
+    async def _startup_config_check(self):
+        """Run a quick config health check on startup and notify if issues found."""
+        await asyncio.sleep(2)  # Let the UI settle first
+        try:
+            intel = ConfigIntelligence()
+            report = intel.scan()
+            chat = self.query_one("#chat-panel", ChatWindow)
+
+            if report.overall_grade in ("D", "F"):
+                if not report.claude_md.exists:
+                    chat.add_message(
+                        "buddy",
+                        "💡 No CLAUDE.md found in this project! "
+                        "Press [bold][g][/] to see config health and scaffold one."
+                    )
+                elif report.claude_md.is_bloated:
+                    chat.add_message(
+                        "buddy",
+                        f"💡 Your CLAUDE.md is {report.claude_md.line_count} lines — "
+                        f"that's a knowledge dump! Press [bold][g][/] for tips on slimming it down."
+                    )
+            elif report.overall_grade == "C":
+                suggestions_count = len(report.claude_md.suggestions) + len(report.rules_dir.suggestions)
+                if suggestions_count:
+                    chat.add_message(
+                        "buddy",
+                        f"💡 Config grade: {report.overall_grade} — "
+                        f"{suggestions_count} suggestions available. Press [bold][g][/] to see them."
+                    )
+        except Exception:
+            pass
+
     def action_refresh(self):
         self._update_displays()
 
@@ -680,6 +739,20 @@ class BuddyApp(App):
             task = getattr(self, task_name, None)
             if task:
                 task.cancel()
+
+        # Phase 9: Write session summary on exit
+        try:
+            summary = generate_session_summary(
+                self.observer.stats,
+                convo_messages=self.convo_log.messages if self.convo_log else None,
+                rules_suggested=self._rules_suggested or None,
+            )
+            from buddies.config import get_data_dir
+            summary_path = get_data_dir() / "last-session-summary.md"
+            summary_path.write_text(summary, encoding="utf-8")
+        except Exception:
+            pass
+
         await self.ai_backend.close()
         if self.buddy_state:
             await self.store.update_buddy_by_id(
