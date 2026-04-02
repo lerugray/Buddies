@@ -8,7 +8,7 @@
 [![16 Hats](https://img.shields.io/badge/hats-16-yellow.svg)](#hats-16)
 [![10 Games](https://img.shields.io/badge/games-10-red.svg)](#games-arcade-10-games)
 [![56 Achievements](https://img.shields.io/badge/achievements-56-purple.svg)](#achievements-56)
-[![689 Tests](https://img.shields.io/badge/tests-689_passing-brightgreen.svg)](#)
+[![761 Tests](https://img.shields.io/badge/tests-761_passing-brightgreen.svg)](#)
 
 Hatch buddies, collect species, earn hats, evolve, play games, explore a text adventure, negotiate with bugs, and build a team of quirky little creatures that react to how you code. Runs alongside Claude Code, watches your sessions, and actually helps — grading your config, saving tokens, and mapping your codebase.
 
@@ -274,7 +274,7 @@ See [HANDOFF.md](HANDOFF.md) for the full structured roadmap.
 - Tier 5b Phase 1-2: StackHaven MUD with multiplayer, SMT-style negotiation, and Dark Souls async notes
 - StackWars: Micro-4X wargame with 5 factions and odds-based CRT combat
 - Buddy Fusion: SMT-style sacrifice + combine system with 12 recipes and fusion-exclusive species
-- 689 tests covering memory, BBS, AI router, personality drift, all games, and more
+- 761 tests covering memory, BBS, AI router, personality drift, config intel, all games, and more
 
 **Up next:**
 - MUD Phase 3: Economy (gold marketplace, trading, absurd cosmetics)

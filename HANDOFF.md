@@ -437,11 +437,13 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 ## Session Notes (2026-04-02 — Home, Session 2)
 
 ### Completed
-- ✅ **211 new tests** (689 total, was 478) — closed major test coverage gaps:
+- ✅ **283 new tests** (761 total, was 478) — closed major test coverage gaps:
   - `test_memory.py` (52 tests): all 3 memory tiers, contradiction detection, semantic statement detection, tag extraction, buffer/flush, cross-tier recall, decay, stats
   - `test_bbs.py` (48 tests): boards, profiles, nudge detection/resolution, content engine
   - `test_ai_backend.py` (78 tests): AI backend, offline backend, complexity scoring, routing decisions, agent tools, path traversal blocking, destructive command blocking
   - `test_personality_drift.py` (33 tests): all drift functions (game/session/chat/fusion/idle), DriftResult, session observer, pattern detection
+  - `test_token_guardian.py` (25 tests): warning thresholds, event tracking, rolling summaries, session handoff, context export
+  - `test_config_intel.py` (47 tests): CLAUDE.md health scanning/grading, rules dir, scaffold generation, session learner, handoff compaction, README scanning/grading/scaffolding
 - ✅ **Bug fix**: `bump_access()` on `memory_procedural` table crashed — column `access_count` doesn't exist in that table. Fixed by excluding procedural from bump_access.
 - ✅ **HANDOFF compacted**: Sessions 3+4 from 2026-04-01 compacted to 2-line summaries
 
@@ -450,10 +452,12 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - `tests/test_bbs.py` — 48 tests for BBS boards/profiles/nudge/content
 - `tests/test_ai_backend.py` — 78 tests for AI backend, router, and agent
 - `tests/test_personality_drift.py` — 33 tests for drift + session observer
+- `tests/test_token_guardian.py` — 25 tests for token guardian
+- `tests/test_config_intel.py` — 47 tests for config intel + readme intel
 
 ### Direction
-- Test coverage now solid on core systems (memory, BBS, AI, drift, observer)
-- Remaining gaps: token_guardian, config_intel, readme_intel, deeper game tests
+- Test coverage now solid on all core systems
+- Remaining gaps: deeper blackjack game tests, screen interaction tests
 - Ready for new feature work (MUD Phase 3 Economy, Tier 5 Audio, or more polish)
 
 ## Session Notes (2026-04-02 — Home, Session 1)
@@ -497,20 +501,20 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - Could also explore: expanding the world (more rooms/zones), multiplayer leaderboards on BBS, or tackling Tier 5 audio
 
 ### Test Coverage Roadmap
-689 tests passing. Previous audit gaps addressed:
+761 tests passing. Previous audit gaps addressed:
 
-**Completed this session (211 new tests):**
+**Completed this session (283 new tests):**
 - `memory.py` — ✅ DONE (52 tests) — episodic/semantic/procedural, contradiction detection, cross-tier recall, decay, buffer mechanics
 - BBS system — ✅ DONE (48 tests) — boards, profiles, nudge detection, content engine
 - AI backend/router/agent — ✅ DONE (78 tests) — complexity scoring, routing, path traversal, command blocking
 - `personality_drift.py` + `session_observer.py` — ✅ DONE (33 tests) — all drift functions, session stats, pattern detection
+- `token_guardian.py` — ✅ DONE (25 tests) — warnings, thresholds, event tracking, summaries, handoff files
+- `config_intel.py` + `readme_intel.py` — ✅ DONE (47 tests) — CLAUDE.md scanning/grading, rules dir, scaffold, session learner, handoff compaction, README scanning/grading/scaffolding
 
 **Bug fixed:** `bump_access()` on `memory_procedural` table — column doesn't exist. Removed procedural from bump_access.
 
 **Medium priority (remaining):**
 - `blackjack.py` — only basic creation tested, needs game flow/dealer AI
-- `token_guardian.py` — 0% coverage
-- `config_intel.py`, `readme_intel.py` — 0% coverage
 - Screen interaction tests (currently smoke tests only)
 
 **Low priority (nice to have):**
