@@ -316,6 +316,36 @@ def generate_project_map(project_path: Path) -> str:
     return "\n".join(lines)
 
 
+def is_map_stale(project_path: Path) -> bool:
+    """Check if the project map needs regenerating.
+
+    Returns True if any tracked source file has been modified since
+    the map was last written, or if the map doesn't exist.
+    """
+    map_path = project_path / ".claude" / "rules" / "project-map.md"
+
+    if not map_path.exists():
+        return True
+
+    map_mtime = map_path.stat().st_mtime
+
+    # Walk tracked file types and check if any are newer than the map
+    for root, dirs, filenames in os.walk(project_path):
+        dirs[:] = [d for d in dirs if not _should_skip_dir(d)]
+        for filename in filenames:
+            ext = Path(filename).suffix.lower()
+            if _get_file_category(ext) == "other":
+                continue
+            try:
+                file_mtime = (Path(root) / filename).stat().st_mtime
+                if file_mtime > map_mtime:
+                    return True
+            except OSError:
+                continue
+
+    return False
+
+
 def write_project_map(project_path: Path) -> Path:
     """Generate and write project-map.md to .claude/rules/."""
     map_content = generate_project_map(project_path)

@@ -54,7 +54,7 @@ from buddies.core.achievements import check_achievements, ACHIEVEMENT_MAP
 from buddies.screens.achievements import AchievementsScreen
 from buddies.core.model_tracker import ModelTracker
 from buddies.core.memory import MemoryManager
-from buddies.core.code_map import write_project_map
+from buddies.core.code_map import write_project_map, is_map_stale
 from buddies.core.obsidian_vault import ObsidianVault
 from buddies.core.machine_detect import detect_machine, get_multi_machine_advice
 
@@ -612,6 +612,13 @@ class BuddyApp(App):
         # Update model display if SessionStart brought a new model
         if event.event_type == "SessionStart":
             self._update_model_display()
+
+        # Auto-refresh code map when files are edited (debounced)
+        if event.tool_name in ("Edit", "Write"):
+            self._map_dirty = True
+            if not hasattr(self, "_map_refresh_pending") or not self._map_refresh_pending:
+                self._map_refresh_pending = True
+                asyncio.create_task(self._debounced_map_refresh())
 
         # Animate buddy — speed up during active sessions
         try:
@@ -1341,26 +1348,42 @@ class BuddyApp(App):
         """Regenerate the project code map."""
         asyncio.create_task(self._refresh_code_map(silent=False))
 
+    async def _debounced_map_refresh(self):
+        """Wait for edits to settle, then refresh the code map if stale."""
+        await asyncio.sleep(30)  # Wait 30s for edits to settle
+        self._map_refresh_pending = False
+        if getattr(self, "_map_dirty", False):
+            self._map_dirty = False
+            await self._refresh_code_map(silent=True)
+
     async def _refresh_code_map(self, silent: bool = False):
-        """Generate/refresh the project-map.md in .claude/rules/."""
+        """Generate/refresh the project-map.md in .claude/rules/.
+
+        On silent mode (startup / periodic), only regenerates if the map
+        is actually stale — meaning source files have changed since the
+        map was last written.
+        """
         try:
             project_path = Path.cwd()
-            map_path = project_path / ".claude" / "rules" / "project-map.md"
 
-            # On silent startup, skip if map exists and is less than 1 hour old
-            if silent and map_path.exists():
-                import time
-                age = time.time() - map_path.stat().st_mtime
-                if age < 3600:
-                    return
+            # On silent mode, only regenerate if files have changed
+            if silent and not is_map_stale(project_path):
+                return
 
             write_project_map(project_path)
 
             if not silent:
                 chat = self.query_one("#chat-panel", ChatWindow)
-                chat.add_system("🗺️ Project map regenerated → .claude/rules/project-map.md")
+                chat.add_system("Project map regenerated → .claude/rules/project-map.md")
                 monitor = self.query_one("#session-panel", SessionMonitor)
                 monitor.log_event("info", "Code map refreshed")
+            else:
+                # Log silently when auto-refreshed
+                try:
+                    monitor = self.query_one("#session-panel", SessionMonitor)
+                    monitor.log_event("info", "Code map auto-refreshed (files changed)")
+                except Exception:
+                    pass
         except Exception:
             if not silent:
                 chat = self.query_one("#chat-panel", ChatWindow)
