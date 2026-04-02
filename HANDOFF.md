@@ -496,7 +496,7 @@ CC's /buddy is a cosmetic mascot (18 species, 5 stats, 8 hats, 1% shiny, no prog
 
 ## Session Notes (2026-04-02 — Work, Session 3)
 
-### Completed (2 commits)
+### Completed (4 commits)
 - **Arcade Game Refresh** — replaced RPS, Blackjack, JRPG Battles with:
   - **Buffer Overflow (Snake)**: grid-based, speed ramp, 5 power-up types (speed boost, multiplier, memory leak, garbage collector), firewall obstacles. Personality warps obstacle patterns, speed ramp, and power-up rates.
   - **Stack Descent (Ski Free)**: 7-lane vertical scroller, 4 obstacle types, 3 pickup types. The Auditor (the yeti) appears after ~15s and chases you. Personality affects lane patterns and scroll speed.
@@ -508,6 +508,11 @@ CC's /buddy is a cosmetic mascot (18 species, 5 stats, 8 hats, 1% shiny, no prog
   - All 3 games: personality variance confirmed meaningful, terrain/grid always passable
 - **README sprite GIFs**: render script (`scripts/render_sprites.py`) generates animated GIFs from pixel art data. Banner + 6 individual species in `assets/`.
 - **37 unit tests + 19 balance tests** (852→868 total)
+- **Achievement Refresh** (63→72):
+  - Removed: `rps_veteran`, `rps_streak`, `battle_veteran` (games deleted)
+  - Added 12: Snake (4), Ski Free (4), Deckbuilder (4) — including secrets like "10x Developer" (win with 8+ stability) and "Minimalist" (win without buying cards)
+  - Updated `card_shark` to count Hold'em + Whist only
+  - 12 new achievement tests
 
 ### New files
 - `core/games/snake.py`, `screens/game_snake.py` — Snake engine + screen
@@ -524,5 +529,6 @@ CC's /buddy is a cosmetic mascot (18 species, 5 stats, 8 hats, 1% shiny, no prog
 - `core/games/battle.py`, `screens/game_battle.py` — JRPG Battles (redundant with Blobber/MUD)
 
 ### Updated counts
-- **Tests**: 868 passing
+- **Tests**: 876 passing
 - **Arcade games**: 10 (same count, 3 replaced with better ones)
+- **Achievements**: 72 (was 63 — 3 removed, 12 added)
