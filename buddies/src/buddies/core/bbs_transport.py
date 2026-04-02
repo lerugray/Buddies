@@ -343,10 +343,41 @@ class BBSTransport:
 
     # ── Parsing helpers ──
 
+    @staticmethod
+    def _sanitize_frontmatter(meta: dict) -> dict:
+        """Validate and sanitize parsed frontmatter — whitelist keys, clamp values."""
+        ALLOWED_KEYS = {
+            "board", "buddy_name", "buddy_species", "buddy_level",
+            "buddy_rarity", "author_name", "shiny",
+        }
+        cleaned = {}
+        for key, value in meta.items():
+            if key not in ALLOWED_KEYS:
+                continue
+            if key == "buddy_level":
+                try:
+                    cleaned[key] = str(max(1, min(100, int(value))))
+                except (ValueError, TypeError):
+                    cleaned[key] = "1"
+            elif key == "board":
+                # Alphanumeric, hyphens, underscores only; max 50 chars
+                sanitized = re.sub(r"[^a-zA-Z0-9_\-]", "", str(value))
+                cleaned[key] = sanitized[:50]
+            elif key in ("buddy_name", "author_name"):
+                cleaned[key] = str(value).strip()[:100]
+            elif key in ("buddy_species", "buddy_rarity"):
+                cleaned[key] = str(value).strip()[:50]
+            elif key == "shiny":
+                cleaned[key] = str(value).strip()[:10]
+            else:
+                cleaned[key] = str(value).strip()[:100]
+        return cleaned
+
     def _parse_issue(self, issue: dict, board: str = "") -> RemotePost:
         """Parse a GitHub Issue into a RemotePost."""
         body_raw = issue.get("body", "") or ""
         author_meta, body_clean = self._parse_frontmatter(body_raw)
+        author_meta = self._sanitize_frontmatter(author_meta)
 
         # Strip ASCII signature from body
         sig_match = re.search(r"\n-- .+ \(.+, lvl \d+\)\s*$", body_clean)
@@ -387,6 +418,7 @@ class BBSTransport:
         """Parse a GitHub Comment into a RemoteReply."""
         body_raw = comment.get("body", "") or ""
         author_meta, body_clean = self._parse_frontmatter(body_raw)
+        author_meta = self._sanitize_frontmatter(author_meta)
         created = comment.get("created_at", "")
 
         return RemoteReply(

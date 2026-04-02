@@ -513,10 +513,100 @@ def _parse_frontmatter(text: str) -> dict[str, str]:
     return meta
 
 
+def _sanitize_note_frontmatter(meta: dict) -> dict:
+    """Validate and sanitize soapstone note frontmatter."""
+    import re
+    ALLOWED_KEYS = {
+        "type", "note_id", "room_id", "message", "author_name",
+        "author_emoji", "buddy_name", "buddy_species", "buddy_level",
+        "timestamp", "rating",
+    }
+    cleaned = {}
+    for key, value in meta.items():
+        if key not in ALLOWED_KEYS:
+            continue
+        value = str(value).strip()
+        if key == "room_id":
+            sanitized = re.sub(r"[^a-zA-Z0-9_]", "", value)
+            cleaned[key] = sanitized[:50]
+        elif key == "buddy_level":
+            try:
+                cleaned[key] = str(max(1, min(100, int(value))))
+            except (ValueError, TypeError):
+                cleaned[key] = "1"
+        elif key == "timestamp":
+            try:
+                ts = float(value)
+                # Not before 2024-01-01, not more than 1 day in the future
+                min_ts = 1704067200.0  # 2024-01-01 UTC
+                max_ts = time.time() + 86400
+                cleaned[key] = str(max(min_ts, min(max_ts, ts)))
+            except (ValueError, TypeError):
+                cleaned[key] = str(time.time())
+        elif key == "rating":
+            try:
+                cleaned[key] = str(max(0, min(100, int(value))))
+            except (ValueError, TypeError):
+                cleaned[key] = "0"
+        elif key == "message":
+            cleaned[key] = value[:200]
+        elif key in ("author_name", "buddy_name", "buddy_species", "note_id"):
+            cleaned[key] = value[:50]
+        elif key == "author_emoji":
+            cleaned[key] = value[:10]
+        elif key == "type":
+            cleaned[key] = value[:20]
+        else:
+            cleaned[key] = value[:50]
+    return cleaned
+
+
+def _sanitize_bloodstain_frontmatter(meta: dict) -> dict:
+    """Validate and sanitize bloodstain frontmatter."""
+    import re
+    ALLOWED_KEYS = {
+        "type", "stain_id", "room_id", "cause_of_death", "author_name",
+        "buddy_name", "buddy_emoji", "buddy_species", "buddy_level",
+        "timestamp",
+    }
+    cleaned = {}
+    for key, value in meta.items():
+        if key not in ALLOWED_KEYS:
+            continue
+        value = str(value).strip()
+        if key == "room_id":
+            sanitized = re.sub(r"[^a-zA-Z0-9_]", "", value)
+            cleaned[key] = sanitized[:50]
+        elif key == "buddy_level":
+            try:
+                cleaned[key] = str(max(1, min(100, int(value))))
+            except (ValueError, TypeError):
+                cleaned[key] = "1"
+        elif key == "timestamp":
+            try:
+                ts = float(value)
+                min_ts = 1704067200.0  # 2024-01-01 UTC
+                max_ts = time.time() + 86400
+                cleaned[key] = str(max(min_ts, min(max_ts, ts)))
+            except (ValueError, TypeError):
+                cleaned[key] = str(time.time())
+        elif key in ("buddy_name", "author_name", "buddy_species",
+                      "cause_of_death", "stain_id"):
+            cleaned[key] = value[:50]
+        elif key == "buddy_emoji":
+            cleaned[key] = value[:10]
+        elif key == "type":
+            cleaned[key] = value[:20]
+        else:
+            cleaned[key] = value[:50]
+    return cleaned
+
+
 def _parse_note_issue(issue: dict) -> SoapstoneNote | None:
     """Parse a GitHub Issue into a SoapstoneNote."""
     body = issue.get("body", "") or ""
     meta = _parse_frontmatter(body)
+    meta = _sanitize_note_frontmatter(meta)
 
     if meta.get("type") != "soapstone":
         return None
@@ -547,6 +637,7 @@ def _parse_bloodstain_issue(issue: dict) -> Bloodstain | None:
     """Parse a GitHub Issue into a Bloodstain."""
     body = issue.get("body", "") or ""
     meta = _parse_frontmatter(body)
+    meta = _sanitize_bloodstain_frontmatter(meta)
 
     if meta.get("type") != "bloodstain":
         return None
