@@ -11,7 +11,7 @@
 [![70+ Species](https://img.shields.io/badge/species-70+-orange.svg)](#species--rarity)
 [![16 Hats](https://img.shields.io/badge/hats-16-yellow.svg)](#hats-16)
 [![10 Games](https://img.shields.io/badge/games-10-red.svg)](#games-arcade-10-games)
-[![63 Achievements](https://img.shields.io/badge/achievements-63-purple.svg)](#achievements)
+[![72 Achievements](https://img.shields.io/badge/achievements-72-purple.svg)](#achievements)
 [![860+ Tests](https://img.shields.io/badge/tests-860+_passing-brightgreen.svg)](#)
 
 ## Claude Code has a /buddy. We have the game.
@@ -123,7 +123,7 @@ All 5 MCP tools work in headless mode. Background services (session observer, co
 | **Idle life** | Buddies do things while you code — explore, find items, journal, get into trouble, socialize. |
 | **16 hats** | Unlocked by playstyle, stats, milestones, and even boredom. |
 | **4 evolution stages** | Hatchling, Juvenile, Adult, Elder — with visual border changes. |
-| **63 achievements** | Collection, mastery, social, exploration, games, MUD, and secret categories. |
+| **72 achievements** | Collection, mastery, social, exploration, games, MUD, and secret categories. |
 | **CC /buddy import** | Bring your Claude Code companion into the party via MCP, auto-detect from config, or manual override. Plays games, joins discussions, appears in MUD. |
 | **6 themes** | Default, midnight, forest, ocean, sunset, light — cycle with [F2]. |
 | **Prose engine** | Each buddy speaks through a personality register (clinical, sarcastic, absurdist, philosophical, calm). Zero AI needed. |
@@ -248,16 +248,16 @@ Your starting species is seeded from your username (same user = same buddy).
 </details>
 
 <details>
-<summary><strong>Achievements (63)</strong></summary>
+<summary><strong>Achievements (72)</strong></summary>
 
 | Category | Count | Examples |
 |----------|-------|---------|
 | Collection | 13 | First Steps, Zookeeper, Shiny Hunter, Fashion Icon, Soul Splice |
-| Mastery | 15 | Growing Up, Elder Wisdom, Card Shark, Trivia Master, Pong Champion |
+| Mastery | 21 | Card Shark, Pong Champion, Memory Pointer, Data Hoarder, Senior Dev, Terminal Velocity |
 | Social | 10 | Town Hall, Chatty, First Post, BBS Regular, Social Butterfly |
 | Exploration | 6 | Watchful Eye, Token Miser, Clean Config, Safety First |
 | MUD | 8 | MUD Tourist, Bug Squasher, Quest Hero, High Roller, Bounty Hunter |
-| Secret | 11 | ??? (discover them yourself!) |
+| Secret | 14 | ??? (discover them yourself!) |
 
 </details>
 

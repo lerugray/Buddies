@@ -209,7 +209,7 @@ class TestBBSAchievements:
 class TestGameAchievements:
     def _game_stats(self, **kwargs):
         base = {"games_played": 0, "games_won": 0, "by_type": {},
-                "rps_max_streak": 0, "trivia_perfect": False}
+                "trivia_perfect": False}
         base.update(kwargs)
         return base
 
@@ -219,24 +219,12 @@ class TestGameAchievements:
     def test_arcade_regular(self):
         assert "arcade_regular" in check(game_stats=self._game_stats(games_played=25))
 
-    def test_rps_veteran(self):
-        stats = self._game_stats(by_type={"rps": {"played": 10, "won": 10}})
-        assert "rps_veteran" in check(game_stats=stats)
-
-    def test_rps_streak(self):
-        stats = self._game_stats(rps_max_streak=3)
-        assert "rps_streak" in check(game_stats=stats)
-
     def test_card_shark(self):
         stats = self._game_stats(by_type={
-            "blackjack": {"played": 5, "won": 5},
             "holdem": {"played": 5, "won": 5},
+            "whist": {"played": 5, "won": 5},
         })
         assert "card_shark" in check(game_stats=stats)
-
-    def test_battle_veteran(self):
-        stats = self._game_stats(by_type={"battle": {"played": 10, "won": 10}})
-        assert "battle_veteran" in check(game_stats=stats)
 
     def test_trivia_master(self):
         stats = self._game_stats(trivia_perfect=True)
@@ -254,6 +242,57 @@ class TestGameAchievements:
         stats = self._game_stats(by_type={"crawl": {"played": 1, "won": 1}})
         assert "dungeon_master" in check(game_stats=stats)
 
+    # Snake achievements
+    def test_snake_first(self):
+        stats = self._game_stats(by_type={"snake": {"played": 1}})
+        assert "snake_first" in check(game_stats=stats)
+
+    def test_snake_score_500(self):
+        stats = self._game_stats(by_type={"snake": {"played": 1, "best_score": 500}})
+        assert "snake_score_500" in check(game_stats=stats)
+
+    def test_snake_length_20(self):
+        stats = self._game_stats(by_type={"snake": {"played": 1, "best_length": 20}})
+        assert "snake_length_20" in check(game_stats=stats)
+
+    def test_snake_score_1000(self):
+        stats = self._game_stats(by_type={"snake": {"played": 1, "best_score": 1000}})
+        assert "snake_score_1000" in check(game_stats=stats)
+
+    # Ski Free achievements
+    def test_ski_first(self):
+        stats = self._game_stats(by_type={"skifree": {"played": 1}})
+        assert "ski_first" in check(game_stats=stats)
+
+    def test_ski_distance_1000(self):
+        stats = self._game_stats(by_type={"skifree": {"played": 1, "best_distance": 1000}})
+        assert "ski_distance_1000" in check(game_stats=stats)
+
+    def test_ski_survive_auditor(self):
+        stats = self._game_stats(by_type={"skifree": {"played": 1, "survived_auditor_ticks": 30}})
+        assert "ski_survive_auditor" in check(game_stats=stats)
+
+    def test_ski_distance_3000(self):
+        stats = self._game_stats(by_type={"skifree": {"played": 1, "best_distance": 3000}})
+        assert "ski_distance_3000" in check(game_stats=stats)
+
+    # Deckbuilder achievements
+    def test_deck_first(self):
+        stats = self._game_stats(by_type={"deckbuilder": {"played": 1}})
+        assert "deck_first" in check(game_stats=stats)
+
+    def test_deck_win(self):
+        stats = self._game_stats(by_type={"deckbuilder": {"played": 1, "won": 1}})
+        assert "deck_win" in check(game_stats=stats)
+
+    def test_deck_flawless(self):
+        stats = self._game_stats(by_type={"deckbuilder": {"played": 1, "won": 1, "best_win_stability": 8}})
+        assert "deck_flawless" in check(game_stats=stats)
+
+    def test_deck_no_shop(self):
+        stats = self._game_stats(by_type={"deckbuilder": {"played": 1, "won": 1, "no_shop_win": True}})
+        assert "deck_no_shop" in check(game_stats=stats)
+
 
 # ---------------------------------------------------------------------------
 # MUD achievements
@@ -265,7 +304,7 @@ class TestMUDAchievements:
                "dragon_slain": False, "items_bought": 0}
         mud.update(kwargs)
         return {"games_played": 1, "games_won": 0, "by_type": {"mud": mud},
-                "rps_max_streak": 0, "trivia_perfect": False}
+                "trivia_perfect": False}
 
     def test_mud_explorer(self):
         assert "mud_explorer" in check(game_stats=self._mud_stats(rooms_visited=5))
@@ -325,7 +364,7 @@ class TestSecretAchievements:
         buddies = make_buddies(1, species="duck", chaos=35)
         active = buddies[0]
         stats = {"games_played": 1, "games_won": 1, "by_type": {},
-                 "rps_max_streak": 0, "trivia_perfect": False}
+                 "trivia_perfect": False}
         assert "all_in_chaos" in check(buddies, active_buddy=active, game_stats=stats)
 
 

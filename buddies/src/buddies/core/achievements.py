@@ -63,16 +63,31 @@ ACHIEVEMENTS: list[Achievement] = [
 
     # Games achievements
     Achievement("first_game", "Player One", "Play any game in the arcade", "🕹️", "exploration"),
-    Achievement("rps_veteran", "RPS Veteran", "Win 10 RPS matches", "✊", "mastery"),
-    Achievement("rps_streak", "Unbreakable", "Win an RPS match 3-0 (no losses)", "🔥", "mastery"),
-    Achievement("card_shark", "Card Shark", "Win 10 card games", "🃏", "mastery"),
-    Achievement("battle_veteran", "Battle Veteran", "Win 10 battles", "⚔️", "mastery"),
+    Achievement("card_shark", "Card Shark", "Win 10 card games (Hold'em or Whist)", "🃏", "mastery"),
     Achievement("trivia_master", "Trivia Master", "Score 10/10 on trivia", "🧠", "mastery"),
     Achievement("pong_champion", "Pong Champion", "Win a game of Pong", "🏓", "mastery"),
     Achievement("dungeon_master", "Dungeon Delver", "Win a blobber dungeon crawl", "🗡️", "mastery"),
     Achievement("stackwars_victor", "Strategist", "Win a game of StackWars", "⚔️", "mastery"),
     Achievement("arcade_regular", "Arcade Regular", "Play 25 total games", "🕹️", "mastery"),
     Achievement("all_in_chaos", "ALL IN!", "Win a game with a high-CHAOS buddy", "🎰", "secret"),
+
+    # Snake achievements
+    Achievement("snake_first", "Memory Pointer", "Play Buffer Overflow for the first time", "🐍", "mastery"),
+    Achievement("snake_score_500", "Data Hoarder", "Score 500+ points in Buffer Overflow", "📦", "mastery"),
+    Achievement("snake_length_20", "Buffer Overflow!", "Reach length 20 in Buffer Overflow", "💾", "mastery"),
+    Achievement("snake_score_1000", "Heap Corruption", "Score 1000+ points in Buffer Overflow", "🔥", "secret"),
+
+    # Ski Free achievements
+    Achievement("ski_first", "Downhill Debugger", "Play Stack Descent for the first time", "⛷️", "mastery"),
+    Achievement("ski_distance_1000", "Terminal Velocity", "Travel 1000m in Stack Descent", "🏔️", "mastery"),
+    Achievement("ski_survive_auditor", "Performance Review Dodged", "Survive 30+ ticks after The Auditor appears", "👔", "mastery"),
+    Achievement("ski_distance_3000", "Untouchable", "Travel 3000m in Stack Descent", "🛡️", "secret"),
+
+    # Deckbuilder achievements
+    Achievement("deck_first", "Junior Dev", "Play Deploy or Die for the first time", "🃏", "mastery"),
+    Achievement("deck_win", "Senior Dev", "Survive all 7 sprints in Deploy or Die", "🏆", "mastery"),
+    Achievement("deck_flawless", "10x Developer", "Win Deploy or Die with 8+ stability remaining", "💎", "secret"),
+    Achievement("deck_no_shop", "Minimalist", "Win Deploy or Die without buying any cards", "🧘", "secret"),
 
     # MUD achievements
     Achievement("mud_explorer", "MUD Tourist", "Visit 5 rooms in StackHaven MUD", "🗺️", "exploration"),
@@ -272,14 +287,10 @@ def check_achievements(
         gp = game_stats.get("games_played", 0)
         gw = game_stats.get("games_won", 0)
         by_type = game_stats.get("by_type", {})
-        rps = by_type.get("rps", {})
-        rps_won = rps.get("won", 0)
-        rps_streak = game_stats.get("rps_max_streak", 0)
         cards_won = sum(
             by_type.get(g, {}).get("won", 0)
-            for g in ("blackjack", "holdem", "whist")
+            for g in ("holdem", "whist")
         )
-        battles_won = by_type.get("battle", {}).get("won", 0)
         pong_won = by_type.get("pong", {}).get("won", 0)
         dungeon_won = by_type.get("crawl", {}).get("won", 0)
         stackwars_won = by_type.get("stackwars", {}).get("won", 0)
@@ -299,11 +310,39 @@ def check_achievements(
         _check("mud_tipper", mud_stats.get("tips_given", 0) >= 5)
         _check("mud_bounty_hunter", mud_stats.get("bounties_completed", 0) >= 3)
 
+        # Snake achievements
+        snake_stats = by_type.get("snake", {})
+        snake_played = snake_stats.get("played", 0)
+        snake_best_score = snake_stats.get("best_score", 0)
+        snake_best_length = snake_stats.get("best_length", 0)
+        _check("snake_first", snake_played >= 1)
+        _check("snake_score_500", snake_best_score >= 500)
+        _check("snake_length_20", snake_best_length >= 20)
+        _check("snake_score_1000", snake_best_score >= 1000)
+
+        # Ski Free achievements
+        ski_stats = by_type.get("skifree", {})
+        ski_played = ski_stats.get("played", 0)
+        ski_best_distance = ski_stats.get("best_distance", 0)
+        ski_survived_auditor = ski_stats.get("survived_auditor_ticks", 0)
+        _check("ski_first", ski_played >= 1)
+        _check("ski_distance_1000", ski_best_distance >= 1000)
+        _check("ski_survive_auditor", ski_survived_auditor >= 30)
+        _check("ski_distance_3000", ski_best_distance >= 3000)
+
+        # Deckbuilder achievements
+        deck_stats = by_type.get("deckbuilder", {})
+        deck_played = deck_stats.get("played", 0)
+        deck_won = deck_stats.get("won", 0)
+        deck_best_stability = deck_stats.get("best_win_stability", 0)
+        deck_no_shop_win = deck_stats.get("no_shop_win", False)
+        _check("deck_first", deck_played >= 1)
+        _check("deck_win", deck_won >= 1)
+        _check("deck_flawless", deck_best_stability >= 8)
+        _check("deck_no_shop", deck_no_shop_win)
+
         _check("first_game", gp >= 1)
-        _check("rps_veteran", rps_won >= 10)
-        _check("rps_streak", rps_streak >= 3)
         _check("card_shark", cards_won >= 10)
-        _check("battle_veteran", battles_won >= 10)
         _check("pong_champion", pong_won >= 1)
         _check("dungeon_master", dungeon_won >= 1)
         _check("stackwars_victor", stackwars_won >= 1)
