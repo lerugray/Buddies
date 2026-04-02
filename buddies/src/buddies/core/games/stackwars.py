@@ -672,7 +672,12 @@ def _action_teleport_unit(state: StackWarsState, target: str) -> list[str]:
     if not target:
         lines = [f"[bold]Deploy a unit to an owned tile.[/bold]"]
         lines.append(f"  {len(spawn_units)} unit(s) available at staging areas.")
-        lines.append("[dim]Type target coordinates (e.g. '2,3') or 'skip'.[/dim]")
+        # Show valid targets
+        targets = [f"({t.x},{t.y})" for t in owned if t not in
+                   [state.grid[sy][sx] for sx, sy, _ in spawn_units]][:8]
+        if targets:
+            lines.append(f"  Valid tiles: {' '.join(targets)}")
+        lines.append("[dim]Type coordinates (e.g. '2,3') or 'skip'.[/dim]")
         return lines
 
     # Parse coordinates

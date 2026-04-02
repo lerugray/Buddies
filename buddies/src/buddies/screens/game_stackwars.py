@@ -149,10 +149,24 @@ class StackWarsScreen(Screen):
             return
 
         step = self.state.action_step
-        actions = ABILITY_ACTIONS[self.state.chosen_ability]
+        ability = self.state.chosen_ability
+        actions = ABILITY_ACTIONS[ability]
         if step < len(actions):
             log.write(f"\n[bold]Action {step + 1}:[/bold] {actions[step]}")
-            log.write("[dim]Type a target/choice, or 'skip' to skip this action.[/dim]")
+
+            # Context-sensitive hints
+            from buddies.core.games.stackwars import AbilityType as AT
+            player = self.state.active_player
+            if ability == AT.DEPLOY and step == 1:
+                log.write(f"  [dim]Your Code: {player.code} | Type unit name (kiddie/hacker/architect/operator/sysadmin)[/dim]")
+            elif ability == AT.DEPLOY and step == 2:
+                log.write(f"  [dim]Type target coordinates (x,y) or 'skip'[/dim]")
+            elif ability == AT.BUILD and step == 0:
+                log.write(f"  [dim]Your Code: {player.code} | Type building name or 'building x,y'[/dim]")
+            elif ability == AT.INVOKE and step == 1:
+                log.write(f"  [dim]Your Bugs: {player.bugs} (need 3) | Type coordinates or auto-targets densest cluster[/dim]")
+            else:
+                log.write("[dim]Type a target/choice, or 'skip' to skip.[/dim]")
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
         raw = event.value.strip()
