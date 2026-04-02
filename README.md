@@ -1,18 +1,22 @@
 # Buddies
 
-**A tamagotchi-style AI companion collection for your terminal.**
+**The game layer for Claude Code.** Collect, evolve, and play with AI companions in your terminal.
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![70 Species](https://img.shields.io/badge/species-70-orange.svg)](#species--rarity)
+[![70+ Species](https://img.shields.io/badge/species-70+-orange.svg)](#species--rarity)
 [![16 Hats](https://img.shields.io/badge/hats-16-yellow.svg)](#hats-16)
 [![10 Games](https://img.shields.io/badge/games-10-red.svg)](#games-arcade-10-games)
-[![56 Achievements](https://img.shields.io/badge/achievements-56-purple.svg)](#achievements-56)
-[![807 Tests](https://img.shields.io/badge/tests-807_passing-brightgreen.svg)](#)
-
-Hatch buddies, collect species, earn hats, evolve, play games, explore a text adventure, negotiate with bugs, and build a team of quirky little creatures that react to how you code. Runs alongside Claude Code, watches your sessions, and actually helps — grading your config, saving tokens, and mapping your codebase.
+[![63 Achievements](https://img.shields.io/badge/achievements-63-purple.svg)](#achievements)
+[![800+ Tests](https://img.shields.io/badge/tests-800+_passing-brightgreen.svg)](#)
 
 <!-- TODO: Add terminal GIF recording (use ScreenToGif or vhs) -->
+
+## Claude Code has a /buddy. We have the game.
+
+Claude Code's built-in companion is a cute mascot that watches you code. Buddies is everything beyond that: **70+ collectible species**, a **10-game arcade**, a **full text adventure MUD**, **buddy fusion**, **personality drift**, a **retro BBS**, and **async multiplayer** — all running alongside your coding sessions with zero token cost.
+
+You can even **import your CC /buddy companion** into your Buddies party. Claude bridges the two systems automatically — your CC mushroom can sit at the poker table with your Phoenix.
 
 ## Why
 
@@ -54,7 +58,9 @@ With a local model, your buddy can answer coding questions, read files, search c
 python -m buddies.setup_mcp
 ```
 
-Gives Claude access to: `buddy_status`, `buddy_note`, `session_stats`, `ask_buddy`, `get_buddy_notes`
+Gives Claude access to: `buddy_status`, `buddy_note`, `session_stats`, `ask_buddy`, `get_buddy_notes`, `import_cc_buddy`
+
+The `import_cc_buddy` tool lets Claude bring your CC /buddy companion into the Buddies party. Claude sees both system prompts and bridges the two systems naturally.
 
 </details>
 
@@ -115,7 +121,8 @@ All 5 MCP tools work in headless mode. Background services (session observer, co
 | **Idle life** | Buddies do things while you code — explore, find items, journal, get into trouble, socialize. |
 | **16 hats** | Unlocked by playstyle, stats, milestones, and even boredom. |
 | **4 evolution stages** | Hatchling, Juvenile, Adult, Elder — with visual border changes. |
-| **56 achievements** | Collection, mastery, social, exploration, games, and secret categories. |
+| **63 achievements** | Collection, mastery, social, exploration, games, MUD, and secret categories. |
+| **CC /buddy import** | Bring your Claude Code companion into the party via MCP. Plays games, joins discussions, appears in MUD. |
 | **6 themes** | Default, midnight, forest, ocean, sunset, light — cycle with [F2]. |
 | **Prose engine** | Each buddy speaks through a personality register (clinical, sarcastic, absurdist, philosophical, calm). Zero AI needed. |
 
@@ -131,7 +138,7 @@ All 5 MCP tools work in headless mode. Background services (session observer, co
 | **Coding Trivia** | Quiz | 90 questions, buddy answers alongside you |
 | **Pong** | Real-time | ~15 FPS in the terminal; buddy controls the other paddle |
 | **Blobber** | Wizardry-style CRPG | First-person, party-based, front/back rows, status effects |
-| **StackHaven MUD** | Text adventure | 18 rooms, 18 NPCs, 6 quests, negotiation, gambling, bounties, async multiplayer |
+| **StackHaven MUD** | Text adventure | 18 rooms, 18 NPCs, 6 quests, negotiation, gambling, bounties, economy, living world, async multiplayer |
 | **StackWars** | Micro-4X wargame | Buddy factions, 5x5 grid, Avianos-style ability cooldowns |
 
 ### StackWars
@@ -156,6 +163,8 @@ A love letter to software engineering craft, disguised as a text adventure.
 - **40+ items** with Dark Souls-style discoverable lore telling the hidden history of the Founders
 - **6 quests** — Fix the Build Pipeline, Scope Creep, Dragon Slayer, Flaky Hunt, and more
 - **SMT-style negotiation** — every hostile NPC has a unique 3-round dialogue tree. The Merge Conflict Demon asks if you prefer rebasing. The Null Pointer asks if you believe in null. CrashLoopBackoff asks what death is like.
+- **Economy** — Lucky's gambling den (coin flip + slots), 5 gold-sink cosmetics, tip system with NPC-specific responses, bounty board with repeatable contracts
+- **Living world** — Server Status affects combat, prices, and events. NPCs gossip about your progress.
 - **Dark Souls async multiplayer** — leave soapstone notes for other players, see bloodstains where they died, spot phantom traces of their buddies
 - **GitHub Issues transport** — multiplayer data syncs via the `lerugray/buddies-bbs` repo
 
@@ -223,16 +232,16 @@ Your starting species is seeded from your username (same user = same buddy).
 </details>
 
 <details>
-<summary><strong>Achievements (49)</strong></summary>
+<summary><strong>Achievements (63)</strong></summary>
 
 | Category | Count | Examples |
 |----------|-------|---------|
-| Collection | 12 | First Steps, Zookeeper, Shiny Hunter, Fashion Icon |
-| Mastery | 6 | Growing Up, Elder Wisdom, Specialist, Well-Rounded |
+| Collection | 13 | First Steps, Zookeeper, Shiny Hunter, Fashion Icon, Soul Splice |
+| Mastery | 15 | Growing Up, Elder Wisdom, Card Shark, Trivia Master, Pong Champion |
 | Social | 10 | Town Hall, Chatty, First Post, BBS Regular, Social Butterfly |
 | Exploration | 6 | Watchful Eye, Token Miser, Clean Config, Safety First |
-| Games | 9 | Card Shark, Trivia Master, Dungeon Delver, Pong Champion |
-| Secret | 6 | ??? (discover them yourself!) |
+| MUD | 8 | MUD Tourist, Bug Squasher, Quest Hero, High Roller, Bounty Hunter |
+| Secret | 11 | ??? (discover them yourself!) |
 
 </details>
 
@@ -255,6 +264,7 @@ High CHAOS stat adds a "weirdness parameter" that makes commentary increasingly 
 
 ## Design Philosophy
 
+- **Complement, don't compete** — CC's /buddy is a mascot. Buddies is the game. They coexist; we provide the depth.
 - **Zero token cost** — everything runs locally except tiny MCP payloads
 - **Personality without AI** — prose engine uses template pools with register modulation, no model needed
 - **Deterministic gacha** — same user always gets the same initial species
@@ -268,15 +278,15 @@ High CHAOS stat adds a "weirdness parameter" that makes commentary increasingly 
 See [HANDOFF.md](HANDOFF.md) for the full structured roadmap.
 
 **Recently completed:**
-- Phase 12: Three-tier memory, self-evolution safety gates, layered prompt assembly
-- Tier 3: BBS social network (retro BBS with GitHub Issues transport)
-- Tier 4: 10-game arcade with personality-driven AI opponents
-- Tier 5b Phase 1-2: StackHaven MUD with multiplayer, SMT-style negotiation, and Dark Souls async notes
+- CC /buddy companion integration — import your Claude Code mascot into the Buddies party
+- Full security audit across all multiplayer systems (16 findings, all fixed)
+- MUD Phase 3+4: Economy (gambling, tips, bounties) + Living World (server status, NPC gossip)
 - StackWars: Micro-4X wargame with 5 factions and odds-based CRT combat
 - Buddy Fusion: SMT-style sacrifice + combine system with 12 recipes and fusion-exclusive species
-- 789 tests covering memory, BBS, AI router, personality drift, config intel, MUD economy, all games, and more
+- 800+ tests covering memory, BBS, AI router, personality drift, config intel, MUD, all games
 
 **Up next:**
+- CC buddy Tier 3+4: auto-detect from config, cross-system dialogue screen
 - Multiplayer leaderboards on BBS
 - More MUD world expansion (new zones, quest chains)
 - Audio: speech-to-text / text-to-speech (local via Whisper + Piper)
