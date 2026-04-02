@@ -819,14 +819,43 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - ✅ **Fusion personality drift** — WISDOM+3, CHAOS+2, PATIENCE+1 on fuse (biggest single drift event)
 - ✅ **StackWars improved prompts** — context-sensitive hints showing resources, valid targets, unit costs
 - ✅ Project map refreshed (113 files indexed, was 60)
-- ✅ 385 tests (+12 new), 4-5 skipped
+- ✅ **Smart code map auto-refresh** — detects when source files change (mtime comparison), debounced refresh on Edit/Write events (30s delay)
+- ✅ **93 new tests** covering prose engine, all achievements, and code map:
+  - `test_prose.py` (22 tests): registers, weirdness, templates, suppression, closers, context injection
+  - `test_achievements.py` (59 tests): all achievement categories systematically
+  - `test_code_map.py` (12 tests): scanning, extraction, staleness detection
+- ✅ 478 tests total (was 385), 4 skipped
 
 ### Direction
 - Phase 12 fully complete (all 5 items checked off)
 - MUD Phase 2 multiplayer transport is built — needs `mud-soapstone` and `mud-bloodstain` labels created on the `lerugray/buddies-bbs` repo
 - MUD combat now has TWO distinct modes: fight (attack/flee) or negotiate (talk/respond) — clearly different from blobber's tactical party combat
 - StackWars is now significantly more playable with real AI decisions, coordinate targeting, and faction personality
+- **Test coverage audit completed** — see roadmap below
 - **Future ideas discussed but not yet built:**
   - **Nonlinear TTRPG interactions** — skill checks, environmental puzzles, multiple quest solutions. Can be layered in gradually.
 - Phase 3 (Economy) and Phase 4 (Living World) are next on the MUD roadmap
 - Could also explore: expanding the world (more rooms/zones), multiplayer leaderboards on BBS, or tackling Tier 5 audio
+
+### Test Coverage Roadmap
+478 tests passing. Coverage audit identified remaining gaps by priority:
+
+**High priority (0% coverage, core systems):**
+- `prose.py` — ✅ DONE (22 tests)
+- `achievements.py` — ✅ DONE (59 tests)
+- `code_map.py` — ✅ DONE (12 tests)
+- `memory.py` — needs episodic/semantic/procedural tests (~30 tests)
+- BBS system (`bbs_*.py`, 6 files) — content gen, transport, nudge detection (~50 tests)
+- AI backend (`ai_backend.py`, `ai_router.py`, `agent.py`) — needs mocking infra (~40 tests)
+
+**Medium priority (partially covered):**
+- `blackjack.py` — only basic creation tested, needs game flow/dealer AI
+- `personality_drift.py` — game/idle covered, fusion/chat drift untested
+- `session_observer.py`, `token_guardian.py` — 0% coverage
+- `config_intel.py`, `readme_intel.py` — 0% coverage
+- Screen interaction tests (currently smoke tests only)
+
+**Low priority (nice to have):**
+- Deeper edge cases for Hold'em, Whist, RPS, Battle
+- `prose_games.py` — game commentary templates
+- Extreme stat edge cases, empty collections, offline mode
