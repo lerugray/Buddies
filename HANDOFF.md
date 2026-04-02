@@ -452,7 +452,8 @@ See session notes below for details. Both features fully implemented with 72 new
 - **2026-04-02 Work S2**: MUD Phase 5 (save/load + E-Waste Catacombs zone), CC Tier 3 auto-detect. 59 new tests (852 total).
 - **2026-04-02 Work S3**: Arcade refresh (Snake/SkiFree/Deckbuilder replace RPS/Blackjack/Battles), balance sims, sprite GIFs, achievement refresh (72 total). 876 tests.
 - **2026-04-02 Work S4**: Arcade multiplayer + leaderboards, CC Tier 4 dialogue screen [v], 7 achievements (79 total). 982 tests.
-- **2026-04-02 Home S3** (this session): MUD TTRPG skill checks (roll-based, d20 system), dead test cleanup. 1015 tests.
+- **2026-04-02 Home S3**: MUD TTRPG skill checks (roll-based, d20 system), dead test cleanup. 1015 tests.
+- **2026-04-02 Home S4**: Sprite audit — redesigned 23 species + 4 frame consistency fixes. Built PNG renderer for visual evaluation. Updated HANDOFF counts + README.
 
 ## CC Official /buddy Feature — Competitive Analysis (2026-04-02)
 

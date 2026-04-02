@@ -11,8 +11,8 @@
 [![70+ Species](https://img.shields.io/badge/species-70+-orange.svg)](#species--rarity)
 [![16 Hats](https://img.shields.io/badge/hats-16-yellow.svg)](#hats-16)
 [![10 Games](https://img.shields.io/badge/games-10-red.svg)](#games-arcade-10-games)
-[![72 Achievements](https://img.shields.io/badge/achievements-72-purple.svg)](#achievements)
-[![860+ Tests](https://img.shields.io/badge/tests-860+_passing-brightgreen.svg)](#)
+[![79 Achievements](https://img.shields.io/badge/achievements-79-purple.svg)](#achievements)
+[![1015 Tests](https://img.shields.io/badge/tests-1015_passing-brightgreen.svg)](#)
 
 ## Claude Code has a /buddy. We have the game.
 
@@ -123,7 +123,7 @@ All 5 MCP tools work in headless mode. Background services (session observer, co
 | **Idle life** | Buddies do things while you code — explore, find items, journal, get into trouble, socialize. |
 | **16 hats** | Unlocked by playstyle, stats, milestones, and even boredom. |
 | **4 evolution stages** | Hatchling, Juvenile, Adult, Elder — with visual border changes. |
-| **72 achievements** | Collection, mastery, social, exploration, games, MUD, and secret categories. |
+| **79 achievements** | Collection, mastery, social, exploration, games, MUD, and secret categories. |
 | **CC /buddy import** | Bring your Claude Code companion into the party via MCP, auto-detect from config, or manual override. Plays games, joins discussions, appears in MUD. |
 | **6 themes** | Default, midnight, forest, ocean, sunset, light — cycle with [F2]. |
 | **Prose engine** | Each buddy speaks through a personality register (clinical, sarcastic, absurdist, philosophical, calm). Zero AI needed. |
@@ -144,7 +144,7 @@ All 5 MCP tools work in headless mode. Background services (session observer, co
 | **Coding Trivia** | Quiz | 90 questions, buddy answers alongside you |
 | **Pong** | Real-time | ~15 FPS in the terminal; buddy controls the other paddle |
 | **Blobber** | Wizardry-style CRPG | First-person, party-based, front/back rows, status effects |
-| **StackHaven MUD** | Text adventure | 24 rooms, 23 NPCs, 7 quests, save/load, negotiation, gambling, bounties, economy, living world, async multiplayer |
+| **StackHaven MUD** | Text adventure | 24 rooms, 23 NPCs, 7 quests, save/load, d20 skill checks, negotiation, gambling, economy, living world, async multiplayer |
 | **StackWars** | Micro-4X wargame | Buddy factions, 5x5 grid, Avianos-style ability cooldowns |
 
 ### StackWars
@@ -169,6 +169,7 @@ A love letter to software engineering craft, disguised as a text adventure.
 - **52 items** with Dark Souls-style discoverable lore telling the hidden history of the Founders
 - **7 quests** — Fix the Build Pipeline, Scope Creep, Dragon Slayer, The Lost Backup, and more
 - **Save/load** — auto-save on quit, auto-load on launch, persistent progress between sessions
+- **TTRPG skill checks** — d20 roll-based system with stat modifiers vs difficulty class. Every contested action uses rolls, not binary gates. Crit success/failure outcomes.
 - **SMT-style negotiation** — every hostile NPC has a unique 3-round dialogue tree. The Merge Conflict Demon asks if you prefer rebasing. The Null Pointer asks if you believe in null. CrashLoopBackoff asks what death is like.
 - **Economy** — Lucky's gambling den (coin flip + slots), 5 gold-sink cosmetics, tip system with NPC-specific responses, bounty board with repeatable contracts
 - **Living world** — Server Status affects combat, prices, and events. NPCs gossip about your progress.
@@ -248,16 +249,16 @@ Your starting species is seeded from your username (same user = same buddy).
 </details>
 
 <details>
-<summary><strong>Achievements (72)</strong></summary>
+<summary><strong>Achievements (79)</strong></summary>
 
 | Category | Count | Examples |
 |----------|-------|---------|
 | Collection | 13 | First Steps, Zookeeper, Shiny Hunter, Fashion Icon, Soul Splice |
 | Mastery | 21 | Card Shark, Pong Champion, Memory Pointer, Data Hoarder, Senior Dev, Terminal Velocity |
-| Social | 10 | Town Hall, Chatty, First Post, BBS Regular, Social Butterfly |
+| Social | 14 | Town Hall, Chatty, First Post, BBS Regular, Social Butterfly, Rival, Cross-System |
 | Exploration | 6 | Watchful Eye, Token Miser, Clean Config, Safety First |
 | MUD | 8 | MUD Tourist, Bug Squasher, Quest Hero, High Roller, Bounty Hunter |
-| Secret | 14 | ??? (discover them yourself!) |
+| Secret | 17 | ??? (discover them yourself!) |
 
 </details>
 
@@ -294,16 +295,17 @@ High CHAOS stat adds a "weirdness parameter" that makes commentary increasingly 
 See [HANDOFF.md](HANDOFF.md) for the full structured roadmap.
 
 **Recently completed:**
-- Arcade game refresh: replaced RPS/Blackjack/JRPG Battles with Snake, Ski Free, and a deckbuilder (19 balance simulation tests)
-- CC /buddy integration through Tier 3 — MCP import, auto-detect from config, manual override
-- MUD save/load persistence, E-Waste Catacombs zone (5 rooms, 4 NPCs, boss negotiation)
-- MUD Phase 3+4: Economy + Living World. StackWars: micro-4X wargame
-- 860+ tests passing
+- Sprite audit: redesigned 23 species + 4 frame consistency fixes across all 70 species
+- MUD TTRPG: d20 roll-based skill checks replace static threshold gating
+- Arcade multiplayer: async challenges + global leaderboards via GitHub Issues
+- CC /buddy integration all 4 tiers — MCP import, auto-detect, dialogue screen [v]
+- MUD Phase 5: save/load, E-Waste Catacombs zone, economy, living world
+- Arcade refresh: Snake, Ski Free, Deckbuilder replace RPS/Blackjack/Battles
+- 1015 tests passing, 79 achievements
 
 **Up next:**
-- CC buddy Tier 4: cross-system dialogue screen
-- Multiplayer leaderboards on BBS
 - Audio: speech-to-text / text-to-speech (local via Whisper + Piper)
+- Multi-provider support (Cursor, Windsurf, Aider, VS Code Copilot)
 
 ## Requirements
 
