@@ -372,7 +372,7 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 - [x] **Whist** — Partnership trick-taking. You + partner buddy vs 2 opponents. 13 tricks per round, trump suit from last dealt card. AI plays follow suit rules, uses trump strategically based on personality.
 - [x] **Coding Trivia** — 90 questions across 5 categories (basics, history, bugs, culture, languages), 3 difficulty tiers. Buddy answers alongside you based on personality. Perfect score achievement.
 - [x] **Pong** — Real-time TUI game at ~15 FPS via Textual timer. Buddy controls other paddle with personality-driven AI (PATIENCE=precise, CHAOS=overshoots, DEBUGGING=predicts trajectory). Ball speed ramps, rally tracking, pause support.
-- [ ] **Multiplayer (future)** — Async games via GitHub Issues (same transport as BBS). MCP tool for challenges. Leaderboard on BBS.
+- [ ] **Multiplayer Async Games** — See detailed plan below in "Next Up" section. Direct challenges (seeded same-game, compare scores) for Trivia + StackWars. Global leaderboards for Snake, Ski Free, Deckbuilder, Hold'em, Whist. GitHub Issues transport (same pattern as MUD). Skip Pong (real-time), MUD (already has its own), Blobber, Fusion.
 
 ### Tier 5: Audio
 *When the mood strikes.*
@@ -420,6 +420,69 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - Use as design reference for Python agent loop, not as importable library
 - Anthropic-only API client, but `ApiClient` trait could wrap Ollama
 
+## Next Up: Multiplayer Async Games + CC Dialogue (planned 2026-04-02)
+
+### Multiplayer Async Games — Implementation Plan
+
+**Game categorization:**
+- **Direct challenges** (seeded RNG, same questions/map, compare scores): Trivia, StackWars
+- **Leaderboards only** (post high scores): Snake, Ski Free, Deckbuilder, Hold'em, Whist
+- **Skip**: Pong (real-time), MUD (already multiplayer), Blobber, Fusion
+
+**Flow**: Finish game → "Share on BBS?" → GitHub Issue with `arcade-challenge` label → Others browse → Play same seed → Results posted as comment → Winner determined.
+
+**New files to create:**
+1. `core/games/arcade_transport.py` — GitHub Issues transport for challenges/leaderboards (model on `mud_transport.py`, own labels: `arcade-challenge`, `arcade-result`, `arcade-leaderboard`)
+2. `core/games/arcade_multiplayer.py` — `Challenge`, `ChallengeResult`, `LeaderboardEntry` dataclasses + local JSON storage
+3. `screens/arcade_challenges.py` — Challenges + leaderboard TUI screen (two views: CHALLENGES and LEADERBOARD)
+4. `tests/test_arcade_multiplayer.py` + `tests/test_arcade_transport.py`
+
+**DB schema additions** (models.py + migrations):
+- `arcade_challenges` table: id, game_type, challenger_buddy_id/name/species, challenger_score (JSON), seed, status, created_at, remote_issue_id
+- `arcade_leaderboard` table: id, game_type, buddy_id/name/species, score (JSON), score_value (int for sorting), timestamp
+
+**Files to modify:**
+- `db/models.py` — two new tables
+- `db/store.py` — CRUD: `create_challenge()`, `get_open_challenges()`, `resolve_challenge()`, `add_leaderboard_entry()`, `get_leaderboard()`, `get_personal_bests()`
+- `core/games/trivia.py` — add `create_seeded_game(seed)` factory using `random.Random(seed)` for fair challenges
+- `screens/games.py` — add [l] leaderboard + [h] challenges bindings, post-game challenge prompt
+- `app.py` — init `ArcadeTransport` in lifecycle
+- `config.py` — `max_challenges_per_day: int = 5` in BBSConfig
+- `core/achievements.py` — 4 new: Challenger (first_challenge), Victor (challenge_win), High Scorer (leaderboard_top), Rival (challenge_5)
+
+**Design decisions:**
+- New `ArcadeTransport` class (not shared with BBS — separate labels/schema, same config for repo/token)
+- Local-first, sync-second (same as MUD — SQLite is truth, GitHub is best-effort)
+- Seeded RNG only for Trivia (deterministic question sets); other games just compare scores
+
+### CC Buddy Tier 4 Dialogue Screen — Implementation Plan
+
+Dedicated screen where party buddies converse **with** the imported CC buddy. CC buddy speaks in a distinct corporate-mascot voice (shorter, more official). Party buddies react in personality registers. Three modes: open chat, guided topic, ask CC.
+
+**Prose-first, AI-optional** — works offline with templates, richer with Ollama backend.
+
+**New files to create:**
+1. `core/cc_dialogue.py` — `CCDialogueEngine` class, CC buddy prose templates (distinct voice), `CCDialogueMessage` dataclass with `is_cc_buddy` flag
+2. `screens/cc_dialogue.py` — TUI screen (CC messages in cyan border, party reactions normal). No-CC-buddy fallback shows import instructions.
+3. `tests/test_cc_dialogue.py`
+
+**Files to modify:**
+- `core/cc_companion.py` — add `get_cc_buddy_state()` helper (DB record → BuddyState for engine)
+- `core/prose.py` — new template pools: `cc_dialogue_open`, `cc_dialogue_topic`, `cc_dialogue_react`, `CONTEXT_CC_DIALOGUE`
+- `app.py` — add key binding (e.g., [v] "Visit CC buddy") + screen wiring
+- `widgets/styling.py` — `format_cc_dialogue_message()` for distinct CC styling
+- `core/achievements.py` — 3 new: Cross-System Contact (cc_first_chat), Bridge Builder (cc_topic_5), Full Assembly (cc_dialogue_all_party)
+
+### Build Order
+1. Arcade multiplayer foundation (transport + data models + DB schema + store methods)
+2. Trivia seeded game factory + challengeable games set
+3. Arcade multiplayer UI (challenges screen, post-game prompts, app wiring)
+4. CC companion `get_cc_buddy_state()` bridge
+5. CC dialogue engine + prose templates
+6. CC dialogue screen + app wiring
+7. Achievements (4 multiplayer + 3 CC dialogue = 7 new, 79 total)
+8. Tests (~50-70 new)
+
 ## Session History (Compacted)
 
 - **2026-03-31 Work** (2 items): Folder renamed to Buddies; lesson on file handle locks
@@ -447,7 +510,7 @@ CC's /buddy is a cosmetic mascot (18 species, 5 stats, 8 hats, 1% shiny, no prog
 - ✅ **Tier 1 (Prose awareness):** Done — 8 templates reference CC buddy by name
 - ✅ **Tier 2 (MCP import):** Done — `import_cc_buddy` tool, species mapping, (CC) tag
 - ✅ **Tier 3 (Config reader):** Done — auto-detect from config files, manual override, `detect_cc_companion` MCP tool
-- **Tier 4 (Dialogue system):** Not started — dedicated cross-system conversation screen
+- **Tier 4 (Dialogue system):** Planned — see "Next Up" section for full implementation plan
 
 ## Session Notes (2026-04-02 — Work, Session 2)
 
