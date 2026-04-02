@@ -30,6 +30,7 @@ from buddies.core.games.mud_negotiate import (
     NEGOTIATION_TREES, NEGOTIATE_COMMENTARY, NEGOTIATE_GIFTS,
     NegotiationState, NegotiateOutcome,
     resolve_negotiation, get_available_responses,
+    perform_skill_check, apply_skill_check_to_mood,
 )
 
 
@@ -1586,11 +1587,12 @@ def _show_negotiate_exchange(state: MudState) -> list[str]:
     available = get_available_responses(exchange, buddy_stats)
 
     lines.append("[bold]Your response:[/bold]")
-    for display_idx, (_, resp) in enumerate(available):
+    for display_idx, (_, resp, diff_label) in enumerate(available):
         stat_tag = ""
         if resp.stat_requirement:
             stat_name = resp.stat_requirement.upper()
-            stat_tag = f" [dim cyan][{stat_name}][/dim cyan]"
+            dc_info = f"DC {resp.min_stat}"
+            stat_tag = f" [dim cyan][{stat_name}][/dim cyan] {diff_label} [dim]({dc_info})[/dim]"
         lines.append(f"  [bold cyan]{display_idx + 1}[/bold cyan]. {resp.text}{stat_tag}")
 
     lines.append("")
@@ -1626,14 +1628,78 @@ def _handle_negotiate_response(state: MudState, choice: int) -> list[str]:
     if idx < 0 or idx >= len(available):
         return [f"Choose a number between 1 and {len(available)}."]
 
-    _, resp = available[idx]
+    _, resp, _ = available[idx]
     lines = []
 
     # Show player's choice
     lines.append(f"\n[bold green]> \"{resp.text}\"[/bold green]")
 
+    # Determine mood change — skill check for stat-gated options
+    actual_mood_change = resp.mood_change
+
+    if resp.stat_requirement:
+        stat_val = buddy_stats.get(resp.stat_requirement, 0)
+        stat_name = resp.stat_requirement.upper()
+        dc = resp.min_stat
+        check = perform_skill_check(stat_val, dc)
+
+        # Show the roll transparently
+        lines.append(
+            f"\n[bold]🎲 Rolling {stat_name} check... "
+            f"d20([cyan]{check.roll}[/cyan]) + {check.modifier} = "
+            f"[bold cyan]{check.total}[/bold cyan] vs DC {dc}[/bold]"
+        )
+
+        # Show tier result with color
+        tier_display = {
+            "crit_success": "[bold green]Critical Success![/bold green]",
+            "success": "[green]Success![/green]",
+            "partial": "[yellow]Partial Success[/yellow]",
+            "failure": "[red]Failure[/red]",
+            "crit_failure": "[bold red]Critical Failure![/bold red]",
+        }
+        tier_text = tier_display.get(check.tier, check.tier)
+
+        if check.nat_20:
+            lines.append(f"   [bold magenta]✨ NATURAL 20! ✨[/bold magenta] — {tier_text}")
+        elif check.nat_1:
+            lines.append(f"   [bold red]💀 NATURAL 1! 💀[/bold red] — {tier_text}")
+        else:
+            lines.append(f"   {tier_text}")
+
+        # Apply skill check to mood instead of flat value
+        actual_mood_change = apply_skill_check_to_mood(check, resp.mood_change)
+
+        # Log the roll
+        state.negotiation.roll_history.append({
+            "stat": resp.stat_requirement, "roll": check.roll,
+            "modifier": check.modifier, "dc": dc,
+            "total": check.total, "tier": check.tier,
+        })
+
+        # Buddy commentary on the roll
+        commentary_key = f"roll_{check.tier}"
+        if check.nat_20:
+            commentary_key = "roll_nat_20"
+        elif check.nat_1:
+            commentary_key = "roll_nat_1"
+
+        if commentary_key in NEGOTIATE_COMMENTARY and state.party:
+            buddy = state.party[0]
+            dom_stat = max(buddy.stats, key=buddy.stats.get)
+            register_map = {
+                "debugging": "clinical", "snark": "sarcastic",
+                "chaos": "absurdist", "wisdom": "philosophical",
+                "patience": "calm",
+            }
+            register = register_map.get(dom_stat, "calm")
+            pool = NEGOTIATE_COMMENTARY[commentary_key].get(register, [])
+            if pool:
+                line = random.choice(pool).format(name=buddy.name)
+                lines.append(f"\n{line}")
+
     # Apply mood change (clamped to 0-100)
-    state.negotiation.mood = max(0, min(100, state.negotiation.mood + resp.mood_change))
+    state.negotiation.mood = max(0, min(100, state.negotiation.mood + actual_mood_change))
 
     # Handle gold demands
     if exchange.demand_gold > 0 and resp.tag == "pay":
@@ -1645,17 +1711,18 @@ def _handle_negotiate_response(state: MudState, choice: int) -> list[str]:
             lines.append("[red]You don't have enough gold![/red]")
             state.negotiation.mood = max(0, state.negotiation.mood - 10)  # Broken promise
 
-    # Mood feedback
-    if resp.mood_change >= 20:
-        npc = state.npcs.get(state.negotiation.npc_id)
-        emoji = npc.emoji if npc else "❓"
-        lines.append(f"\n[dim]{emoji} seems genuinely moved by your words.[/dim]")
-    elif resp.mood_change >= 10:
-        lines.append("[dim]That seemed to resonate.[/dim]")
-    elif resp.mood_change <= -15:
-        lines.append("[dim]That... did not go well.[/dim]")
-    elif resp.mood_change <= -5:
-        lines.append("[dim]It narrows its eyes.[/dim]")
+    # Mood feedback (only for non-skill-check responses)
+    if not resp.stat_requirement:
+        if actual_mood_change >= 20:
+            npc = state.npcs.get(state.negotiation.npc_id)
+            emoji = npc.emoji if npc else "❓"
+            lines.append(f"\n[dim]{emoji} seems genuinely moved by your words.[/dim]")
+        elif actual_mood_change >= 10:
+            lines.append("[dim]That seemed to resonate.[/dim]")
+        elif actual_mood_change <= -15:
+            lines.append("[dim]That... did not go well.[/dim]")
+        elif actual_mood_change <= -5:
+            lines.append("[dim]It narrows its eyes.[/dim]")
 
     # Advance to next stage
     state.negotiation.stage += 1

@@ -39,6 +39,93 @@ class NegotiateOutcome:
 # ---------------------------------------------------------------------------
 
 @dataclass
+class SkillCheckResult:
+    """Result of a d20 + modifier vs DC skill check."""
+    roll: int                # Raw d20 result (1-20)
+    modifier: int            # stat_value // 2
+    dc: int                  # Difficulty class
+    total: int               # roll + modifier
+    margin: int              # total - dc (positive = success)
+    tier: str                # crit_success/success/partial/failure/crit_failure
+    nat_20: bool             # Natural 20 rolled
+    nat_1: bool              # Natural 1 rolled
+
+
+def perform_skill_check(stat_value: int, dc: int, rng: random.Random | None = None) -> SkillCheckResult:
+    """Roll d20 + stat modifier vs difficulty class.
+
+    Everyone can attempt anything. Stats shift the odds, not gate access.
+    - stat 10 vs DC 20: d20+5 vs 20 = 30% (risky but possible)
+    - stat 20 vs DC 20: d20+10 vs 20 = 55% (comfortable)
+    - stat 30 vs DC 20: d20+15 vs 20 = 80% (easy)
+    """
+    _rng = rng or random
+    roll = _rng.randint(1, 20)
+    modifier = stat_value // 2
+    total = roll + modifier
+    margin = total - dc
+    nat_20 = roll == 20
+    nat_1 = roll == 1
+
+    # Determine tier — nat 20/1 override
+    if nat_20:
+        tier = "crit_success" if margin >= 10 else "success"
+    elif nat_1:
+        tier = "crit_failure" if margin <= -10 else "failure"
+    elif margin >= 10:
+        tier = "crit_success"
+    elif margin >= 0:
+        tier = "success"
+    elif margin >= -4:
+        tier = "partial"
+    elif margin >= -9:
+        tier = "failure"
+    else:
+        tier = "crit_failure"
+
+    return SkillCheckResult(
+        roll=roll, modifier=modifier, dc=dc, total=total,
+        margin=margin, tier=tier, nat_20=nat_20, nat_1=nat_1,
+    )
+
+
+def apply_skill_check_to_mood(result: SkillCheckResult, base_mood_change: int) -> int:
+    """Convert a skill check result into actual mood change."""
+    if result.tier == "crit_success":
+        return int(base_mood_change * 1.5) + 5
+    elif result.tier == "success":
+        return base_mood_change
+    elif result.tier == "partial":
+        return base_mood_change // 2
+    elif result.tier == "failure":
+        return -5
+    else:  # crit_failure
+        return -abs(base_mood_change)
+
+
+def calculate_success_chance(stat_value: int, dc: int) -> float:
+    """Calculate % chance of at least partial success (margin >= -4)."""
+    modifier = stat_value // 2
+    # Need roll where roll + modifier >= dc - 4 (partial or better)
+    min_roll = max(1, dc - 4 - modifier)
+    if min_roll > 20:
+        return 5.0  # Nat 20 always gives at least success
+    return ((21 - min_roll) / 20) * 100
+
+
+def difficulty_label(chance: float) -> str:
+    """Rich markup label for success probability."""
+    if chance >= 80:
+        return "[green]Easy[/green]"
+    elif chance >= 55:
+        return "[yellow]Moderate[/yellow]"
+    elif chance >= 30:
+        return "[red]Risky[/red]"
+    else:
+        return "[bold red]Desperate[/bold red]"
+
+
+@dataclass
 class NegotiationState:
     """Tracks an ongoing negotiation with a hostile NPC."""
     npc_id: str
@@ -47,6 +134,7 @@ class NegotiationState:
     demands_met: int = 0     # How many demands the player has complied with
     result: str = ""         # Final outcome, empty until resolved
     buddy_stat_bonus: str = ""  # Which buddy stat gave a bonus option
+    roll_history: list[dict] = field(default_factory=list)  # Skill check log
 
 
 # ---------------------------------------------------------------------------
@@ -530,6 +618,56 @@ NEGOTIATE_COMMENTARY: dict[str, dict[str, list[str]]] = {
         "philosophical": ["{name}: \"Trust given and betrayed. A lesson in vulnerability.\""],
         "calm": ["{name}: \"Oh. Oh no. That wasn't very nice of them.\""],
     },
+    # --- Roll-based skill check commentary ---
+    "roll_crit_success": {
+        "clinical": ["{name}: \"Exceptional result. Confidence interval exceeded.\""],
+        "sarcastic": ["{name}: \"Okay, that was actually impressive. Don't let it go to your head.\""],
+        "absurdist": ["{name}: \"THE DICE GODS SMILE UPON US! ...wait, was that a nat 20?\""],
+        "philosophical": ["{name}: \"When preparation meets opportunity, even the impossible yields.\""],
+        "calm": ["{name}: \"Oh, beautifully done. That couldn't have gone better.\""],
+    },
+    "roll_success": {
+        "clinical": ["{name}: \"Check passed. Proceeding.\""],
+        "sarcastic": ["{name}: \"See? Sometimes things actually work.\""],
+        "absurdist": ["{name}: \"We did it! We used WORDS! Successfully!\""],
+        "philosophical": ["{name}: \"Skill is not certainty — only readiness.\""],
+        "calm": ["{name}: \"Good, that worked. Keep going.\""],
+    },
+    "roll_partial": {
+        "clinical": ["{name}: \"Marginal success. Result degraded but acceptable.\""],
+        "sarcastic": ["{name}: \"Technically that worked. TECHNICALLY.\""],
+        "absurdist": ["{name}: \"Half credit! We'll take half credit!\""],
+        "philosophical": ["{name}: \"Not every arrow must hit the bullseye to wound.\""],
+        "calm": ["{name}: \"Not perfect, but it moved the needle a little.\""],
+    },
+    "roll_failure": {
+        "clinical": ["{name}: \"Check failed. Recalibrating approach.\""],
+        "sarcastic": ["{name}: \"Shocker. That didn't work.\""],
+        "absurdist": ["{name}: \"The dice have spoken and they said NO.\""],
+        "philosophical": ["{name}: \"Failure teaches what success cannot.\""],
+        "calm": ["{name}: \"That's okay. We can try a different angle.\""],
+    },
+    "roll_crit_failure": {
+        "clinical": ["{name}: \"Critical failure. Abort. ABORT.\""],
+        "sarcastic": ["{name}: \"Well, we just made it WORSE. Congratulations.\""],
+        "absurdist": ["{name}: \"Oh no. Oh no no no. Did we just INSULT it?\""],
+        "philosophical": ["{name}: \"The abyss stares back. And it looks annoyed.\""],
+        "calm": ["{name}: \"Oh dear. That... really didn't land.\""],
+    },
+    "roll_nat_20": {
+        "clinical": ["{name}: \"Natural 20. Maximum roll achieved.\""],
+        "sarcastic": ["{name}: \"NAT 20?! Quick, someone screenshot this.\""],
+        "absurdist": ["{name}: \"THE DICE HAVE SPOKEN! ALL HAIL THE NATURAL TWENTY!\""],
+        "philosophical": ["{name}: \"Even the stars align, sometimes.\""],
+        "calm": ["{name}: \"Oh my — a natural 20! That's wonderful.\""],
+    },
+    "roll_nat_1": {
+        "clinical": ["{name}: \"Natural 1. This is the worst possible roll.\""],
+        "sarcastic": ["{name}: \"Nat 1. Because OF COURSE.\""],
+        "absurdist": ["{name}: \"NATURAL ONE. The universe is PERSONALLY attacking us.\""],
+        "philosophical": ["{name}: \"Even the luckiest among us must face the bottom of the die.\""],
+        "calm": ["{name}: \"A natural 1... that's just bad luck. Not your fault.\""],
+    },
 }
 
 
@@ -617,13 +755,19 @@ NEGOTIATE_GIFTS: dict[str, str] = {
 def get_available_responses(
     exchange: NegotiateExchange,
     buddy_stats: dict[str, int],
-) -> list[tuple[int, NegotiateResponse]]:
-    """Filter responses based on buddy stats. Returns (index, response) pairs."""
+) -> list[tuple[int, NegotiateResponse, str | None]]:
+    """Return ALL responses with difficulty labels. No options are hidden.
+
+    Returns (index, response, difficulty_label_or_None) triples.
+    Stat-gated options show their difficulty; non-stat options get None.
+    """
     available = []
     for i, resp in enumerate(exchange.responses):
         if resp.stat_requirement:
             stat_val = buddy_stats.get(resp.stat_requirement, 0)
-            if stat_val < resp.min_stat:
-                continue  # This option requires higher stat
-        available.append((i, resp))
+            chance = calculate_success_chance(stat_val, resp.min_stat)
+            label = difficulty_label(chance)
+            available.append((i, resp, label))
+        else:
+            available.append((i, resp, None))
     return available

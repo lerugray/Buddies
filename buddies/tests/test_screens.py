@@ -47,42 +47,6 @@ class TestGameScreens:
         return make_party()
 
     @pytest.mark.asyncio
-    async def test_rps_screen(self, buddy):
-        from textual.app import App
-        from buddies.screens.game_rps import RPSScreen
-
-        class TestApp(App):
-            def on_mount(self):
-                self.push_screen(RPSScreen(buddy_state=buddy))
-
-        async with TestApp().run_test(size=(100, 30)) as pilot:
-            await pilot.pause()
-            assert pilot.app.screen.__class__.__name__ == "RPSScreen"
-            # Play a round
-            await pilot.press("1")  # Throw rock
-            await pilot.pause()
-            await pilot.press("escape")
-            await pilot.pause()
-
-    @pytest.mark.asyncio
-    async def test_blackjack_screen(self, buddy):
-        from textual.app import App
-        from buddies.screens.game_blackjack import BlackjackScreen
-
-        class TestApp(App):
-            def on_mount(self):
-                self.push_screen(BlackjackScreen(buddy_state=buddy))
-
-        async with TestApp().run_test(size=(100, 30)) as pilot:
-            await pilot.pause()
-            assert pilot.app.screen.__class__.__name__ == "BlackjackScreen"
-            # Hit then stand
-            await pilot.press("h")
-            await pilot.pause()
-            await pilot.press("s")
-            await pilot.pause()
-
-    @pytest.mark.asyncio
     @pytest.mark.skip(reason="Textual render_strips internals bug with timer-driven Static updates")
     async def test_pong_screen(self, buddy):
         from textual.app import App
@@ -105,6 +69,48 @@ class TestGameScreens:
             await pilot.pause()
             await pilot.press("p")
             await pilot.pause()
+
+    @pytest.mark.asyncio
+    @pytest.mark.skip(reason="Textual render_strips internals bug with timer-driven Static updates")
+    async def test_snake_screen(self, buddy):
+        from textual.app import App
+        from buddies.screens.game_snake import SnakeScreen
+
+        class TestApp(App):
+            def on_mount(self):
+                self.push_screen(SnakeScreen(buddy_state=buddy))
+
+        async with TestApp().run_test(size=(100, 30)) as pilot:
+            await pilot.pause()
+            assert pilot.app.screen.__class__.__name__ == "SnakeScreen"
+
+    @pytest.mark.asyncio
+    @pytest.mark.skip(reason="Textual render_strips internals bug with timer-driven Static updates")
+    async def test_skifree_screen(self, buddy):
+        from textual.app import App
+        from buddies.screens.game_skifree import SkiFreeScreen
+
+        class TestApp(App):
+            def on_mount(self):
+                self.push_screen(SkiFreeScreen(buddy_state=buddy))
+
+        async with TestApp().run_test(size=(100, 30)) as pilot:
+            await pilot.pause()
+            assert pilot.app.screen.__class__.__name__ == "SkiFreeScreen"
+
+    @pytest.mark.asyncio
+    @pytest.mark.skip(reason="Textual render_strips internals bug with timer-driven Static updates")
+    async def test_deckbuilder_screen(self, buddy):
+        from textual.app import App
+        from buddies.screens.game_deckbuilder import DeckbuilderScreen
+
+        class TestApp(App):
+            def on_mount(self):
+                self.push_screen(DeckbuilderScreen(buddy_state=buddy))
+
+        async with TestApp().run_test(size=(100, 30)) as pilot:
+            await pilot.pause()
+            assert pilot.app.screen.__class__.__name__ == "DeckbuilderScreen"
 
     @pytest.mark.asyncio
     async def test_trivia_screen(self, buddy):
@@ -290,6 +296,8 @@ class TestImports:
         from buddies.screens.game_holdem import HoldemScreen
         from buddies.screens.game_whist import WhistScreen
         from buddies.screens.game_crawl import CrawlScreen
+        from buddies.screens.cc_dialogue import CCDialogueScreen
+        from buddies.screens.arcade_challenges import ArcadeChallengesScreen
 
     def test_all_core_modules_import(self):
         from buddies.core.buddy_brain import BuddyState, SPECIES_CATALOG

@@ -144,6 +144,15 @@ def save_mud_state(state, slot: str = "auto") -> bool:
             } if state.server_status else None,
             # Bounties claimed (set → list for JSON)
             "bounties_claimed": list(state._bounties_claimed),
+            # Negotiation state (if mid-negotiation)
+            "negotiation": {
+                "npc_id": state.negotiation.npc_id,
+                "stage": state.negotiation.stage,
+                "mood": state.negotiation.mood,
+                "demands_met": state.negotiation.demands_met,
+                "buddy_stat_bonus": state.negotiation.buddy_stat_bonus,
+                "roll_history": state.negotiation.roll_history,
+            } if state.negotiation else None,
         }
 
         path = _save_path(slot)
@@ -251,6 +260,19 @@ def load_mud_state(state, slot: str = "auto") -> bool:
 
         # Bounties claimed
         state._bounties_claimed = set(data.get("bounties_claimed", []))
+
+        # Negotiation state (restored if mid-negotiation)
+        neg_data = data.get("negotiation")
+        if neg_data:
+            from buddies.core.games.mud_negotiate import NegotiationState
+            state.negotiation = NegotiationState(
+                npc_id=neg_data["npc_id"],
+                stage=neg_data.get("stage", 0),
+                mood=neg_data.get("mood", 50),
+                demands_met=neg_data.get("demands_met", 0),
+                buddy_stat_bonus=neg_data.get("buddy_stat_bonus", ""),
+                roll_history=neg_data.get("roll_history", []),
+            )
 
         log.info("MUD state loaded from %s", path)
         return True

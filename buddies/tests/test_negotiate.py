@@ -6,8 +6,10 @@ import random
 from buddies.core.buddy_brain import BuddyState, Species, Rarity
 from buddies.core.games.mud_negotiate import (
     NEGOTIATION_TREES, NEGOTIATE_COMMENTARY, NEGOTIATE_GIFTS,
-    NegotiationState, NegotiateOutcome,
+    NegotiationState, NegotiateOutcome, SkillCheckResult,
     resolve_negotiation, get_available_responses,
+    perform_skill_check, apply_skill_check_to_mood,
+    calculate_success_chance, difficulty_label,
 )
 from buddies.core.games.mud_engine import (
     MudState, create_mud_game, process_command, parse_command,
@@ -87,25 +89,50 @@ class TestNegotiationTrees:
 # ---------------------------------------------------------------------------
 
 class TestResponseFiltering:
-    def test_all_responses_available_with_high_stats(self):
-        """All responses should be available if all stats are maxed."""
+    def test_all_responses_always_visible(self):
+        """All responses should always be visible — no threshold gating."""
+        low_stats = {"debugging": 1, "chaos": 1, "snark": 1, "wisdom": 1, "patience": 1}
         high_stats = {"debugging": 50, "chaos": 50, "snark": 50, "wisdom": 50, "patience": 50}
         for npc_id, tree in NEGOTIATION_TREES.items():
             for exchange in tree:
-                available = get_available_responses(exchange, high_stats)
-                assert len(available) == len(exchange.responses), (
-                    f"{npc_id}: high stats should unlock all options"
+                low_available = get_available_responses(exchange, low_stats)
+                high_available = get_available_responses(exchange, high_stats)
+                assert len(low_available) == len(exchange.responses), (
+                    f"{npc_id}: all options should be visible even with low stats"
                 )
+                assert len(high_available) == len(exchange.responses)
 
-    def test_stat_gated_hidden_with_low_stats(self):
-        """Stat-gated responses should be hidden when stats are low."""
-        low_stats = {"debugging": 5, "chaos": 5, "snark": 5, "wisdom": 5, "patience": 5}
-        for npc_id, tree in NEGOTIATION_TREES.items():
+    def test_stat_gated_options_have_difficulty_labels(self):
+        """Stat-gated responses should carry difficulty labels."""
+        stats = {"debugging": 10, "chaos": 10, "snark": 10, "wisdom": 10, "patience": 10}
+        labeled = 0
+        for tree in NEGOTIATION_TREES.values():
             for exchange in tree:
-                all_count = len(exchange.responses)
-                gated_count = sum(1 for r in exchange.responses if r.stat_requirement)
-                available = get_available_responses(exchange, low_stats)
-                assert len(available) == all_count - gated_count
+                for _, resp, label in get_available_responses(exchange, stats):
+                    if resp.stat_requirement:
+                        assert label is not None, "Stat-gated option should have label"
+                        labeled += 1
+                    else:
+                        assert label is None, "Non-stat option should have no label"
+        assert labeled >= 7
+
+    def test_high_stats_get_easy_labels(self):
+        """High stats should show Easy difficulty for stat-gated options."""
+        stats = {"debugging": 50, "chaos": 50, "snark": 50, "wisdom": 50, "patience": 50}
+        for tree in NEGOTIATION_TREES.values():
+            for exchange in tree:
+                for _, resp, label in get_available_responses(exchange, stats):
+                    if resp.stat_requirement:
+                        assert "Easy" in label or "Moderate" in label
+
+    def test_low_stats_get_desperate_labels(self):
+        """Very low stats should show Desperate difficulty."""
+        stats = {"debugging": 1, "chaos": 1, "snark": 1, "wisdom": 1, "patience": 1}
+        for tree in NEGOTIATION_TREES.values():
+            for exchange in tree:
+                for _, resp, label in get_available_responses(exchange, stats):
+                    if resp.stat_requirement and resp.min_stat >= 20:
+                        assert "Desperate" in label or "Risky" in label
 
 
 # ---------------------------------------------------------------------------
@@ -263,3 +290,149 @@ class TestEdgeCases:
         neg.mood += 20
         neg.mood -= 5
         assert neg.mood == 65
+
+    def test_negotiation_state_has_roll_history(self):
+        neg = NegotiationState(npc_id="test")
+        assert neg.roll_history == []
+
+
+# ---------------------------------------------------------------------------
+# Skill check system
+# ---------------------------------------------------------------------------
+
+class TestSkillCheck:
+    def test_result_structure(self):
+        rng = random.Random(42)
+        result = perform_skill_check(20, 15, rng=rng)
+        assert 1 <= result.roll <= 20
+        assert result.modifier == 10  # 20 // 2
+        assert result.total == result.roll + result.modifier
+        assert result.margin == result.total - 15
+        assert result.tier in ("crit_success", "success", "partial", "failure", "crit_failure")
+
+    def test_modifier_calculation(self):
+        rng = random.Random(1)
+        assert perform_skill_check(20, 10, rng=rng).modifier == 10
+        assert perform_skill_check(10, 10, rng=random.Random(1)).modifier == 5
+        assert perform_skill_check(5, 10, rng=random.Random(1)).modifier == 2
+        assert perform_skill_check(0, 10, rng=random.Random(1)).modifier == 0
+
+    def test_nat_20_always_at_least_success(self):
+        """Natural 20 should always give at least success tier."""
+        # Find a seed that gives roll=20
+        for seed in range(1000):
+            rng = random.Random(seed)
+            result = perform_skill_check(0, 100, rng=rng)  # stat 0 vs DC 100
+            if result.roll == 20:
+                assert result.nat_20
+                assert result.tier in ("success", "crit_success")
+                return
+        pytest.skip("Could not find nat 20 seed in 1000 attempts")
+
+    def test_nat_1_always_at_least_failure(self):
+        """Natural 1 should always give at least failure tier."""
+        for seed in range(1000):
+            rng = random.Random(seed)
+            result = perform_skill_check(100, 1, rng=rng)  # stat 100 vs DC 1
+            if result.roll == 1:
+                assert result.nat_1
+                assert result.tier in ("failure", "crit_failure")
+                return
+        pytest.skip("Could not find nat 1 seed in 1000 attempts")
+
+    def test_high_stat_succeeds_often(self):
+        """stat 30 vs DC 20 should succeed > 60% of the time."""
+        successes = 0
+        for seed in range(200):
+            rng = random.Random(seed)
+            result = perform_skill_check(30, 20, rng=rng)
+            if result.tier in ("crit_success", "success", "partial"):
+                successes += 1
+        assert successes > 120, f"Expected >60% partial+ success, got {successes}/200"
+
+    def test_low_stat_fails_often(self):
+        """stat 5 vs DC 25 should fail most of the time."""
+        failures = 0
+        for seed in range(200):
+            rng = random.Random(seed)
+            result = perform_skill_check(5, 25, rng=rng)
+            if result.tier in ("failure", "crit_failure"):
+                failures += 1
+        assert failures > 120, f"Expected >60% failure, got {failures}/200"
+
+    def test_margin_determines_tier(self):
+        """Specific margin values should map to expected tiers."""
+        rng = random.Random(42)
+        # Find a non-nat-1, non-nat-20 roll and verify tier
+        for seed in range(100):
+            rng = random.Random(seed)
+            result = perform_skill_check(20, 15, rng=rng)
+            if not result.nat_20 and not result.nat_1:
+                if result.margin >= 10:
+                    assert result.tier == "crit_success"
+                elif result.margin >= 0:
+                    assert result.tier == "success"
+                elif result.margin >= -4:
+                    assert result.tier == "partial"
+                elif result.margin >= -9:
+                    assert result.tier == "failure"
+                else:
+                    assert result.tier == "crit_failure"
+                return
+
+
+class TestSkillCheckMood:
+    def test_crit_success_boosts_mood(self):
+        result = SkillCheckResult(roll=20, modifier=15, dc=15, total=35, margin=20,
+                                   tier="crit_success", nat_20=True, nat_1=False)
+        mood = apply_skill_check_to_mood(result, 20)
+        assert mood == int(20 * 1.5) + 5  # 35
+
+    def test_success_gives_base_mood(self):
+        result = SkillCheckResult(roll=15, modifier=10, dc=20, total=25, margin=5,
+                                   tier="success", nat_20=False, nat_1=False)
+        assert apply_skill_check_to_mood(result, 20) == 20
+
+    def test_partial_gives_half_mood(self):
+        result = SkillCheckResult(roll=8, modifier=10, dc=20, total=18, margin=-2,
+                                   tier="partial", nat_20=False, nat_1=False)
+        assert apply_skill_check_to_mood(result, 20) == 10
+
+    def test_failure_gives_penalty(self):
+        result = SkillCheckResult(roll=5, modifier=5, dc=20, total=10, margin=-10,
+                                   tier="failure", nat_20=False, nat_1=False)
+        assert apply_skill_check_to_mood(result, 20) == -5
+
+    def test_crit_failure_inverts_mood(self):
+        result = SkillCheckResult(roll=1, modifier=5, dc=20, total=6, margin=-14,
+                                   tier="crit_failure", nat_20=False, nat_1=True)
+        assert apply_skill_check_to_mood(result, 20) == -20
+
+
+class TestDifficultyLabels:
+    def test_calculate_success_chance(self):
+        # stat 20 vs DC 20: modifier=10, need roll >= 16 for partial (-4)
+        # Actually: partial = margin >= -4, so total >= 16, roll >= 6, chance = 15/20 = 75%
+        chance = calculate_success_chance(20, 20)
+        assert 70 <= chance <= 80
+
+    def test_very_high_stat_easy(self):
+        chance = calculate_success_chance(50, 15)
+        assert chance >= 80
+
+    def test_very_low_stat_desperate(self):
+        chance = calculate_success_chance(2, 25)
+        assert chance <= 30
+
+    def test_difficulty_label_easy(self):
+        assert "Easy" in difficulty_label(85)
+        assert "green" in difficulty_label(85)
+
+    def test_difficulty_label_moderate(self):
+        assert "Moderate" in difficulty_label(60)
+
+    def test_difficulty_label_risky(self):
+        assert "Risky" in difficulty_label(35)
+
+    def test_difficulty_label_desperate(self):
+        assert "Desperate" in difficulty_label(10)
