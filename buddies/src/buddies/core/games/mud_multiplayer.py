@@ -17,6 +17,8 @@ import time
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 
+from rich.markup import escape as rich_escape
+
 from buddies.config import get_data_dir
 
 
@@ -424,8 +426,8 @@ def format_note_display(note: SoapstoneNote) -> str:
 
     phantom_tag = " [dim](phantom)[/dim]" if note.is_phantom else ""
     return (
-        f"  [yellow]📜[/yellow] \"{note.message}\" "
-        f"— {note.author_emoji} {note.author_name}{phantom_tag} "
+        f"  [yellow]📜[/yellow] \"{rich_escape(note.message)}\" "
+        f"— {note.author_emoji} {rich_escape(note.author_name)}{phantom_tag} "
         f"{note.rating_text} [dim]({age_str})[/dim]"
     )
 
@@ -441,14 +443,14 @@ def format_bloodstain_display(stain: Bloodstain) -> str:
         age_str = f"{int(age / 86400)}d ago"
 
     return (
-        f"  [red]💀[/red] {stain.buddy_emoji} {stain.buddy_name} (Lv.{stain.buddy_level}) "
-        f"fell to [bold red]{stain.cause_of_death}[/bold red] [dim]({age_str})[/dim]"
+        f"  [red]💀[/red] {stain.buddy_emoji} {rich_escape(stain.buddy_name)} (Lv.{stain.buddy_level}) "
+        f"fell to [bold red]{rich_escape(stain.cause_of_death)}[/bold red] [dim]({age_str})[/dim]"
     )
 
 
 def format_phantom_display(phantom: Phantom) -> str:
     """Format a phantom sighting."""
     return (
-        f"  [dim]👻 A faint apparition of {phantom.buddy_emoji} {phantom.buddy_name} "
-        f"({phantom.buddy_species}) appears, {phantom.action}...[/dim]"
+        f"  [dim]👻 A faint apparition of {phantom.buddy_emoji} {rich_escape(phantom.buddy_name)} "
+        f"({rich_escape(phantom.buddy_species)}) appears, {rich_escape(phantom.action)}...[/dim]"
     )

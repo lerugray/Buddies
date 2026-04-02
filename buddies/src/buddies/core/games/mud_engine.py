@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass, field
+from rich.markup import escape as rich_escape
 
 from buddies.core.buddy_brain import BuddyState
 from buddies.core.games import GameType, GameOutcome, GameResult
@@ -1302,7 +1303,7 @@ def _handle_rate(state: MudState, arg: str) -> list[str]:
     if state.mp_store.rate_note(note.id, upvote):
         state.notes_rated += 1
         emoji = "👍" if upvote else "👎"
-        return [f"{emoji} You rated the note \"{note.message}\" — {note.rating_text}"]
+        return [f"{emoji} You rated the note \"{rich_escape(note.message)}\" — {note.rating_text}"]
     else:
         return ["You've already rated this note."]
 
@@ -1451,12 +1452,12 @@ def _handle_rumors(state: MudState, _arg: str) -> list[str]:
         lines.append(f"\n[bold red]Most dangerous room:[/bold red] {room_name} ({deadliest[1]} deaths)")
 
     if deadliest_enemy:
-        lines.append(f"[bold red]Most feared foe:[/bold red] {deadliest_enemy[0]} ({deadliest_enemy[1]} kills)")
+        lines.append(f"[bold red]Most feared foe:[/bold red] {rich_escape(deadliest_enemy[0])} ({deadliest_enemy[1]} kills)")
 
     if top_note and top_note.rating > 0:
         lines.append(f"\n[bold yellow]Most helpful message:[/bold yellow]")
-        lines.append(f"  \"{top_note.message}\" {top_note.rating_text}")
-        lines.append(f"  — {top_note.author_emoji} {top_note.author_name}")
+        lines.append(f"  \"{rich_escape(top_note.message)}\" {top_note.rating_text}")
+        lines.append(f"  — {top_note.author_emoji} {rich_escape(top_note.author_name)}")
 
     # Flavor text
     flavor = [
