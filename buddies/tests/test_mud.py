@@ -1157,3 +1157,118 @@ class TestDynamicPricing:
                 text = "\n".join(lines)
                 assert "discounted" in text.lower()
                 assert f"{item.value}g" in text  # Shows original price
+
+
+# ---------------------------------------------------------------------------
+# E-Waste Catacombs zone expansion tests
+# ---------------------------------------------------------------------------
+
+class TestBasementZone:
+    """Tests for the E-Waste Catacombs zone expansion."""
+
+    def test_basement_rooms_exist(self):
+        rooms = build_starter_rooms()
+        for rid in ["ewaste_entrance", "tape_library", "crt_graveyard", "motherboard_maze", "founders_lab"]:
+            assert rid in rooms, f"Missing basement room: {rid}"
+
+    def test_basement_npcs_exist(self):
+        items = build_starter_items()
+        npcs = build_starter_npcs(items)
+        for nid in ["basement_ghost", "cobol_librarian", "phantom_process", "salvage_merchant"]:
+            assert nid in npcs, f"Missing basement NPC: {nid}"
+
+    def test_basement_items_exist(self):
+        items = build_starter_items()
+        for iid in ["floppy_stack", "backup_tape", "capacitor_heart", "gold_trace_ring",
+                     "founders_keycard", "founders_keystone", "prototype_duck", "crt_phosphor", "dialup_modem"]:
+            assert iid in items, f"Missing basement item: {iid}"
+
+    def test_parking_to_basement_navigation(self):
+        state = _make_game()
+        process_command(state, "go down")  # lobby -> parking
+        assert state.current_room == "parking_garage"
+        process_command(state, "go down")  # parking -> basement
+        assert state.current_room == "ewaste_entrance"
+
+    def test_basement_connectivity(self):
+        state = _make_game()
+        # Navigate to basement entrance
+        process_command(state, "go down")
+        process_command(state, "go down")
+        assert state.current_room == "ewaste_entrance"
+        # Go east to tape library
+        process_command(state, "go east")
+        assert state.current_room == "tape_library"
+        # Go south to motherboard maze
+        process_command(state, "go south")
+        assert state.current_room == "motherboard_maze"
+
+    def test_crt_graveyard_from_entrance(self):
+        state = _make_game()
+        process_command(state, "go down")
+        process_command(state, "go down")
+        process_command(state, "go south")
+        assert state.current_room == "crt_graveyard"
+
+    def test_founders_lab_locked(self):
+        state = _make_game()
+        # Navigate to CRT graveyard
+        process_command(state, "go down")
+        process_command(state, "go down")
+        process_command(state, "go south")
+        # Try to go south to founders lab (locked)
+        lines = process_command(state, "go south")
+        assert state.current_room == "crt_graveyard"  # Should still be here
+        assert any("locked" in l.lower() or "\U0001f512" in l for l in lines)
+
+    def test_phantom_process_combat(self):
+        items = build_starter_items()
+        npcs = build_starter_npcs(items)
+        pp = npcs["phantom_process"]
+        assert pp.disposition == NPCDisposition.HOSTILE
+        assert pp.hp == 45
+        assert pp.max_hp == 45
+        assert pp.attack == 11
+
+    def test_lost_backup_quest_exists(self):
+        quests = build_starter_quests()
+        assert "lost_backup" in quests
+        q = quests["lost_backup"]
+        assert q.giver == "basement_ghost"
+        assert q.gold_reward == 40
+        assert q.xp_reward == 30
+
+    def test_phantom_process_negotiation_tree(self):
+        from buddies.core.games.mud_negotiate import NEGOTIATION_TREES, NEGOTIATE_GIFTS
+        assert "phantom_process" in NEGOTIATION_TREES
+        tree = NEGOTIATION_TREES["phantom_process"]
+        assert len(tree) == 3  # 3 exchanges
+        assert "phantom_process" in NEGOTIATE_GIFTS
+
+    def test_basement_room_reactions(self):
+        for rid in ["ewaste_entrance", "tape_library", "crt_graveyard", "motherboard_maze", "founders_lab"]:
+            assert rid in ROOM_REACTIONS, f"Missing room reaction for {rid}"
+            reactions = ROOM_REACTIONS[rid]
+            for stat in ["debugging", "chaos", "snark", "wisdom", "patience"]:
+                assert stat in reactions, f"Missing {stat} reaction for {rid}"
+
+    def test_prototype_duck_stats(self):
+        items = build_starter_items()
+        duck = items["prototype_duck"]
+        assert duck.attack_bonus == 12  # Strongest melee weapon
+        assert duck.item_type == ItemType.WEAPON
+
+    def test_salvage_merchant_has_shop(self):
+        items = build_starter_items()
+        npcs = build_starter_npcs(items)
+        sal = npcs["salvage_merchant"]
+        assert sal.disposition == NPCDisposition.MERCHANT
+        assert len(sal.shop_items) > 0
+
+    def test_cobol_gives_backup_tape(self):
+        items = build_starter_items()
+        npcs = build_starter_npcs(items)
+        cobol = npcs["cobol_librarian"]
+        greeting = cobol.dialogue.get("greeting")
+        assert greeting is not None
+        assert greeting.gives_item == "backup_tape"
