@@ -701,7 +701,7 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - The world is designed to be expandable: add rooms/NPCs/quests by extending build_starter_* functions
 - Multiple quest chains create progression: QA quest → Archive badge → find incident report → get Oncall Pager
 - Pipeline quest → VPN token → Cloud District → Kubernetes Cluster
-- Now 9 games in the arcade (dungeon crawl removed — redundant with blobber)
+- Now 10 games in the arcade (dungeon crawl replaced by StackWars 4X)
 
 ## Session Notes (2026-04-01 — Home, Session 4)
 
@@ -764,6 +764,25 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - `tests/test_prompt_builder.py` — 24 tests for prompt builder
 - `tests/test_mud_transport.py` — 21 tests for transport + rumors
 - `tests/test_negotiate.py` — 24 tests for negotiation system
+
+- ✅ **StackWars — Micro-4X Wargame** (replaces dungeon crawl as 10th arcade game)
+  - Designed by Claude with direction from Ray Weiss' *A Contemporary Guide to Wargame Design*, inspired by Avianos (UFO 50)
+  - **Thesis**: personality traits that make you a good coder make you a terrible conqueror
+  - 5 factions from buddy stats: Engineers (DEBUGGING), Anarchists (CHAOS), Provocateurs (SNARK), Sages (WISDOM), Monks (PATIENCE)
+  - 5x5 procedural grid with mountains, servers, firewalls, flags, HQ tiles
+  - Avianos-style ability system: 5 abilities × 3 actions, 2-turn cooldown rotation
+  - Blessing progression: invest in abilities to permanently upgrade (no tech tree)
+  - 5 unit types with RPS matchups: Script Kiddies, Hackers, Architects, Operators, Sysadmins
+  - Odds-based CRT combat (per the book) with terrain/faction modifiers
+  - Win by holding 3 flags for a full round
+  - AI opponent with faction-specific priorities
+  - Architected for 2-4 players, async PBEM via GitHub Issues planned
+  - 34 tests
+
+### New files (updated — session 4 continued)
+- `core/games/stackwars.py` — StackWars engine (factions, abilities, units, combat, AI, map gen)
+- `screens/game_stackwars.py` — StackWars TUI with sidebar map + status
+- `tests/test_stackwars.py` — 34 tests
 
 ### Direction
 - Phase 12 fully complete (all 5 items checked off)

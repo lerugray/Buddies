@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![70 Species](https://img.shields.io/badge/species-70-orange.svg)](#species--rarity)
 [![16 Hats](https://img.shields.io/badge/hats-16-yellow.svg)](#hats-16)
-[![9 Games](https://img.shields.io/badge/games-9-red.svg)](#games-arcade-9-games)
+[![10 Games](https://img.shields.io/badge/games-10-red.svg)](#games-arcade-10-games)
 [![49 Achievements](https://img.shields.io/badge/achievements-49-purple.svg)](#achievements-49)
 
 Hatch buddies, collect species, earn hats, evolve, play games, explore a text adventure, negotiate with bugs, and build a team of quirky little creatures that react to how you code. Runs alongside Claude Code, watches your sessions, and actually helps — grading your config, saving tokens, and mapping your codebase.
@@ -17,7 +17,7 @@ Hatch buddies, collect species, earn hats, evolve, play games, explore a text ad
 
 Half the time Claude Code is burning tokens just figuring out where things are in your project. Buddies fixes that — it auto-generates a code map, grades your CLAUDE.md, watches for repeated mistakes and writes rules so Claude stops making them, and tracks your token usage with early warnings before you hit context limits.
 
-It also happens to be a collectible creature game with 70 species, 9 arcade games, a full text adventure MUD, a retro BBS social network, and personality-driven commentary. Because productivity tools should be fun.
+It also happens to be a collectible creature game with 70 species, 10 arcade games, a full text adventure MUD, a retro BBS social network, and personality-driven commentary. Because productivity tools should be fun.
 
 ## Quick Start
 
@@ -103,7 +103,7 @@ All 5 MCP tools work in headless mode. Background services (session observer, co
 | Feature | What it does |
 |---------|-------------|
 | **70 species** | Common Potato to Legendary Zorak. Deterministic gacha — same username, same starter. |
-| **9 arcade games** | RPS, Blackjack, Hold'em, Whist, JRPG Battles, Pong, Trivia, Blobber CRPG, and a full MUD. |
+| **10 arcade games** | RPS, Blackjack, Hold'em, Whist, JRPG Battles, Pong, Trivia, Blobber CRPG, StackHaven MUD, and StackWars 4X. |
 | **StackHaven MUD** | 17-room text adventure with NPCs, quests, combat, shopping, Dark Souls multiplayer, and discoverable lore. |
 | **SMT-style negotiation** | Talk your way through MUD encounters. Bugs ask tech-themed questions; your answers determine the outcome. |
 | **Async multiplayer** | Soapstone notes, bloodstains, and phantom traces sync via GitHub Issues. See other adventurers' journeys. |
@@ -117,7 +117,7 @@ All 5 MCP tools work in headless mode. Background services (session observer, co
 | **6 themes** | Default, midnight, forest, ocean, sunset, light — cycle with [F2]. |
 | **Prose engine** | Each buddy speaks through a personality register (clinical, sarcastic, absurdist, philosophical, calm). Zero AI needed. |
 
-### Games Arcade (9 games)
+### Games Arcade (10 games)
 
 | Game | Style | What makes it fun |
 |------|-------|-------------------|
@@ -130,6 +130,20 @@ All 5 MCP tools work in headless mode. Background services (session observer, co
 | **Pong** | Real-time | ~15 FPS in the terminal; buddy controls the other paddle |
 | **Blobber** | Wizardry-style CRPG | First-person, party-based, front/back rows, status effects |
 | **StackHaven MUD** | Text adventure | 17 rooms, 17 NPCs, 6 quests, negotiation, async multiplayer |
+| **StackWars** | Micro-4X wargame | Buddy factions, 5x5 grid, Avianos-style ability cooldowns |
+
+### StackWars
+
+A micro-4X wargame designed by Claude with direction from [*A Contemporary Guide to Wargame Design*](https://github.com/lerugray/wargame-design-book) by Ray Weiss, and inspired by [Avianos](https://ufo50.miraheze.org/wiki/Avianos) from UFO 50.
+
+- **5 factions** derived from buddy personality stats (Engineers, Anarchists, Provocateurs, Sages, Monks)
+- **5x5 grid** with procedural terrain (mountains, servers, firewalls, flags)
+- **Avianos-style ability system** — choose 1 of 5 abilities per turn, each with 3 actions, 2-turn cooldown rotation
+- **Blessing progression** — invest in abilities to permanently upgrade them (no tech tree)
+- **5 unit types** with rock-paper-scissors matchups (Script Kiddies, Hackers, Architects, Operators, Sysadmins)
+- **Odds-based CRT** combat resolution with terrain and faction modifiers
+- **Win by holding 3 flag tiles** for a full round
+- Architected for 2-4 players (AI opponents now, async PBEM via GitHub Issues planned)
 
 ### StackHaven MUD
 

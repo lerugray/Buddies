@@ -17,9 +17,9 @@ class GameType(Enum):
     BATTLE = "battle"
     TRIVIA = "trivia"
     PONG = "pong"
-    DUNGEON = "dungeon"
     CRAWL = "crawl"
     MUD = "mud"
+    STACKWARS = "stackwars"
 
 
 class GameOutcome(Enum):
@@ -37,6 +37,8 @@ class GameResult:
     score: dict = field(default_factory=dict)
     xp_earned: int = 0
     mood_delta: int = 0
+    turns: int = 0
+    details: str = ""
 
     @property
     def xp_for_outcome(self) -> int:
