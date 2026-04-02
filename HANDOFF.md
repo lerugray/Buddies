@@ -516,6 +516,14 @@ Anthropic launched a built-in companion in Claude Code on 2026-04-01 (the leaked
   - MEDIUM: MCP note sanitization, repo name validation, body size caps, bounty stat whitelist
   - LOW: Mood clamping, bounties_claimed as dataclass field, sync size caps
   - **Remaining (not yet fixed):** Gambling balance (coin flip true 50/50 — game design choice, not security)
+- ✅ **README updated** — repositioned as CC /buddy complement, updated all counts, added CC import feature
+
+### Direction
+- CC integration Tiers 1+2 DONE, Tiers 3+4 on roadmap (config reader, dialogue screen)
+- Security audit complete — all multiplayer systems hardened
+- README and HANDOFF both up to date
+- 800+ tests passing (11 pre-existing async screen test failures need `pytest-asyncio`)
+- Ready for: more MUD expansion, multiplayer leaderboards, Tier 5 audio, or new feature work
 
 ## Session Notes (2026-04-02 — Home, Session 1)
 
