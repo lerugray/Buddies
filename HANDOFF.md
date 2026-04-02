@@ -14,6 +14,7 @@ A tamagotchi-style local AI companion **collection** that runs alongside Claude 
 - Home machine: RTX 3050 4GB (use 3B models for Ollama)
 - **Memory sync rule**: Claude Code memories are local per-machine. Any important project context, creative direction, or design decisions saved to memory MUST also go in this HANDOFF.md so it syncs to the other machine via git. Memory is for Claude's recall; HANDOFF is for cross-machine persistence.
 - **HANDOFF hygiene**: This file should stay under ~500 lines. Session notes older than 2 sessions get compacted to one-liners in "Session History (Compacted)". Key decisions and architecture belong in the permanent sections above; session notes are ephemeral. Buddy's `compact_handoff()` runs on startup but Claude should also manually compact when the file exceeds ~600 lines.
+- **Docs timing rule**: Don't update HANDOFF/README after each task during autonomous work. Batch all doc updates + final commit into one pass near ~70% context or when the user asks. Commit code changes as you go, but save docs for the end.
 
 ## Project Status — Phases 1-5 MOSTLY COMPLETE
 - **Phase 1** (Foundation): DONE — scaffolding, TUI, buddy character, 25 species with colored half-block pixel art
