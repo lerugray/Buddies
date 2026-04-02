@@ -41,6 +41,7 @@ from buddies.screens.wiki import WikiScreen
 from buddies.screens.memory import MemoryScreen
 from buddies.screens.bbs import BBSScreen
 from buddies.screens.games import GamesScreen
+from buddies.screens.cc_dialogue import CCDialogueScreen
 from buddies.core.bbs_transport import BBSTransport
 from buddies.core.bbs_content import BBSContentEngine
 from buddies.core.bbs_nudge import NudgeDetector, NudgeResolver
@@ -86,6 +87,7 @@ class BuddyApp(App):
         Binding("g", "config_health", "Config", show=False),
         Binding("w", "wiki", "Wiki", show=False),
         Binding("m", "memory", "Memory", show=False),
+        Binding("v", "cc_dialogue", "CC Chat", show=False),
         Binding("f1", "quick_save", "Save", show=False),
         Binding("f2", "cycle_theme", "Theme", show=False),
         Binding("f3", "regen_map", "Map", show=False),
@@ -1211,6 +1213,18 @@ class BuddyApp(App):
 
     async def _on_memory_dismissed(self, result) -> None:
         pass
+
+    def action_cc_dialogue(self):
+        """Open the CC Companion Dialogue screen."""
+        self.push_screen(
+            CCDialogueScreen(store=self.store),
+            callback=self._on_cc_dialogue_dismissed,
+        )
+
+    async def _on_cc_dialogue_dismissed(self, result) -> None:
+        """Track rounds for achievements."""
+        if result and isinstance(result, int) and result > 0:
+            self._cc_dialogue_rounds = getattr(self, "_cc_dialogue_rounds", 0) + result
 
     def action_bbs(self):
         """Open the Buddies BBS."""
