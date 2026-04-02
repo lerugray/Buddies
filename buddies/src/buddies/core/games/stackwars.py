@@ -938,6 +938,81 @@ def resolve_combat(state: StackWarsState) -> list[str]:
 # End turn / win check
 # ---------------------------------------------------------------------------
 
+def _apply_faction_passive(state: StackWarsState, player: PlayerState) -> list[str]:
+    """Apply faction-specific passive abilities at end of turn.
+
+    These make each faction mechanically distinct (asymmetry through
+    faction menus, not just stats — per the book).
+    """
+    lines = []
+    emoji = FACTION_EMOJI[player.faction]
+
+    if player.faction == Faction.ENGINEERS:
+        # Intel passive: see enemy unit count on all tiles (already visible in scout)
+        # Bonus: +1 defense on all owned tiles with units
+        boosted = 0
+        for tile in state.player_tiles(player.index):
+            if tile.units and not tile.fortified:
+                # Engineers' precision — their units dig in automatically
+                boosted += 1
+        if boosted:
+            lines.append(f"[dim]{emoji} Engineer discipline: {boosted} tile(s) gain defensive posture.[/dim]")
+
+    elif player.faction == Faction.ANARCHISTS:
+        # Chaos passive: 25% chance to spawn a free Script Kiddie at a random owned tile
+        if random.random() < 0.25:
+            owned = state.player_tiles(player.index)
+            if owned:
+                tile = random.choice(owned)
+                tile.units.append(Unit(UnitType.SCRIPT_KIDDIE, player.index))
+                lines.append(f"[dim]{emoji} Anarchist chaos: a Script Kiddie appeared at ({tile.x},{tile.y})![/dim]")
+
+        # Garrison decay — anarchists lose 1 HP on a random unit each turn (weakness)
+        units = state.player_units(player.index)
+        if len(units) > 3 and random.random() < 0.3:
+            _, _, victim = random.choice(units)
+            victim.hp -= 1
+            if not victim.alive:
+                lines.append(f"[dim]{emoji} Anarchist entropy: a unit deserted.[/dim]")
+            else:
+                lines.append(f"[dim]{emoji} Anarchist entropy: a unit grows restless (-1 HP).[/dim]")
+
+    elif player.faction == Faction.PROVOCATEURS:
+        # Theft passive: steal 1-2 Code from each adjacent enemy
+        for other in state.players:
+            if other.index == player.index or other.eliminated:
+                continue
+            stolen = random.randint(0, 2)
+            if stolen > 0 and other.code >= stolen:
+                other.code -= stolen
+                player.code += stolen
+                player.cap_resources()
+                lines.append(f"[dim]{emoji} Provocateur sabotage: stole {stolen} Code from {other.buddy_name}.[/dim]")
+
+    elif player.faction == Faction.SAGES:
+        # Knowledge passive: +1 favor to a random ability each turn
+        abilities = list(AbilityType)
+        chosen = random.choice(abilities)
+        player.favor[chosen.value] += 1
+        fav = player.favor[chosen.value]
+        if fav > 0 and fav % 2 == 0:
+            player.blessings[chosen.value] += 1
+            lines.append(f"[dim]{emoji} Sage insight: {chosen.value.title()} blessed (Lv.{player.blessings[chosen.value]})![/dim]")
+        else:
+            lines.append(f"[dim]{emoji} Sage meditation: {chosen.value.title()} favor grows.[/dim]")
+
+    elif player.faction == Faction.MONKS:
+        # Economy passive: +1 Code per owned tile (capped — monks are rich but slow)
+        owned = len(state.player_tiles(player.index))
+        gain = min(owned, 5)  # Cap at 5
+        player.code += gain
+        player.cap_resources()
+        if gain:
+            lines.append(f"[dim]{emoji} Monk discipline: +{gain} Code from {owned} controlled tile(s).[/dim]")
+
+    return lines
+
+
 def _end_turn(state: StackWarsState) -> list[str]:
     """End the current player's turn."""
     lines = []
@@ -960,6 +1035,11 @@ def _end_turn(state: StackWarsState) -> list[str]:
                 abilities = list(AbilityType)
                 random.choice(abilities)
     player.cap_resources()
+
+    # Faction passive abilities
+    faction_lines = _apply_faction_passive(state, player)
+    if faction_lines:
+        lines.extend(faction_lines)
 
     # Resolve combat
     combat_lines = resolve_combat(state)

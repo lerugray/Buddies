@@ -7,7 +7,7 @@
 [![70 Species](https://img.shields.io/badge/species-70-orange.svg)](#species--rarity)
 [![16 Hats](https://img.shields.io/badge/hats-16-yellow.svg)](#hats-16)
 [![10 Games](https://img.shields.io/badge/games-10-red.svg)](#games-arcade-10-games)
-[![49 Achievements](https://img.shields.io/badge/achievements-49-purple.svg)](#achievements-49)
+[![56 Achievements](https://img.shields.io/badge/achievements-56-purple.svg)](#achievements-56)
 
 Hatch buddies, collect species, earn hats, evolve, play games, explore a text adventure, negotiate with bugs, and build a team of quirky little creatures that react to how you code. Runs alongside Claude Code, watches your sessions, and actually helps — grading your config, saving tokens, and mapping your codebase.
 
@@ -113,7 +113,7 @@ All 5 MCP tools work in headless mode. Background services (session observer, co
 | **Idle life** | Buddies do things while you code — explore, find items, journal, get into trouble, socialize. |
 | **16 hats** | Unlocked by playstyle, stats, milestones, and even boredom. |
 | **4 evolution stages** | Hatchling, Juvenile, Adult, Elder — with visual border changes. |
-| **49 achievements** | Collection, mastery, social, exploration, games, and secret categories. |
+| **56 achievements** | Collection, mastery, social, exploration, games, and secret categories. |
 | **6 themes** | Default, midnight, forest, ocean, sunset, light — cycle with [F2]. |
 | **Prose engine** | Each buddy speaks through a personality register (clinical, sarcastic, absurdist, philosophical, calm). Zero AI needed. |
 

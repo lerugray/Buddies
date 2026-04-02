@@ -70,6 +70,7 @@ ACHIEVEMENTS: list[Achievement] = [
     Achievement("trivia_master", "Trivia Master", "Score 10/10 on trivia", "🧠", "mastery"),
     Achievement("pong_champion", "Pong Champion", "Win a game of Pong", "🏓", "mastery"),
     Achievement("dungeon_master", "Dungeon Delver", "Win a blobber dungeon crawl", "🗡️", "mastery"),
+    Achievement("stackwars_victor", "Strategist", "Win a game of StackWars", "⚔️", "mastery"),
     Achievement("arcade_regular", "Arcade Regular", "Play 25 total games", "🕹️", "mastery"),
     Achievement("all_in_chaos", "ALL IN!", "Win a game with a high-CHAOS buddy", "🎰", "secret"),
 
@@ -264,7 +265,8 @@ def check_achievements(
         )
         battles_won = by_type.get("battle", {}).get("won", 0)
         pong_won = by_type.get("pong", {}).get("won", 0)
-        dungeon_won = by_type.get("dungeon", {}).get("won", 0)
+        dungeon_won = by_type.get("crawl", {}).get("won", 0)
+        stackwars_won = by_type.get("stackwars", {}).get("won", 0)
         trivia_perfect = game_stats.get("trivia_perfect", False)
 
         # MUD achievements
@@ -285,6 +287,7 @@ def check_achievements(
         _check("battle_veteran", battles_won >= 10)
         _check("pong_champion", pong_won >= 1)
         _check("dungeon_master", dungeon_won >= 1)
+        _check("stackwars_victor", stackwars_won >= 1)
         _check("trivia_master", trivia_perfect)
         _check("arcade_regular", gp >= 25)
 
