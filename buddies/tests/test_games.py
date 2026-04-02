@@ -1,4 +1,4 @@
-"""Tests for all game engines — Pong, Trivia, Hold'em, Whist, RPS, Blackjack, Battle.
+"""Tests for all game engines — Pong, Trivia, Hold'em, Whist, Snake, SkiFree, Deckbuilder.
 
 Exercises core game logic, edge cases, and personality-driven AI behavior.
 """
@@ -451,60 +451,307 @@ class TestCards:
 
 
 # ---------------------------------------------------------------------------
-# RPS
+# Snake (Buffer Overflow)
 # ---------------------------------------------------------------------------
 
-class TestRPS:
+class TestSnake:
     def test_game_creates(self):
-        from buddies.core.games.rps import RPSGame
-        game = RPSGame(buddy_state=make_buddy())
-        assert game.player_wins == 0
-        assert game.buddy_wins == 0
+        from buddies.core.games.snake import SnakeGame
+        game = SnakeGame(buddy_state=make_buddy())
+        assert game.alive
+        assert game.score == 0
+        assert len(game.body) == 3
 
-    def test_round_resolves(self):
-        from buddies.core.games.rps import RPSGame, RPSChoice
-        game = RPSGame(buddy_state=make_buddy())
-        rnd = game.play_round(RPSChoice.ROCK)
-        assert rnd.outcome is not None
+    def test_initial_direction_right(self):
+        from buddies.core.games.snake import SnakeGame, Direction
+        game = SnakeGame(buddy_state=make_buddy())
+        assert game.direction == Direction.RIGHT
 
-    def test_game_ends(self):
-        from buddies.core.games.rps import RPSGame, RPSChoice
-        game = RPSGame(buddy_state=make_buddy(), best_of=3)
-        # Play enough rounds to end the game
-        for _ in range(20):
-            if game.is_over:
-                break
-            game.play_round(random.choice(list(RPSChoice)))
-        assert game.is_over
+    def test_tick_moves_snake(self):
+        from buddies.core.games.snake import SnakeGame
+        game = SnakeGame(buddy_state=make_buddy())
+        head_x = game.body[0].x
+        game.tick()
+        assert game.body[0].x == head_x + 1
+
+    def test_direction_change(self):
+        from buddies.core.games.snake import SnakeGame, Direction
+        game = SnakeGame(buddy_state=make_buddy())
+        game.set_direction(Direction.UP)
+        game.tick()
+        assert game.direction == Direction.UP
+
+    def test_reverse_direction_ignored(self):
+        from buddies.core.games.snake import SnakeGame, Direction
+        game = SnakeGame(buddy_state=make_buddy())
+        # Going right, try to go left — should be ignored
+        game.set_direction(Direction.LEFT)
+        game.tick()
+        assert game.direction == Direction.RIGHT
+
+    def test_wall_collision_kills(self):
+        from buddies.core.games.snake import SnakeGame, Direction, GRID_W
+        game = SnakeGame(buddy_state=make_buddy())
+        # Move snake to right edge
+        game.body[0].x = GRID_W - 1
+        game.tick()
+        assert not game.alive
+
+    def test_eating_increases_length(self):
+        from buddies.core.games.snake import SnakeGame, SnakeCell
+        game = SnakeGame(buddy_state=make_buddy())
+        start_len = len(game.body)
+        # Place packet right in front of head
+        head = game.body[0]
+        game.packet = SnakeCell(head.x + 1, head.y)
+        game.tick()
+        assert len(game.body) > start_len
+
+    def test_eating_increases_score(self):
+        from buddies.core.games.snake import SnakeGame, SnakeCell
+        game = SnakeGame(buddy_state=make_buddy())
+        head = game.body[0]
+        game.packet = SnakeCell(head.x + 1, head.y)
+        game.tick()
+        assert game.score > 0
+
+    def test_render_grid_correct_size(self):
+        from buddies.core.games.snake import SnakeGame, GRID_H, GRID_W
+        game = SnakeGame(buddy_state=make_buddy())
+        rows = game.render_grid()
+        assert len(rows) == GRID_H
+        assert len(rows[0]) == GRID_W
+
+    def test_game_result(self):
+        from buddies.core.games.snake import SnakeGame
+        game = SnakeGame(buddy_state=make_buddy())
+        # Kill the snake
+        game.alive = False
+        result = game.get_result()
+        assert result.score["score"] == 0
+        assert result.xp_earned >= 5
+
+    def test_chaos_buddy_more_obstacle_chance(self):
+        from buddies.core.games.snake import SnakeGame
+        chaos_buddy = make_buddy(dominant="chaos")
+        game = SnakeGame(buddy_state=chaos_buddy)
+        assert game._chaos > 0
+
+    def test_speed_ramp(self):
+        from buddies.core.games.snake import SnakeGame
+        game = SnakeGame(buddy_state=make_buddy())
+        initial_interval = game.current_tick_interval
+        game.elapsed_seconds = 100.0
+        assert game.current_tick_interval < initial_interval
 
 
 # ---------------------------------------------------------------------------
-# Battle (JRPG)
+# Ski Free (Stack Descent)
 # ---------------------------------------------------------------------------
 
-class TestBattle:
-    def test_battle_creates(self):
-        from buddies.core.games.battle import Battle
-        battle = Battle(buddy_state=make_buddy())
-        assert battle.buddy.hp > 0
-        assert battle.enemy_fighter.hp > 0
+class TestSkiFree:
+    def test_game_creates(self):
+        from buddies.core.games.skifree import SkiFreeGame
+        game = SkiFreeGame(buddy_state=make_buddy())
+        assert game.alive
+        assert game.score == 0
+        assert game.player_lane == 3
 
-    def test_player_attack_deals_damage(self):
-        from buddies.core.games.battle import Battle
-        battle = Battle(buddy_state=make_buddy())
-        initial_hp = battle.enemy_fighter.hp
-        battle.player_attack(0)
-        # Might miss, so just verify no crash
-        assert battle.enemy_fighter.hp <= initial_hp
+    def test_move_left(self):
+        from buddies.core.games.skifree import SkiFreeGame
+        game = SkiFreeGame(buddy_state=make_buddy())
+        game.move_left()
+        assert game.player_lane == 2
 
-    def test_enemy_attack(self):
-        from buddies.core.games.battle import Battle
-        battle = Battle(buddy_state=make_buddy())
-        initial_hp = battle.buddy.hp
-        battle.enemy_attack()
-        assert battle.buddy.hp <= initial_hp
+    def test_move_right(self):
+        from buddies.core.games.skifree import SkiFreeGame
+        game = SkiFreeGame(buddy_state=make_buddy())
+        game.move_right()
+        assert game.player_lane == 4
 
-    def test_type_chart_exists(self):
-        from buddies.core.games.battle import TYPE_CHART, MoveType
-        assert MoveType.LOGIC in TYPE_CHART
-        assert MoveType.CHAOS in TYPE_CHART[MoveType.LOGIC]
+    def test_cant_move_past_left_edge(self):
+        from buddies.core.games.skifree import SkiFreeGame
+        game = SkiFreeGame(buddy_state=make_buddy())
+        game.player_lane = 0
+        game.move_left()
+        assert game.player_lane == 0
+
+    def test_cant_move_past_right_edge(self):
+        from buddies.core.games.skifree import SkiFreeGame, NUM_LANES
+        game = SkiFreeGame(buddy_state=make_buddy())
+        game.player_lane = NUM_LANES - 1
+        game.move_right()
+        assert game.player_lane == NUM_LANES - 1
+
+    def test_tick_increases_distance(self):
+        from buddies.core.games.skifree import SkiFreeGame
+        game = SkiFreeGame(buddy_state=make_buddy())
+        game.tick()
+        assert game.distance > 0
+
+    def test_tick_increases_score(self):
+        from buddies.core.games.skifree import SkiFreeGame
+        game = SkiFreeGame(buddy_state=make_buddy())
+        game.tick()
+        assert game.score > 0
+
+    def test_terrain_generated(self):
+        from buddies.core.games.skifree import SkiFreeGame
+        game = SkiFreeGame(buddy_state=make_buddy())
+        assert len(game.terrain) > 0
+
+    def test_render_returns_correct_rows(self):
+        from buddies.core.games.skifree import SkiFreeGame, VISIBLE_ROWS, NUM_LANES
+        game = SkiFreeGame(buddy_state=make_buddy())
+        terrain = game.render_terrain()
+        assert len(terrain) == VISIBLE_ROWS
+        assert all(len(row) == NUM_LANES for row in terrain)
+
+    def test_auditor_appears_at_distance(self):
+        from buddies.core.games.skifree import SkiFreeGame, AUDITOR_DISTANCE, DISTANCE_PER_TICK
+        game = SkiFreeGame(buddy_state=make_buddy())
+        game.distance = AUDITOR_DISTANCE * DISTANCE_PER_TICK
+        evts = game.tick()
+        assert "auditor_appears" in evts
+
+    def test_shield_absorbs_hit(self):
+        from buddies.core.games.skifree import SkiFreeGame, CellType, VISIBLE_ROWS
+        game = SkiFreeGame(buddy_state=make_buddy())
+        game.shield_ticks = 5
+        # Force an obstacle at the player's position
+        player_row = VISIBLE_ROWS - 2
+        game.terrain[player_row].cells[game.player_lane] = CellType.OBSTACLE_LEGACY
+        game.tick()
+        # Should survive
+        assert game.alive
+
+    def test_game_result(self):
+        from buddies.core.games.skifree import SkiFreeGame
+        game = SkiFreeGame(buddy_state=make_buddy())
+        game.alive = False
+        result = game.get_result()
+        assert result.xp_earned >= 5
+
+
+# ---------------------------------------------------------------------------
+# Deckbuilder (Deploy or Die)
+# ---------------------------------------------------------------------------
+
+class TestDeckbuilder:
+    def test_game_creates(self):
+        from buddies.core.games.deckbuilder import DeckbuilderGame
+        game = DeckbuilderGame(buddy_state=make_buddy())
+        assert game.sprint == 1
+        assert game.stability > 0
+        assert len(game.deck) + len(game.hand) > 0
+
+    def test_starting_deck_has_8_cards(self):
+        from buddies.core.games.deckbuilder import DeckbuilderGame
+        game = DeckbuilderGame(buddy_state=make_buddy())
+        total = len(game.deck) + len(game.hand) + len(game.discard)
+        assert total == 8
+
+    def test_patience_bonus_stability(self):
+        from buddies.core.games.deckbuilder import DeckbuilderGame
+        patience_buddy = make_buddy(dominant="patience")
+        game = DeckbuilderGame(buddy_state=patience_buddy)
+        assert game.stability == 12  # 10 base + 2 patience bonus
+
+    def test_play_card_generates_dp(self):
+        from buddies.core.games.deckbuilder import DeckbuilderGame
+        game = DeckbuilderGame(buddy_state=make_buddy())
+        # Find a commit card in hand
+        commit_idx = next((i for i, c in enumerate(game.hand) if c.name == "Commit"), None)
+        if commit_idx is not None:
+            initial_dp = game.dp_available
+            game.play_card(commit_idx)
+            assert game.dp_available > initial_dp
+
+    def test_resolve_incident_costs_dp(self):
+        from buddies.core.games.deckbuilder import DeckbuilderGame, GamePhase
+        game = DeckbuilderGame(buddy_state=make_buddy())
+        # Generate some DP
+        game.dp_available = 10
+        game.phase = GamePhase.RESOLVE
+        if game.active_incidents:
+            inc = game.active_incidents[0]
+            cost = inc.current_cost
+            game.resolve_incident(0)
+            assert game.dp_available == 10 - cost
+
+    def test_cannot_resolve_without_dp(self):
+        from buddies.core.games.deckbuilder import DeckbuilderGame, GamePhase
+        game = DeckbuilderGame(buddy_state=make_buddy())
+        game.dp_available = 0
+        game.phase = GamePhase.RESOLVE
+        if game.active_incidents:
+            result = game.resolve_incident(0)
+            assert "insufficient_dp" in result
+
+    def test_buy_card_from_shop(self):
+        from buddies.core.games.deckbuilder import DeckbuilderGame, GamePhase
+        game = DeckbuilderGame(buddy_state=make_buddy())
+        game.phase = GamePhase.SHOP
+        game._refresh_shop()
+        if game.shop_offerings:
+            card = game.shop_offerings[0]
+            game.dp_available = card.cost + 5
+            initial_discard = len(game.discard)
+            game.buy_card(0)
+            assert len(game.discard) == initial_discard + 1
+
+    def test_sprint_escalation(self):
+        from buddies.core.games.deckbuilder import DeckbuilderGame
+        game = DeckbuilderGame(buddy_state=make_buddy())
+        # Sprint 6+ should have 3 incidents
+        game.sprint = 6
+        incidents = game._generate_incidents()
+        assert len(incidents) >= 2  # at least 2, usually 3
+
+    def test_game_over_at_zero_stability(self):
+        from buddies.core.games.deckbuilder import DeckbuilderGame, GamePhase
+        game = DeckbuilderGame(buddy_state=make_buddy())
+        game.stability = 1
+        game.phase = GamePhase.SHOP
+        game.active_incidents = []
+        # Force a damage event
+        from buddies.core.games.deckbuilder import ALL_INCIDENTS
+        import copy
+        damage_inc = copy.copy(ALL_INCIDENTS[0])
+        damage_inc.stability_damage = 5
+        game.active_incidents = [damage_inc]
+        events = game.end_sprint()
+        assert "game_over" in events
+
+    def test_win_after_all_sprints(self):
+        from buddies.core.games.deckbuilder import DeckbuilderGame, GamePhase
+        game = DeckbuilderGame(buddy_state=make_buddy())
+        game.sprint = game.total_sprints
+        game.active_incidents = []
+        game.phase = GamePhase.SHOP
+        events = game.end_sprint()
+        assert "win" in events
+
+    def test_personality_starting_cards(self):
+        from buddies.core.games.deckbuilder import DeckbuilderGame
+        debugging_buddy = make_buddy(dominant="debugging")
+        game = DeckbuilderGame(buddy_state=debugging_buddy)
+        all_cards = game.deck + game.hand + game.discard
+        names = [c.name for c in all_cards]
+        # Debugging buddy should have Linter in starting deck
+        assert "Linter" in names
+
+    def test_shop_offerings_not_empty(self):
+        from buddies.core.games.deckbuilder import DeckbuilderGame
+        game = DeckbuilderGame(buddy_state=make_buddy())
+        game._refresh_shop()
+        assert len(game.shop_offerings) > 0
+
+    def test_game_result(self):
+        from buddies.core.games.deckbuilder import DeckbuilderGame, GamePhase
+        game = DeckbuilderGame(buddy_state=make_buddy())
+        game.phase = GamePhase.GAME_OVER
+        result = game.get_result()
+        assert result.xp_earned >= 5
+        assert result.score["sprints_survived"] >= 1
+

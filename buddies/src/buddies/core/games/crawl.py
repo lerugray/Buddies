@@ -14,7 +14,7 @@ from enum import Enum, IntEnum
 from buddies.core.buddy_brain import BuddyState
 from buddies.core.games import GameType, GameOutcome, GameResult
 from buddies.core.games.engine import GamePersonality, personality_from_state
-from buddies.core.games.battle import (
+from buddies.core.games.combat import (
     BattleFighter, Move, MoveType, Enemy, ENEMY_POOL, MOVE_POOLS,
     random_enemy, get_buddy_moves, TYPE_CHART,
 )

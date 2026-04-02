@@ -83,22 +83,6 @@ class TestGameScreens:
             await pilot.pause()
 
     @pytest.mark.asyncio
-    async def test_battle_screen(self, buddy):
-        from textual.app import App
-        from buddies.screens.game_battle import BattleScreen
-
-        class TestApp(App):
-            def on_mount(self):
-                self.push_screen(BattleScreen(buddy_state=buddy))
-
-        async with TestApp().run_test(size=(100, 30)) as pilot:
-            await pilot.pause()
-            assert pilot.app.screen.__class__.__name__ == "BattleScreen"
-            # Attack
-            await pilot.press("1")
-            await pilot.pause()
-
-    @pytest.mark.asyncio
     @pytest.mark.skip(reason="Textual render_strips internals bug with timer-driven Static updates")
     async def test_pong_screen(self, buddy):
         from textual.app import App
@@ -298,9 +282,9 @@ class TestImports:
         from buddies.screens.wiki import WikiScreen
         from buddies.screens.memory import MemoryScreen
         from buddies.screens.games import GamesScreen
-        from buddies.screens.game_rps import RPSScreen
-        from buddies.screens.game_blackjack import BlackjackScreen
-        from buddies.screens.game_battle import BattleScreen
+        from buddies.screens.game_snake import SnakeScreen
+        from buddies.screens.game_skifree import SkiFreeScreen
+        from buddies.screens.game_deckbuilder import DeckbuilderScreen
         from buddies.screens.game_pong import PongScreen
         from buddies.screens.game_trivia import TriviaScreen
         from buddies.screens.game_holdem import HoldemScreen
@@ -328,9 +312,9 @@ class TestImports:
     def test_all_game_engines_import(self):
         from buddies.core.games import GameType, GameOutcome, GameResult
         from buddies.core.games.engine import GamePersonality
-        from buddies.core.games.rps import RPSGame
-        from buddies.core.games.blackjack import BlackjackGame
-        from buddies.core.games.battle import Battle
+        from buddies.core.games.snake import SnakeGame
+        from buddies.core.games.skifree import SkiFreeGame
+        from buddies.core.games.deckbuilder import DeckbuilderGame
         from buddies.core.games.pong import PongGame
         from buddies.core.games.trivia import TriviaGame
         from buddies.core.games.holdem import HoldemGame

@@ -1,4 +1,4 @@
-"""Game-specific prose templates — trash talk, reactions, battle commentary.
+"""Game-specific prose templates — trash talk, game reactions, commentary.
 
 Follows the same template pool + register pattern as prose.py.
 Templates are picked based on buddy personality register.
@@ -30,143 +30,6 @@ def _dominant_stat(state: BuddyState) -> str:
 
 def _register(state: BuddyState) -> str:
     return REGISTERS.get(_dominant_stat(state), "calm")
-
-
-# ---------------------------------------------------------------------------
-# RPS templates
-# ---------------------------------------------------------------------------
-
-RPS_THROW = {
-    "clinical": [
-        "After careful analysis... {choice}.",
-        "The optimal play, statistically speaking: {choice}.",
-        "Logic dictates: {choice}.",
-        "Probability matrix suggests: {choice}.",
-    ],
-    "sarcastic": [
-        "Oh wow, I'm going with {choice}. Shocking.",
-        "{choice}. Try not to be too impressed.",
-        "Let me blow your mind: {choice}.",
-        "{choice}. You're welcome.",
-    ],
-    "absurdist": [
-        "The voices say... {choice}!",
-        "{choice}! *the crowd goes mild*",
-        "I asked the void. It said {choice}.",
-        "My {choice} transcends this mortal game.",
-    ],
-    "philosophical": [
-        "In the grand scheme... {choice}.",
-        "The Tao of {choice}.",
-        "{choice} — as it was always meant to be.",
-        "One must imagine Sisyphus throwing {choice}.",
-    ],
-    "calm": [
-        "{choice}. Nice and steady.",
-        "Going with {choice}. Feels right.",
-        "{choice}, no rush.",
-        "I'll take {choice}. Patience pays.",
-    ],
-}
-
-RPS_WIN = {
-    "clinical": [
-        "Victory confirmed. As predicted.",
-        "Outcome: favorable. Moving on.",
-        "Win logged. Pattern detected.",
-    ],
-    "sarcastic": [
-        "Oh no, I won. How unexpected.",
-        "Try harder next time. Or don't.",
-        "Was that supposed to be a challenge?",
-    ],
-    "absurdist": [
-        "The cosmos smiles upon my {choice}!",
-        "VICTORY! The prophecy was true!",
-        "My {choice} has achieved enlightenment!",
-    ],
-    "philosophical": [
-        "The student has become the master.",
-        "Victory is but a moment in the journey.",
-        "To win without fighting is the greatest win.",
-    ],
-    "calm": [
-        "That went well. Nice round.",
-        "A win! No need to celebrate too hard.",
-        "Steady wins the game.",
-    ],
-}
-
-RPS_LOSE = {
-    "clinical": [
-        "Unexpected result. Recalibrating.",
-        "Loss noted. Adjusting parameters.",
-        "Anomalous outcome. Investigating.",
-    ],
-    "sarcastic": [
-        "Fine. You got ONE round. Enjoy it.",
-        "I let you have that one.",
-        "Wow, a loss. My entire identity is shattered.",
-    ],
-    "absurdist": [
-        "The void... the void took that one.",
-        "My {choice} was sabotaged by cosmic forces!",
-        "BETRAYAL! My own {choice} turned against me!",
-    ],
-    "philosophical": [
-        "Loss teaches more than victory ever could.",
-        "To lose is to learn. I am learning.",
-        "The path to mastery winds through defeat.",
-    ],
-    "calm": [
-        "That's okay. There's always next round.",
-        "A loss, but no worries. We keep going.",
-        "Can't win 'em all. Onwards.",
-    ],
-}
-
-RPS_DRAW = {
-    "clinical": [
-        "Identical selections. Statistically inevitable.",
-        "Draw. Both parties performed identically.",
-        "Matched output. Rerunning.",
-    ],
-    "sarcastic": [
-        "Great minds think alike. Unfortunately.",
-        "A draw. Riveting stuff.",
-        "We both picked {choice}. How original.",
-    ],
-    "absurdist": [
-        "We are ONE MIND! ...that's terrifying.",
-        "The universe is a mirror and we are its reflection!",
-        "TWO {choice}S ENTER. NONE LEAVE.",
-    ],
-    "philosophical": [
-        "Harmony in opposition.",
-        "Two minds, one thought. Beautiful.",
-        "The duality of {choice}.",
-    ],
-    "calm": [
-        "A tie. Let's go again.",
-        "Same choice! Happens to the best of us.",
-        "Draw. No harm done.",
-    ],
-}
-
-RPS_STREAK = [
-    "That's {n} in a row! I'm on FIRE!",
-    "{n}-streak! Bow before me!",
-    "Win number {n}. I'm basically a legend now.",
-    "{n} consecutive wins. The math checks out.",
-    "Streak: {n}. Getting scary.",
-]
-
-RPS_STREAK_BROKEN = [
-    "There goes my {n}-win streak. RIP.",
-    "Streak broken at {n}. I'll remember this.",
-    "The {n}-streak dream is over.",
-    "{n} wins and then THIS? Unbelievable.",
-]
 
 
 # ---------------------------------------------------------------------------
@@ -207,64 +70,93 @@ GAME_DRAW = [
 
 
 # ---------------------------------------------------------------------------
-# Battle templates (for future use)
+# Snake (Buffer Overflow) templates
 # ---------------------------------------------------------------------------
 
-BATTLE_INTRO = [
-    "A wild {enemy} appeared!",
-    "{name} squares up against {enemy}. This is gonna be... something.",
-    "{enemy} blocks the path! {name} readies for battle!",
-    "Oh no. It's a {enemy}. {name}, you got this. Probably.",
-]
-
-BATTLE_ATTACK = {
+SNAKE_MILESTONE_PROSE = {
     "clinical": [
-        "{name} executes {move}. Damage: {damage}.",
-        "Deploying {move}. Impact confirmed: {damage} HP.",
-        "{move} engaged. Target integrity reduced by {damage}.",
+        "Length {length}. Growth rate within expected parameters.",
+        "Score: {score}. Packet consumption efficiency: optimal.",
     ],
     "sarcastic": [
-        "{name} uses {move}. {damage} damage. You're welcome.",
-        "Oh look, {move} did {damage}. Color me shocked.",
-        "{move}! {damage} damage! *slow clap*",
+        "Length {length}. Wow. A snake. How novel.",
+        "{score} points. The packets tremble.",
     ],
     "absurdist": [
-        "{name} hurls {move} into the void! {damage} damage echoes back!",
-        "{move}! The fabric of reality shudders! ({damage} HP)",
-        "From the depths of chaos: {move}! {damage} damage!",
+        "LENGTH {length}! THE POINTER ASCENDS!",
+        "{score} POINTS! THE DATA FLOWS THROUGH ME!",
     ],
     "philosophical": [
-        "{name} contemplates {move}... {damage} damage flows naturally.",
-        "With great wisdom, {name} chooses {move}. {damage} to the soul.",
-        "{move} — {damage} damage. Such is the way of battle.",
+        "Length {length}. To grow is to risk collision.",
+        "{score} points, and still the hunger remains.",
     ],
     "calm": [
-        "{name} calmly uses {move}. {damage} damage. Nice.",
-        "{move}. {damage} damage. Steady as always.",
-        "No rush. {move}. {damage}. Easy.",
+        "Length {length}. Doing well.",
+        "{score} points. Keep it steady.",
     ],
 }
 
-BATTLE_CRIT = [
-    "CRITICAL HIT! The pixels are SHAKING!",
-    "💥 CRIT! That one's going in the highlight reel!",
-    "CRITICAL! Even {name} is surprised!",
-    "DEVASTATING! {damage} damage! That's gonna leave a mark!",
+SNAKE_HIGH_SCORE = [
+    "NEW HIGH SCORE: {score}! {name} is a legend!",
+    "{score} points! A new personal best for {name}!",
+    "High score beaten! {score}! The leaderboard weeps!",
 ]
 
-BATTLE_FAINT = [
-    "{name} has... seen better days. Time for a nap.",
-    "{name} faints! But hey, XP is XP.",
-    "Down goes {name}. A valiant effort.",
-    "{name} needs a moment. Or several.",
-]
 
-BATTLE_VICTORY = [
-    "{name} stands triumphant over {enemy}!",
-    "{enemy} has been vanquished! {name} gains {xp} XP!",
-    "Victory! {name} does a little dance.",
-    "The {enemy} is no more. {name} levels up their swagger.",
-]
+# ---------------------------------------------------------------------------
+# Ski Free (Stack Descent) templates
+# ---------------------------------------------------------------------------
+
+SKIFREE_AUDITOR_PROSE = {
+    "clinical": [
+        "The Auditor approaches. Compliance probability: falling.",
+        "Performance review imminent. Distance: {dist}m.",
+    ],
+    "sarcastic": [
+        "The Auditor. Great. He has a clipboard AND a stopwatch.",
+        "Running from The Auditor at {dist}m. Very professional.",
+    ],
+    "absurdist": [
+        "HIS CLIPBOARD GROWS. HIS QUESTIONS MULTIPLY.",
+        "THE AUDITOR WANTS TO DISCUSS Q3 METRICS AT {dist}M.",
+    ],
+    "philosophical": [
+        "We cannot outrun accountability. Only delay it.",
+        "The Auditor is the shadow of all unfinished work.",
+    ],
+    "calm": [
+        "Auditor behind you. Just keep moving.",
+        "He's close. Don't stop.",
+    ],
+}
+
+
+# ---------------------------------------------------------------------------
+# Deckbuilder (Deploy or Die) templates
+# ---------------------------------------------------------------------------
+
+DECKBUILDER_INCIDENT_SURVIVED = {
+    "clinical": [
+        "Sprint {sprint} complete. Stability: {stability}. Proceeding.",
+        "Incident queue cleared. System nominal for sprint {sprint}.",
+    ],
+    "sarcastic": [
+        "Survived sprint {sprint}. Barely. But barely counts.",
+        "Sprint {sprint} in the books. The servers still breathe.",
+    ],
+    "absurdist": [
+        "SPRINT {sprint} FALLS BEFORE US! THE SYSTEM ENDURES!",
+        "Another sprint conquered! Stability: {stability}! WE LIVE!",
+    ],
+    "philosophical": [
+        "Sprint {sprint} passes. Each resolved incident, a lesson.",
+        "Stability: {stability}. The codebase persists, as it must.",
+    ],
+    "calm": [
+        "Sprint {sprint} done. Stability at {stability}. Good work.",
+        "Through sprint {sprint}. System holding at {stability}.",
+    ],
+}
 
 
 # ---------------------------------------------------------------------------

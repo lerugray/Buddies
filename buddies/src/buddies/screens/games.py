@@ -13,9 +13,9 @@ from textual.screen import Screen
 
 from buddies.core.buddy_brain import BuddyState
 from buddies.core.games import GameResult
-from buddies.screens.game_rps import RPSScreen
-from buddies.screens.game_blackjack import BlackjackScreen
-from buddies.screens.game_battle import BattleScreen
+from buddies.screens.game_snake import SnakeScreen
+from buddies.screens.game_skifree import SkiFreeScreen
+from buddies.screens.game_deckbuilder import DeckbuilderScreen
 from buddies.screens.game_pong import PongScreen
 from buddies.screens.game_trivia import TriviaScreen
 from buddies.screens.game_holdem import HoldemScreen
@@ -29,11 +29,11 @@ from buddies.screens.game_stackwars import StackWarsScreen
 GAME_MENU = """\
 [bold]Available Games:[/bold]
 
-  [bold cyan]1[/bold cyan]  ✊ [bold]Rock-Paper-Scissors[/bold]  — Best of 5, personality-driven AI
-  [bold cyan]2[/bold cyan]  🃏 [bold]Blackjack[/bold]              — Player vs buddy-dealer
-  [bold cyan]3[/bold cyan]  🎰 [bold]Texas Hold'em[/bold]          — Poker with your party
-  [bold cyan]4[/bold cyan]  🂡 [bold]Whist[/bold]                   — Team trick-taking
-  [bold cyan]5[/bold cyan]  ⚔️ [bold]Battle[/bold]                  — JRPG fights vs coding monsters
+  [bold cyan]1[/bold cyan]  🐍 [bold]Buffer Overflow[/bold]        — Snake with StackHaven curveballs
+  [bold cyan]2[/bold cyan]  ⛷️ [bold]Stack Descent[/bold]           — Ski Free, but The Auditor chases you
+  [bold cyan]3[/bold cyan]  🃏 [bold]Deploy or Die[/bold]           — Deckbuilder: survive 7 sprints of production hell
+  [bold cyan]4[/bold cyan]  🎰 [bold]Texas Hold'em[/bold]           — Poker with your party
+  [bold cyan]5[/bold cyan]  🂡 [bold]Whist[/bold]                   — Team trick-taking
   [bold cyan]6[/bold cyan]  🧠 [bold]Trivia[/bold]                  — Coding quiz, you vs buddy
   [bold cyan]7[/bold cyan]  🏓 [bold]Pong[/bold]                    — Real-time paddle action
   [bold cyan]8[/bold cyan]  🗡️ [bold]Blobber Dungeon[/bold]          — First-person party CRPG
@@ -47,11 +47,11 @@ class GamesScreen(Screen):
     """The Games Arcade hub — pick a game to play."""
 
     BINDINGS = [
-        Binding("1", "play_rps", "RPS", show=True),
-        Binding("2", "play_blackjack", "Blackjack", show=True),
-        Binding("3", "play_holdem", "Hold'em", show=True),
-        Binding("4", "play_whist", "Whist", show=True),
-        Binding("5", "play_battle", "Battle", show=True),
+        Binding("1", "play_snake", "Snake", show=True),
+        Binding("2", "play_skifree", "SkiFree", show=True),
+        Binding("3", "play_deckbuilder", "Deckbuilder", show=True),
+        Binding("4", "play_holdem", "Hold'em", show=True),
+        Binding("5", "play_whist", "Whist", show=True),
         Binding("6", "play_trivia", "Trivia", show=True),
         Binding("7", "play_pong", "Pong", show=True),
         Binding("8", "play_crawl", "Blobber", show=True),
@@ -131,15 +131,21 @@ class GamesScreen(Screen):
             self._pending_results.append(result)
         self._show_menu()
 
-    def action_play_rps(self):
+    def action_play_snake(self):
         self.app.push_screen(
-            RPSScreen(buddy_state=self.buddy_state),
+            SnakeScreen(buddy_state=self.buddy_state),
             callback=self._on_game_dismissed,
         )
 
-    def action_play_blackjack(self):
+    def action_play_skifree(self):
         self.app.push_screen(
-            BlackjackScreen(buddy_state=self.buddy_state),
+            SkiFreeScreen(buddy_state=self.buddy_state),
+            callback=self._on_game_dismissed,
+        )
+
+    def action_play_deckbuilder(self):
+        self.app.push_screen(
+            DeckbuilderScreen(buddy_state=self.buddy_state),
             callback=self._on_game_dismissed,
         )
 
@@ -152,12 +158,6 @@ class GamesScreen(Screen):
     def action_play_whist(self):
         self.app.push_screen(
             WhistScreen(buddy_state=self.buddy_state, party_states=self.party_states),
-            callback=self._on_game_dismissed,
-        )
-
-    def action_play_battle(self):
-        self.app.push_screen(
-            BattleScreen(buddy_state=self.buddy_state),
             callback=self._on_game_dismissed,
         )
 

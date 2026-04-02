@@ -1,8 +1,5 @@
-"""JRPG Battle engine — goofy Pokemon-style fights with coding-themed moves.
+"""Shared combat primitives — used by Blobber CRPG and other game systems.
 
-Types: LOGIC > CHAOS > HACK > LOGIC (rock-paper-scissors triangle) + DEBUG (neutral support)
-Moves derived from buddy stats. Enemies are silly coding-themed monsters.
-Not balanced. Not competitive. Just weird and funny.
 """
 
 from __future__ import annotations
@@ -12,8 +9,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 from buddies.core.buddy_brain import BuddyState
-from buddies.core.games import GameType, GameOutcome, GameResult
-from buddies.core.games.engine import GamePersonality, personality_from_state
 
 
 # ---------------------------------------------------------------------------
@@ -258,148 +253,3 @@ class BattleTurn:
     """Result of one turn of combat."""
     attacker: str
     move: Move
-    damage: int
-    healed: int
-    is_crit: bool
-    is_miss: bool
-    effectiveness: str  # "super", "not_very", "neutral"
-    defender_hp: int
-
-
-@dataclass
-class Battle:
-    """A single JRPG-style battle between buddy and enemy."""
-    buddy_state: BuddyState
-    buddy: BattleFighter = field(init=False)
-    enemy_fighter: BattleFighter = field(init=False)
-    enemy_data: Enemy = field(init=False)
-    turns: list[BattleTurn] = field(default_factory=list)
-    is_over: bool = False
-    outcome: GameOutcome | None = None
-    _personality: GamePersonality = field(init=False)
-
-    def __post_init__(self):
-        self._personality = personality_from_state(self.buddy_state)
-        self.buddy = fighter_from_buddy(self.buddy_state)
-        self.enemy_data = random_enemy(self.buddy_state.level)
-        self.enemy_fighter = fighter_from_enemy(self.enemy_data)
-
-    def player_attack(self, move_index: int) -> BattleTurn:
-        """Player's buddy attacks with chosen move."""
-        moves = self.buddy.moves
-        if move_index >= len(moves):
-            move_index = 0
-        move = moves[move_index]
-        return self._execute_move(self.buddy, self.enemy_fighter, move)
-
-    def enemy_attack(self) -> BattleTurn:
-        """Enemy picks a move and attacks."""
-        move = random.choice(self.enemy_fighter.moves)
-        return self._execute_move(self.enemy_fighter, self.buddy, move)
-
-    def _execute_move(
-        self, attacker: BattleFighter, defender: BattleFighter, move: Move
-    ) -> BattleTurn:
-        """Execute a move from attacker to defender."""
-        # Miss check
-        if random.random() > move.accuracy:
-            turn = BattleTurn(
-                attacker=attacker.name, move=move,
-                damage=0, healed=0, is_crit=False, is_miss=True,
-                effectiveness="neutral", defender_hp=defender.hp,
-            )
-            self.turns.append(turn)
-            self._check_end()
-            return turn
-
-        # Heal move
-        if move.heals:
-            heal_amount = 8 + (attacker.attack // 2)
-            attacker.hp = min(attacker.max_hp, attacker.hp + heal_amount)
-            turn = BattleTurn(
-                attacker=attacker.name, move=move,
-                damage=0, healed=heal_amount, is_crit=False, is_miss=False,
-                effectiveness="neutral", defender_hp=defender.hp,
-            )
-            self.turns.append(turn)
-            return turn
-
-        # Buff move
-        if move.buff_defense:
-            attacker.defense_buff = True
-            # Still does some damage
-            if move.power == 0:
-                attacker.power_buff = True
-                turn = BattleTurn(
-                    attacker=attacker.name, move=move,
-                    damage=0, healed=0, is_crit=False, is_miss=False,
-                    effectiveness="neutral", defender_hp=defender.hp,
-                )
-                self.turns.append(turn)
-                return turn
-
-        # Damage calculation
-        base = move.power + (attacker.attack // 3)
-
-        # Power buff from "Sit and Wait"
-        if attacker.power_buff:
-            base = int(base * 2)
-            attacker.power_buff = False
-
-        # Type effectiveness
-        eff = TYPE_CHART.get(move.move_type, {}).get(defender.primary_type, 1.0)
-        if eff > 1.0:
-            eff_str = "super"
-        elif eff < 1.0:
-            eff_str = "not_very"
-        else:
-            eff_str = "neutral"
-
-        # Crit chance (higher chaos = more crits)
-        chaos = self.buddy_state.stats.get("chaos", 10) if attacker == self.buddy else 15
-        is_crit = random.random() < (chaos / 200.0)
-        crit_mult = 2.0 if is_crit else 1.0
-
-        # Defense reduction
-        def_reduction = max(1, defender.defense - (2 if defender.defense_buff else 0))
-        defender.defense_buff = False
-
-        # Random variance
-        variance = random.uniform(0.85, 1.15)
-
-        damage = max(1, int((base - def_reduction / 2) * eff * crit_mult * variance))
-        defender.hp = max(0, defender.hp - damage)
-
-        turn = BattleTurn(
-            attacker=attacker.name, move=move,
-            damage=damage, healed=0, is_crit=is_crit, is_miss=False,
-            effectiveness=eff_str, defender_hp=defender.hp,
-        )
-        self.turns.append(turn)
-        self._check_end()
-        return turn
-
-    def _check_end(self):
-        """Check if battle is over."""
-        if self.enemy_fighter.is_fainted:
-            self.is_over = True
-            self.outcome = GameOutcome.WIN
-        elif self.buddy.is_fainted:
-            self.is_over = True
-            self.outcome = GameOutcome.LOSE
-
-    def get_result(self) -> GameResult:
-        xp = 20 if self.outcome == GameOutcome.WIN else 8
-        return GameResult(
-            game_type=GameType.BATTLE,
-            outcome=self.outcome or GameOutcome.DRAW,
-            buddy_id=self.buddy_state.buddy_id,
-            xp_earned=xp,
-            mood_delta=8 if self.outcome == GameOutcome.WIN else -3,
-            score={
-                "enemy": self.enemy_data.name,
-                "turns": len(self.turns),
-                "buddy_hp_remaining": self.buddy.hp,
-                "enemy_hp_remaining": self.enemy_fighter.hp,
-            },
-        )

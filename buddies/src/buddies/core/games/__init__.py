@@ -10,11 +10,11 @@ from enum import Enum
 
 
 class GameType(Enum):
-    RPS = "rps"
-    BLACKJACK = "blackjack"
+    SNAKE = "snake"
+    SKIFREE = "skifree"
+    DECKBUILDER = "deckbuilder"
     HOLDEM = "holdem"
     WHIST = "whist"
-    BATTLE = "battle"
     TRIVIA = "trivia"
     PONG = "pong"
     CRAWL = "crawl"
