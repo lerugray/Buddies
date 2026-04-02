@@ -546,11 +546,12 @@ def generate_session_summary(
 # Working Memory Compaction
 # ---------------------------------------------------------------------------
 
-def compact_handoff(project_path: Path | None = None, max_session_notes: int = 2) -> bool:
+def compact_handoff(project_path: Path | None = None, max_session_notes: int = 3) -> bool:
     """Compact HANDOFF.md by summarizing old session notes.
 
     Keeps the most recent `max_session_notes` session blocks verbatim.
     Older session blocks are compressed to a one-line summary each.
+    Only triggers when file exceeds 600 lines to avoid unnecessary rewrites.
 
     Returns True if the file was modified, False otherwise.
     """
@@ -561,6 +562,10 @@ def compact_handoff(project_path: Path | None = None, max_session_notes: int = 2
 
     content = handoff_path.read_text(encoding="utf-8", errors="replace")
     lines = content.split("\n")
+
+    # Only compact when file is getting large
+    if len(lines) < 600:
+        return False
 
     # Find all "## Session Notes" sections
     session_sections: list[dict] = []
