@@ -15,6 +15,7 @@ Personality effects:
 
 from __future__ import annotations
 
+import copy
 import random
 from dataclasses import dataclass, field
 from enum import Enum
@@ -58,7 +59,7 @@ class Card:
 
 ALL_CARDS: list[Card] = [
     # --- BASIC (in starting deck) ---
-    Card("Commit",      0, CardRarity.BASIC,    "Generate 1 DP.",                   dp_value=1),
+    Card("Commit",      0, CardRarity.BASIC,    "Generate 2 DP.",                   dp_value=2),
     Card("Quick Fix",   0, CardRarity.BASIC,    "1 DP. Draw 1 if incident resolved this sprint.",
          dp_value=1, effect="draw_if_resolved:1"),
 
@@ -188,31 +189,31 @@ class Incident:
 
 
 ALL_INCIDENTS: list[Incident] = [
-    # Low
-    Incident("Typo in Production", 1, 1, IncidentSeverity.LOW, "Someone deployed a typo to prod."),
-    Incident("Stale Cache",        1, 1, IncidentSeverity.LOW, "Users seeing 6-hour-old data."),
-    Incident("Dependency Update",  2, 1, IncidentSeverity.LOW, "A package has a security patch."),
+    # Low (cheap to resolve, still hurts if ignored)
+    Incident("Typo in Production", 1, 2, IncidentSeverity.LOW, "Someone deployed a typo to prod."),
+    Incident("Stale Cache",        1, 2, IncidentSeverity.LOW, "Users seeing 6-hour-old data."),
+    Incident("Dependency Update",  2, 2, IncidentSeverity.LOW, "A package has a security patch."),
     Incident("Flaky Test",         1, 1, IncidentSeverity.LOW,
              "CI is red 50% of the time.",                    effect="flaky"),  # 50% self-resolves
 
-    # Medium
-    Incident("Memory Leak",        3, 2, IncidentSeverity.MEDIUM,
+    # Medium (meaningful both ways)
+    Incident("Memory Leak",        3, 3, IncidentSeverity.MEDIUM,
              "Server is slowly running out of memory.",        effect="escalate:1"),
-    Incident("Race Condition",     3, 2, IncidentSeverity.MEDIUM, "Two threads fighting over state."),
-    Incident("SQL Injection Attempt", 4, 2, IncidentSeverity.MEDIUM,
+    Incident("Race Condition",     3, 3, IncidentSeverity.MEDIUM, "Two threads fighting over state."),
+    Incident("SQL Injection Attempt", 4, 3, IncidentSeverity.MEDIUM,
              "Someone's trying to drop your tables."),
-    Incident("Certificate Expiry", 3, 2, IncidentSeverity.MEDIUM,
+    Incident("Certificate Expiry", 3, 3, IncidentSeverity.MEDIUM,
              "SSL cert expires in 2 days.",                   effect="next_incident_cost:2"),
-    Incident("Runaway Process",    3, 2, IncidentSeverity.MEDIUM,
+    Incident("Runaway Process",    3, 3, IncidentSeverity.MEDIUM,
              "PID 666 is eating 100% CPU.",                   effect="spawn_incident"),
 
-    # High
-    Incident("Database Corruption", 5, 3, IncidentSeverity.HIGH,
+    # High (must resolve or die)
+    Incident("Database Corruption", 5, 4, IncidentSeverity.HIGH,
              "The primary database has inconsistent records."),
-    Incident("DDoS Attack",        6, 3, IncidentSeverity.HIGH,  "Someone is very angry at your API."),
-    Incident("Cascading Failure",  5, 3, IncidentSeverity.HIGH,
+    Incident("DDoS Attack",        6, 4, IncidentSeverity.HIGH,  "Someone is very angry at your API."),
+    Incident("Cascading Failure",  5, 4, IncidentSeverity.HIGH,
              "One service's death is killing its neighbors.",  effect="spawn_incident"),
-    Incident("Data Breach",        7, 3, IncidentSeverity.HIGH,
+    Incident("Data Breach",        7, 4, IncidentSeverity.HIGH,
              "User data was exposed. Legal is calling.",       effect="deadline:2"),
 
     # Boss (sprint 7 only)
@@ -351,7 +352,6 @@ class DeckbuilderGame:
         self.phase = GamePhase.PLAY
 
     def _generate_incidents(self) -> list[Incident]:
-        import copy
         incidents = []
 
         # Sprint 1-2: 1 incident; 3-5: 2; 6-7: 3
@@ -555,12 +555,10 @@ class DeckbuilderGame:
             events.append("chaos_engineering")  # Screen handles
 
         elif effect == "intern":
-            import random
             dp = random.randint(0, 6)
             self.dp_available += dp
             events.append(f"intern:{dp}")
             if random.random() < 0.3:
-                import copy
                 extra = copy.copy(random.choice(LOW_INCIDENTS + MEDIUM_INCIDENTS))
                 self.active_incidents.append(extra)
                 events.append(f"intern_incident:{extra.name}")
@@ -690,10 +688,8 @@ class DeckbuilderGame:
 
                 # Spawn extra incident
                 if incident.effect == "spawn_incident":
-                    import copy
                     extra = copy.copy(random.choice(LOW_INCIDENTS))
                     events.append(f"spawned_incident:{extra.name}")
-                    # Will appear next sprint
 
                 # Deadline effect
                 if incident.effect.startswith("deadline:"):

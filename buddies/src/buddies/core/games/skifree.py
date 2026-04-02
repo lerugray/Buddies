@@ -34,8 +34,8 @@ MIN_SCROLL_SPEED = 0.04    # Fastest scroll
 SPEED_RAMP_INTERVAL = 10   # Seconds between speed increases
 SPEED_RAMP_AMOUNT = 0.006  # Seconds shaved per ramp
 
-AUDITOR_DISTANCE = 600     # Distance (ticks) before The Auditor appears
-AUDITOR_CATCH_SPEED = 3    # How many scroll ticks of lead the auditor closes per tick
+AUDITOR_DISTANCE = 150     # Distance (ticks) before The Auditor appears (~15s at 10FPS)
+AUDITOR_CATCH_SPEED = 2    # How many scroll ticks of lead the auditor closes per tick
 
 COFFEE_SHIELD_TICKS = 20   # Ticks of immunity from coffee
 DISTANCE_PER_TICK = 5      # Meters per scroll tick
@@ -234,8 +234,8 @@ class SkiFreeGame:
         self.score += 5
         self.distance += DISTANCE_PER_TICK
 
-        # Auditor logic
-        if self.distance >= AUDITOR_DISTANCE * DISTANCE_PER_TICK:
+        # Auditor logic — appears after AUDITOR_DISTANCE ticks
+        if self.ticks >= AUDITOR_DISTANCE:
             if not self.auditor_active:
                 self.auditor_active = True
                 events.append("auditor_appears")

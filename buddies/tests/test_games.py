@@ -607,10 +607,10 @@ class TestSkiFree:
         assert len(terrain) == VISIBLE_ROWS
         assert all(len(row) == NUM_LANES for row in terrain)
 
-    def test_auditor_appears_at_distance(self):
-        from buddies.core.games.skifree import SkiFreeGame, AUDITOR_DISTANCE, DISTANCE_PER_TICK
+    def test_auditor_appears_after_ticks(self):
+        from buddies.core.games.skifree import SkiFreeGame, AUDITOR_DISTANCE
         game = SkiFreeGame(buddy_state=make_buddy())
-        game.distance = AUDITOR_DISTANCE * DISTANCE_PER_TICK
+        game.ticks = AUDITOR_DISTANCE - 1  # One tick before threshold
         evts = game.tick()
         assert "auditor_appears" in evts
 
