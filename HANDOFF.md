@@ -795,7 +795,7 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
   - Each recipe has unique lore text ("Fire and void. The Phoenix burned away the Ghost's regrets...")
   - Preview system: see result before confirming
   - 25 tests
-  - Note: fusion engine is complete but TUI screen not yet wired in — needs party screen integration to select two buddies and confirm. Next session work.
+  - **TUI wired in**: FusionScreen with 3-phase flow (select parent A → select parent B → preview + confirm). [f] keybinding from main app. Recipe browser via [r]. Back navigation between phases. Auto-activates fused buddy if a parent was active.
 
 ### Direction
 - Phase 12 fully complete (all 5 items checked off)

@@ -32,6 +32,7 @@ from buddies.widgets.chat import ChatWindow
 from buddies.widgets.session_monitor import SessionMonitor
 
 from buddies.screens.party import PartyScreen
+from buddies.screens.fusion import FusionScreen
 from buddies.screens.discussion import DiscussionScreen
 from buddies.screens.tool_browser import ToolBrowserScreen
 from buddies.screens.conversations import ConversationsScreen
@@ -78,6 +79,7 @@ class BuddyApp(App):
         Binding("b", "bbs", "BBS", show=True),
         Binding("x", "games", "Arcade", show=True),
         # Hidden — accessible but don't crowd the footer (shown in ? help)
+        Binding("f", "fusion", "Fuse", show=False),
         Binding("t", "tools", "Tools", show=False),
         Binding("c", "conversations", "Convos", show=False),
         Binding("g", "config_health", "Config", show=False),
@@ -1040,6 +1042,23 @@ class BuddyApp(App):
         chat = self.query_one("#chat-panel", ChatWindow)
         chat.add_system(f"🥚 New buddy hatched! {species.emoji} {name}!")
         chat.add_message("buddy", self._get_greeting())
+
+    def action_fusion(self):
+        """Open the fusion screen to combine two buddies."""
+        self.push_screen(FusionScreen(self.store), callback=self._on_fusion_dismissed)
+
+    async def _on_fusion_dismissed(self, result) -> None:
+        """Handle fusion screen dismissal."""
+        if result == "fused":
+            # Reload active buddy (fusion may have changed it)
+            data = await self.store.get_buddy()
+            if data:
+                self.buddy_state = BuddyState.from_db(data)
+                if self.router:
+                    self.router.buddy_state = self.buddy_state
+                self._update_displays()
+                chat = self.query_one("#chat-panel", ChatWindow)
+                chat.add_system("Fusion complete! A new buddy has been born from sacrifice.")
 
     def action_party(self):
         """Open the party screen to switch or manage buddies."""
