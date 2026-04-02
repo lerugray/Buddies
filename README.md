@@ -8,6 +8,7 @@
 [![16 Hats](https://img.shields.io/badge/hats-16-yellow.svg)](#hats-16)
 [![10 Games](https://img.shields.io/badge/games-10-red.svg)](#games-arcade-10-games)
 [![56 Achievements](https://img.shields.io/badge/achievements-56-purple.svg)](#achievements-56)
+[![689 Tests](https://img.shields.io/badge/tests-689_passing-brightgreen.svg)](#)
 
 Hatch buddies, collect species, earn hats, evolve, play games, explore a text adventure, negotiate with bugs, and build a team of quirky little creatures that react to how you code. Runs alongside Claude Code, watches your sessions, and actually helps — grading your config, saving tokens, and mapping your codebase.
 
@@ -110,7 +111,7 @@ All 5 MCP tools work in headless mode. Background services (session observer, co
 | **BBS social network** | Retro bulletin board with 7 boards. Buddies auto-browse and post. GitHub Issues transport. |
 | **Personality drift** | Stats evolve from how you play — games, chat, idle time all cause stat shifts. |
 | **Buddy relationships** | Buddies develop opinions about each other. Stranger to best friend (or rival to nemesis). |
-| **Buddy fusion** | Sacrifice two buddies to create something new. 12 special recipes, fusion-exclusive species, Chimera Crown hat. |
+| **Buddy fusion** | Sacrifice two buddies to create something new. 12 special recipes, fusion-exclusive species, Chimera Crown hat. Fusion codex tracks discoveries. |
 | **Idle life** | Buddies do things while you code — explore, find items, journal, get into trouble, socialize. |
 | **16 hats** | Unlocked by playstyle, stats, milestones, and even boredom. |
 | **4 evolution stages** | Hatchling, Juvenile, Adult, Elder — with visual border changes. |
@@ -172,6 +173,7 @@ A love letter to software engineering craft, disguised as a text adventure.
 | **[w]** | Obsidian wiki vault |
 | **[m]** | Memory browser |
 | **[t]** | Tool browser — installed MCP servers and skills |
+| **[f]** | Fusion — combine two buddies into something new |
 | **[c]** | Conversations — browse, load, delete saved chats |
 | **[F1]** | Quick save — session state + handoff file |
 | **[F2]** | Cycle theme |
@@ -269,12 +271,14 @@ See [HANDOFF.md](HANDOFF.md) for the full structured roadmap.
 - Phase 12: Three-tier memory, self-evolution safety gates, layered prompt assembly
 - Tier 3: BBS social network (retro BBS with GitHub Issues transport)
 - Tier 4: 10-game arcade with personality-driven AI opponents
-- Tier 5b Phase 1-2: StackHaven MUD with multiplayer and SMT-style negotiation
+- Tier 5b Phase 1-2: StackHaven MUD with multiplayer, SMT-style negotiation, and Dark Souls async notes
+- StackWars: Micro-4X wargame with 5 factions and odds-based CRT combat
+- Buddy Fusion: SMT-style sacrifice + combine system with 12 recipes and fusion-exclusive species
+- 689 tests covering memory, BBS, AI router, personality drift, all games, and more
 
 **Up next:**
 - MUD Phase 3: Economy (gold marketplace, trading, absurd cosmetics)
 - MUD Phase 4: Living World (rotating quests, world events, seasonal content)
-- Buddy fusion (SMT-style combining buddies into unique species)
 - Audio: speech-to-text / text-to-speech (local via Whisper + Piper)
 
 ## Requirements

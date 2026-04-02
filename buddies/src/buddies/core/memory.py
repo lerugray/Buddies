@@ -209,13 +209,11 @@ class MemoryManager:
         semantic = await self.store.query_semantic(keyword=search, limit=limit_per_tier)
         procedural = await self.store.query_procedural(keyword=search, limit=limit_per_tier)
 
-        # Bump access counts
+        # Bump access counts (procedural table doesn't have access_count column)
         for mem in episodic:
             await self.store.bump_access("memory_episodic", mem["id"])
         for mem in semantic:
             await self.store.bump_access("memory_semantic", mem["id"])
-        for mem in procedural:
-            await self.store.bump_access("memory_procedural", mem["id"])
 
         return {
             "episodic": episodic,

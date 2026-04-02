@@ -427,173 +427,36 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - **2026-04-01 Work Session 2** (3 commits): buddies-bbs repo created, full UI/UX audit (12 files), full security audit (7 files, 5 critical/high fixes), social achievements (7 new)
 - **2026-04-01 Work Session 3** (3 commits): Games Arcade hub, RPS, Blackjack, JRPG Battles, game engine foundation (Card/Deck/Hand, GamePersonality, 9 achievements)
 - **2026-04-01 Home Session 2**: Pong, Trivia, Hold'em, Whist, personality drift, idle life, relationships, blobber dungeon, party select, user character, 112 tests
+- **2026-04-01 Home Sessions 3+4**: StackHaven MUD Phase 1+2, Dark Souls multiplayer, lore system, Wizardry VI combat, layered prompt assembly, SMT negotiation, StackWars 4X, Buddy Fusion. 385 tests.
 
-## Session Notes (2026-04-01 — Home, Session 3)
+## Session Notes (2026-04-01 — Sessions 3+4, compacted)
+
+- **Session 3 (Home)**: StackHaven MUD Phase 1 complete — 17 rooms, 17 NPCs, 6 quests, 40+ items, combat, sell command, random world events, personality-driven room reactions (65+ unique lines). Dark Souls async multiplayer (soapstone notes, bloodstains, phantoms), discoverable lore (30+ entries about the Founders), Blobber Wizardry VI combat upgrade (front/back row, hide/backstab, status effects). 246 tests.
+- **Session 4 (Home)**: Phase 12 complete (layered prompt assembly with PromptBuilder). MUD Phase 2 GitHub transport (push/pull notes+bloodstains via Issues). `rumors` command. SMT-style negotiation for all 7 hostile NPCs. StackWars micro-4X wargame (5 factions, 5x5 grid, Avianos-style abilities, odds-based CRT). Buddy Fusion system (12 recipes, rarity escalation, stat inheritance, Chimera Crown hat, codex, TUI). 385 tests.
+
+## Session Notes (2026-04-02 — Home, Session 2)
 
 ### Completed
-- ✅ **StackHaven MUD (Tier 5b Phase 1)** — Full text adventure in a tech company gone wrong
-  - 11 rooms across 4 zones (Town, Depths, Server Room, Cloud District)
-  - 10 NPCs: Gerald the Sysadmin, Skyler the Intern, Brenda the PM, Miriam the Senior Dev, The Coffee Machine, The Rubber Duck Sage, Dave the Supply Guy, + 4 hostile mobs
-  - 25+ items: weapons (Rubber Duck, USB Sword, Regex of Mass Destruction), armor (Developer Hoodie, Noise-Cancelling Headphones), consumables, key items, quest items, absurd cosmetics (Slightly Haunted Top Hat, NFT That Does Nothing, Artisanal Semicolon)
-  - 4 quests: Fix the Build Pipeline, Scope Creep, Garbage Collection, Paying Down Technical Debt
-  - Full command parser: look, go, examine, talk, take, drop, use, attack, flee, buy, inventory, quest, map, help, wait
-  - Combat system with equipment bonuses, crits, flee mechanic, defeat respawn
-  - Personality-driven buddy commentary (7 contexts × 5 registers = 70+ lines)
-  - Locked doors with key items (Server Key, Root Password, VPN Token)
-  - TUI screen with scrolling output, command input, minimap sidebar, party status
-  - 5 new MUD achievements (MUD Tourist, Bug Squasher, Quest Hero, Debt Free, Consumer)
-  - MUD personality drift rule (wisdom+2, patience+1, snark+1)
-  - 45 new tests (179 total, 4 skipped)
-  - Wired into Games Arcade as game #9
+- ✅ **211 new tests** (689 total, was 478) — closed major test coverage gaps:
+  - `test_memory.py` (52 tests): all 3 memory tiers, contradiction detection, semantic statement detection, tag extraction, buffer/flush, cross-tier recall, decay, stats
+  - `test_bbs.py` (48 tests): boards, profiles, nudge detection/resolution, content engine
+  - `test_ai_backend.py` (78 tests): AI backend, offline backend, complexity scoring, routing decisions, agent tools, path traversal blocking, destructive command blocking
+  - `test_personality_drift.py` (33 tests): all drift functions (game/session/chat/fusion/idle), DriftResult, session observer, pattern detection
+- ✅ **Bug fix**: `bump_access()` on `memory_procedural` table crashed — column `access_count` doesn't exist in that table. Fixed by excluding procedural from bump_access.
+- ✅ **HANDOFF compacted**: Sessions 3+4 from 2026-04-01 compacted to 2-line summaries
 
 ### New files
-- `core/games/mud_world.py` — World engine (rooms, NPCs, items, quests)
-- `core/games/mud_engine.py` — Command parser, combat, game loop, world events, room reactions
-- `screens/game_mud.py` — TUI screen with sidebar
-- `tests/test_mud.py` — 73 tests
-
-### Completed (continued — same session, 3 commits)
-- ✅ **World Expansion** — 6 new rooms (QA Lab, Testing Grounds, Standup Room, Incident Channel, Archive, Kubernetes Cluster), 7 new NPCs (Priya QA Lead, Todd Scrum Master, Marcus Oncall Engineer, Flaky Test Swarm, Memory Leak, CrashLoopBackoff, Container Registry), 2 new quests (Flaky Hunt, Blameless Post-Mortem), 15+ new items
-- ✅ **Sell command** — sell junk/cosmetics to merchants at half value, prevents selling key/quest items
-- ✅ **Random world events** — 20 events (Slack alerts, deploy sirens, passive-aggressive printers) fire ~20% of the time after commands
-- ✅ **Personality-driven room reactions** — 13 rooms × 5 stats = 65+ unique lines. Buddies react to specific locations based on their dominant stat (CHAOS wants to pull cables, SNARK roasts the root password, WISDOM philosophizes)
-- ✅ **73 MUD tests, 207 total** across the full suite
-
-- ✅ **Dark Souls Async Multiplayer** — soapstone notes, bloodstains, phantom traces
-  - **Orange Soapstone** — given by the Rubber Duck Sage, lets you leave template-based messages in rooms
-  - **Note system** — 20 templates × 50+ subjects = 1000+ possible messages ("Try coffee", "Be wary of merge conflicts", "Praise the CI/CD pipeline!"). Upvote/downvote rating.
-  - **Bloodstains** — death markers showing what killed you. Created automatically on combat defeat.
-  - **Phantom traces** — ghostly silhouettes of your buddies appear in rooms you've visited. 15 possible actions.
-  - **Pre-seeded world** — 32 phantom notes and 11 bloodstains from "other adventurers" so it feels alive from the start
-  - **Persistent** — all multiplayer data saved to local JSON, designed for GitHub Issues transport in Phase 2
-  - 33 new tests (240 total)
-
-### New files (updated)
-- `core/games/mud_world.py` — World engine (rooms, NPCs, items, quests, soapstone)
-- `core/games/mud_engine.py` — Command parser, combat, game loop, world events, room reactions, note/rate/bloodstain commands
-- `core/games/mud_multiplayer.py` — Async multiplayer: notes, bloodstains, phantoms, template system, local JSON storage
-- `screens/game_mud.py` — TUI screen with sidebar and soapstone status
-- `tests/test_mud.py` — 73 MUD engine tests
-- `tests/test_mud_multiplayer.py` — 33 async multiplayer tests
-
-- ✅ **Discoverable Lore System** — Dark Souls-style item lore
-  - 30+ lore entries form a coherent narrative about the Founders of StackHaven
-  - Items tell the story: Founder Chen's rubber duck from the Three-Week Deploy, the regex written at 3AM that nobody can modify because it's perfect, the Founder's Mug still warm because their code is still running
-  - Lore codex command (`lore`) lets players browse collected fragments
-  - Narrative theme: the "curse" of StackHaven is the forgetting of software engineering craft
-- ✅ **Blobber Combat Upgrade (Wizardry VI style)** — more tactical depth
-  - Front/back row: melee classes (Engineer, Berserker, Paladin) auto-front, casters (Rogue, Mage) auto-back
-  - Enemy targeting: 70% front row, 30% back row. Back row takes 25% less melee damage.
-  - Rogue hide+backstab: spend a turn hiding (50% dodge), next attack = 2.5x damage
-  - Status effects: poison (ongoing damage from CHAOS moves), silence (blocks skills from HACK moves), stun (skip turn)
-  - Paladin heal now cures status effects
-  - 246 tests passing
+- `tests/test_memory.py` — 52 tests for three-tier memory system
+- `tests/test_bbs.py` — 48 tests for BBS boards/profiles/nudge/content
+- `tests/test_ai_backend.py` — 78 tests for AI backend, router, and agent
+- `tests/test_personality_drift.py` — 33 tests for drift + session observer
 
 ### Direction
-- Tier 5b Phase 1 complete and polished with async multiplayer + lore + tactical combat!
-- MUD has 17 rooms, 17 NPCs, 6 quests, 40+ items, Dark Souls-style notes/bloodstains/phantoms, discoverable lore
-- Blobber combat now has Wizardry VI-style positioning, hide/backstab, and status effects
-- Phase 2 (Full Multiplayer) DONE — see session notes below
-- The world is designed to be expandable: add rooms/NPCs/quests by extending build_starter_* functions
-- Multiple quest chains create progression: QA quest → Archive badge → find incident report → get Oncall Pager
-- Pipeline quest → VPN token → Cloud District → Kubernetes Cluster
-- Now 10 games in the arcade (dungeon crawl replaced by StackWars 4X)
+- Test coverage now solid on core systems (memory, BBS, AI, drift, observer)
+- Remaining gaps: token_guardian, config_intel, readme_intel, deeper game tests
+- Ready for new feature work (MUD Phase 3 Economy, Tier 5 Audio, or more polish)
 
-## Session Notes (2026-04-01 — Home, Session 4)
-
-### Completed
-- ✅ **Phase 12 complete** — Layered Prompt Assembly
-  - `PromptBuilder` class with 5 composable layers: identity, personality, memory, context, task
-  - Chaining API: `builder.with_identity(buddy).with_personality(buddy).with_task("chat").build()`
-  - Register-driven personality with secondary stat flavor and chaos weirdness scaling
-  - Async memory integration — queries 3-tier memory and injects relevant facts
-  - 6 task presets (chat, code_review, discussion, file_analysis, mcp_delegate, agent)
-  - Compact mode for smaller context windows
-  - Wired into: ai_router (chat + agent), discussion engine, MCP server
-  - **Games untouched** — zero AI cost, pure prose engine as before
-  - Working memory compaction checkbox fixed (was already implemented)
-  - 24 tests
-
-- ✅ **MUD Phase 2: GitHub Issues Multiplayer Transport**
-  - `MudTransport` class — syncs notes/bloodstains/phantoms via GitHub Issues on `lerugray/buddies-bbs`
-  - Labels: `mud-soapstone` for notes, `mud-bloodstain` for death markers
-  - YAML frontmatter encoding (same pattern as BBS transport)
-  - Push: local notes/bloodstains auto-pushed to GitHub on creation (background async)
-  - Pull: remote data synced into local store on MUD start (background async)
-  - Merge logic: dedup by ID, remote phantoms generated from remote notes
-  - Voting via GitHub reactions (+1 = upvote, -1 = downvote)
-  - Rate-limit aware, cached (5min TTL), graceful offline fallback
-  - Phantom actions contextual — coffee notes → "clutching a coffee mug", debug notes → "staring at invisible code"
-  - Read without token, write with PAT (same auth as BBS)
-
-- ✅ **`rumors` command** — hear what other adventurers are up to
-  - Shows: total notes/bloodstains/phantoms, most dangerous room, most feared foe, most helpful message
-  - Network status (connected/local only), sync counts
-  - 5 flavor text variants ("In StackHaven, nobody truly adventures alone.")
-
-- ✅ **291 tests passing** (21 new: transport + prompt builder + rumors)
-
-### New files
-- `core/prompt_builder.py` — Layered prompt assembly (PromptBuilder, 6 convenience factories)
-- `core/games/mud_transport.py` — GitHub Issues transport for MUD multiplayer
-- `tests/test_prompt_builder.py` — 24 tests for prompt builder
-- `tests/test_mud_transport.py` — 21 tests for transport + rumors
-
-- ✅ **SMT-style Negotiation System** — talk your way through MUD encounters
-  - Every hostile NPC (7 total) gets a 3-exchange dialogue tree with 4-5 responses each
-  - Tech-themed questions: "Do you prefer rebasing or merging?", "Do you believe in null?", "What does .* match?"
-  - Buddy stats unlock bonus dialogue options (high SNARK → sarcastic options, high DEBUGGING → technical insights)
-  - 6 possible outcomes: peace, gift (item+gold), bribe, angry (+30% ATK buff), scam (steals gold), stall
-  - Works pre-combat (talk to hostile NPCs) AND mid-combat (talk command in fight)
-  - 25+ negotiation-specific buddy commentary lines across 5 registers × 5 contexts
-  - The Null Pointer asks if you believe in null. The Technical Debt Dragon asks if you'll pay it down. CrashLoopBackoff asks about death.
-  - Outcome depends on accumulated mood from responses — semi-random like SMT, no "right answer" FAQ
-  - 24 tests for negotiation system
-  - Zero AI cost — pure template prose
-
-- ✅ **314 tests passing** (23 new: negotiation)
-
-### New files (updated)
-- `core/prompt_builder.py` — Layered prompt assembly (PromptBuilder, 6 convenience factories)
-- `core/games/mud_transport.py` — GitHub Issues transport for MUD multiplayer
-- `core/games/mud_negotiate.py` — SMT-style negotiation system (dialogue trees, outcomes, commentary)
-- `tests/test_prompt_builder.py` — 24 tests for prompt builder
-- `tests/test_mud_transport.py` — 21 tests for transport + rumors
-- `tests/test_negotiate.py` — 24 tests for negotiation system
-
-- ✅ **StackWars — Micro-4X Wargame** (replaces dungeon crawl as 10th arcade game)
-  - Designed by Claude with direction from Ray Weiss' *A Contemporary Guide to Wargame Design*, inspired by Avianos (UFO 50)
-  - **Thesis**: personality traits that make you a good coder make you a terrible conqueror
-  - 5 factions from buddy stats: Engineers (DEBUGGING), Anarchists (CHAOS), Provocateurs (SNARK), Sages (WISDOM), Monks (PATIENCE)
-  - 5x5 procedural grid with mountains, servers, firewalls, flags, HQ tiles
-  - Avianos-style ability system: 5 abilities × 3 actions, 2-turn cooldown rotation
-  - Blessing progression: invest in abilities to permanently upgrade (no tech tree)
-  - 5 unit types with RPS matchups: Script Kiddies, Hackers, Architects, Operators, Sysadmins
-  - Odds-based CRT combat (per the book) with terrain/faction modifiers
-  - Win by holding 3 flags for a full round
-  - AI opponent with faction-specific priorities
-  - Architected for 2-4 players, async PBEM via GitHub Issues planned
-  - 34 tests
-
-### New files (updated — session 4 continued)
-- `core/games/stackwars.py` — StackWars engine (factions, abilities, units, combat, AI, map gen)
-- `screens/game_stackwars.py` — StackWars TUI with sidebar map + status
-- `tests/test_stackwars.py` — 34 tests
-
-- ✅ **Buddy Fusion System** (SMT + Siralim inspired)
-  - Permanent sacrifice: both parents consumed, result is a trade-up
-  - 12 special fusion recipes producing fusion-exclusive species (chimera, phoenix_byte, quantum_cat, kernel_panic, etc.)
-  - Formula fallback for any non-recipe pair: deterministic species from rarity-escalated pool
-  - Stat inheritance: higher of each parent stat at 75% (well-rounded but slightly weaker individually)
-  - Rarity escalation: same-rarity parents → one tier up (Common+Common=Uncommon, etc.)
-  - Recipe discovery: see available recipes based on species you own
-  - Fusion-exclusive hat: "Chimera Crown" + visible "(Fused)" tag
-  - Each recipe has unique lore text ("Fire and void. The Phoenix burned away the Ghost's regrets...")
-  - Preview system: see result before confirming
-  - 25 tests
-  - **TUI wired in**: FusionScreen with 3-phase flow (select parent A → select parent B → preview + confirm). [f] keybinding from main app. Recipe browser via [r]. Back navigation between phases. Auto-activates fused buddy if a parent was active.
-
-## Session Notes (2026-04-02 — Home)
+## Session Notes (2026-04-02 — Home, Session 1)
 
 ### Completed (6 commits)
 - ✅ **StackWars playtest & polish** — found and fixed 6 broken mechanics:
@@ -634,20 +497,19 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - Could also explore: expanding the world (more rooms/zones), multiplayer leaderboards on BBS, or tackling Tier 5 audio
 
 ### Test Coverage Roadmap
-478 tests passing. Coverage audit identified remaining gaps by priority:
+689 tests passing. Previous audit gaps addressed:
 
-**High priority (0% coverage, core systems):**
-- `prose.py` — ✅ DONE (22 tests)
-- `achievements.py` — ✅ DONE (59 tests)
-- `code_map.py` — ✅ DONE (12 tests)
-- `memory.py` — needs episodic/semantic/procedural tests (~30 tests)
-- BBS system (`bbs_*.py`, 6 files) — content gen, transport, nudge detection (~50 tests)
-- AI backend (`ai_backend.py`, `ai_router.py`, `agent.py`) — needs mocking infra (~40 tests)
+**Completed this session (211 new tests):**
+- `memory.py` — ✅ DONE (52 tests) — episodic/semantic/procedural, contradiction detection, cross-tier recall, decay, buffer mechanics
+- BBS system — ✅ DONE (48 tests) — boards, profiles, nudge detection, content engine
+- AI backend/router/agent — ✅ DONE (78 tests) — complexity scoring, routing, path traversal, command blocking
+- `personality_drift.py` + `session_observer.py` — ✅ DONE (33 tests) — all drift functions, session stats, pattern detection
 
-**Medium priority (partially covered):**
+**Bug fixed:** `bump_access()` on `memory_procedural` table — column doesn't exist. Removed procedural from bump_access.
+
+**Medium priority (remaining):**
 - `blackjack.py` — only basic creation tested, needs game flow/dealer AI
-- `personality_drift.py` — game/idle covered, fusion/chat drift untested
-- `session_observer.py`, `token_guardian.py` — 0% coverage
+- `token_guardian.py` — 0% coverage
 - `config_intel.py`, `readme_intel.py` — 0% coverage
 - Screen interaction tests (currently smoke tests only)
 

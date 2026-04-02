@@ -443,7 +443,7 @@ class BuddyStore:
 
     async def bump_access(self, table: str, mem_id: int) -> None:
         """Increment access_count and set last_accessed for a memory."""
-        if table not in ("memory_episodic", "memory_semantic", "memory_procedural"):
+        if table not in ("memory_episodic", "memory_semantic"):
             return
         await self.db.execute(
             f"UPDATE {table} SET access_count = access_count + 1, "
