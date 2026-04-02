@@ -18,7 +18,8 @@ from textual.screen import Screen
 from buddies.core.buddy_brain import SPECIES_CATALOG, get_evolution_stage
 from buddies.core.fusion import (
     check_fusion, format_fusion_preview, get_discovered_recipes,
-    CHIMERA_CROWN_HAT, FUSED_TAG, FUSION_SPECIES_BY_NAME,
+    CHIMERA_CROWN_HAT, FUSED_TAG, FUSION_SPECIES_BY_NAME, FUSION_SPECIES,
+    FUSION_RECIPES,
 )
 from buddies.db.store import BuddyStore
 from buddies.widgets.styling import RARITY_COLORS
@@ -76,6 +77,7 @@ class FusionScreen(Screen):
         Binding("enter", "select", "Select", show=True),
         Binding("y", "confirm_fusion", "Confirm", show=False),
         Binding("r", "show_recipes", "Recipes", show=True),
+        Binding("c", "show_codex", "Codex", show=True),
         Binding("up", "nav_up", show=False),
         Binding("down", "nav_down", show=False),
     ]
@@ -324,6 +326,77 @@ class FusionScreen(Screen):
             rarity = result_sp.rarity.value if result_sp else "?"
             lines.append(f"  {r.species_a} + {r.species_b} → {emoji} [bold]{r.result}[/bold] ({rarity})")
         lines.append(f"\n[dim]{len(recipes)} recipe(s) available[/dim]")
+        preview.update("\n".join(lines))
+
+    def action_show_codex(self):
+        asyncio.create_task(self._do_show_codex())
+
+    async def _do_show_codex(self):
+        """Show the Fusion Codex — discovered vs undiscovered fusion species."""
+        # Get all species the player owns or has created via fusion
+        owned_species = {b.get("species", "") for b in self.buddies}
+
+        # Also check soul descriptions for fused buddies (they might own fusion species)
+        discovered_fusion = set()
+        for b in self.buddies:
+            sp = b.get("species", "")
+            if sp in FUSION_SPECIES_BY_NAME:
+                discovered_fusion.add(sp)
+            # Check fusion log via soul description tag
+            soul = b.get("soul_description", "")
+            if FUSED_TAG in soul:
+                discovered_fusion.add(sp)
+
+        preview = self.query_one("#fusion-preview", Static)
+        total = len(FUSION_SPECIES)
+        found = len(discovered_fusion)
+
+        lines = [
+            f"[bold]═══ FUSION CODEX ({found}/{total}) ═══[/bold]",
+            "",
+        ]
+
+        for species in FUSION_SPECIES:
+            if species.name in discovered_fusion:
+                # Discovered — show full details
+                color = RARITY_COLORS.get(species.rarity.value, "white")
+                lines.append(
+                    f"  {species.emoji} [{color}][bold]{species.name.replace('_', ' ').title()}[/bold][/{color}] "
+                    f"({species.rarity.value.upper()})"
+                )
+                lines.append(f"    [dim italic]{species.description}[/dim italic]")
+                # Show which recipe produces it
+                for r in FUSION_RECIPES:
+                    if r.result == species.name:
+                        lines.append(f"    [dim]Recipe: {r.species_a} + {r.species_b}[/dim]")
+                        break
+            else:
+                # Undiscovered — show silhouette with hint
+                lines.append(
+                    f"  ❓ [dim]???[/dim] ({species.rarity.value.upper()})"
+                )
+                # Give a vague hint from the recipe
+                for r in FUSION_RECIPES:
+                    if r.result == species.name:
+                        # Check if player has either parent
+                        has_a = r.species_a in owned_species
+                        has_b = r.species_b in owned_species
+                        if has_a and has_b:
+                            lines.append(f"    [yellow]Hint: You have both ingredients![/yellow]")
+                        elif has_a:
+                            lines.append(f"    [dim]Hint: Requires {r.species_a} + ???[/dim]")
+                        elif has_b:
+                            lines.append(f"    [dim]Hint: Requires ??? + {r.species_b}[/dim]")
+                        else:
+                            lines.append(f"    [dim]Hint: Keep collecting...[/dim]")
+                        break
+            lines.append("")
+
+        if found == total:
+            lines.append("[bold yellow]★ FUSION MASTER — All fusion species discovered! ★[/bold yellow]")
+        else:
+            lines.append(f"[dim]{total - found} species remaining to discover.[/dim]")
+
         preview.update("\n".join(lines))
 
     def action_nav_up(self):
