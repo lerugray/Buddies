@@ -8,7 +8,7 @@
 [![16 Hats](https://img.shields.io/badge/hats-16-yellow.svg)](#hats-16)
 [![10 Games](https://img.shields.io/badge/games-10-red.svg)](#games-arcade-10-games)
 [![56 Achievements](https://img.shields.io/badge/achievements-56-purple.svg)](#achievements-56)
-[![761 Tests](https://img.shields.io/badge/tests-761_passing-brightgreen.svg)](#)
+[![789 Tests](https://img.shields.io/badge/tests-789_passing-brightgreen.svg)](#)
 
 Hatch buddies, collect species, earn hats, evolve, play games, explore a text adventure, negotiate with bugs, and build a team of quirky little creatures that react to how you code. Runs alongside Claude Code, watches your sessions, and actually helps — grading your config, saving tokens, and mapping your codebase.
 
@@ -131,7 +131,7 @@ All 5 MCP tools work in headless mode. Background services (session observer, co
 | **Coding Trivia** | Quiz | 90 questions, buddy answers alongside you |
 | **Pong** | Real-time | ~15 FPS in the terminal; buddy controls the other paddle |
 | **Blobber** | Wizardry-style CRPG | First-person, party-based, front/back rows, status effects |
-| **StackHaven MUD** | Text adventure | 17 rooms, 17 NPCs, 6 quests, negotiation, async multiplayer |
+| **StackHaven MUD** | Text adventure | 18 rooms, 18 NPCs, 6 quests, negotiation, gambling, bounties, async multiplayer |
 | **StackWars** | Micro-4X wargame | Buddy factions, 5x5 grid, Avianos-style ability cooldowns |
 
 ### StackWars
@@ -151,7 +151,7 @@ A micro-4X wargame designed by Claude with direction from [*A Contemporary Guide
 
 A love letter to software engineering craft, disguised as a text adventure.
 
-- **17 rooms** across 5 zones (Town, Depths, Server Room, Cloud District, QA)
+- **18 rooms** across 5 zones (Town, Depths, Server Room, Cloud District, QA)
 - **17 NPCs** — quest givers, merchants, hostile bugs, a sentient coffee machine
 - **40+ items** with Dark Souls-style discoverable lore telling the hidden history of the Founders
 - **6 quests** — Fix the Build Pipeline, Scope Creep, Dragon Slayer, Flaky Hunt, and more
@@ -274,10 +274,9 @@ See [HANDOFF.md](HANDOFF.md) for the full structured roadmap.
 - Tier 5b Phase 1-2: StackHaven MUD with multiplayer, SMT-style negotiation, and Dark Souls async notes
 - StackWars: Micro-4X wargame with 5 factions and odds-based CRT combat
 - Buddy Fusion: SMT-style sacrifice + combine system with 12 recipes and fusion-exclusive species
-- 761 tests covering memory, BBS, AI router, personality drift, config intel, all games, and more
+- 789 tests covering memory, BBS, AI router, personality drift, config intel, MUD economy, all games, and more
 
 **Up next:**
-- MUD Phase 3: Economy (gold marketplace, trading, absurd cosmetics)
 - MUD Phase 4: Living World (rotating quests, world events, seasonal content)
 - Audio: speech-to-text / text-to-speech (local via Whisper + Piper)
 

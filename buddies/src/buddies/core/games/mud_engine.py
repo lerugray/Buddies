@@ -94,6 +94,11 @@ class MudState:
     items_collected: int = 0
     quests_completed: int = 0
     gold_earned: int = 0
+    gold_spent: int = 0
+    gold_gambled: int = 0
+    gold_won_gambling: int = 0
+    tips_given: int = 0
+    bounties_completed: int = 0
     turns: int = 0
     notes_left: int = 0
     notes_rated: int = 0
@@ -184,6 +189,10 @@ def parse_command(raw: str) -> tuple[str, str]:
         "map": "map",
         "flee": "flee", "run": "flee", "escape": "flee",
         "wait": "wait",
+        "gamble": "gamble", "bet": "gamble", "wager": "gamble",
+        "wealth": "wealth", "balance": "wealth", "money": "wealth",
+        "tip": "tip",
+        "bounty": "bounty", "bounties": "bounty", "contracts": "bounty",
     }
 
     cmd = aliases.get(cmd, cmd)
@@ -956,6 +965,7 @@ def _handle_buy(state: MudState, target: str) -> list[str]:
             )
             if state.inventory.add_item(bought):
                 state.inventory.gold -= item.value
+                state.gold_spent += item.value
                 return [f"[green]Bought: {item.emoji} {item.name} for {item.value}g[/green]",
                         f"[yellow]Gold remaining: {state.inventory.gold}g[/yellow]"]
             else:
@@ -1626,6 +1636,10 @@ def _handle_help(state: MudState, _arg: str) -> list[str]:
         "[bold cyan]Commerce:[/bold cyan]",
         "  [bold]buy[/bold]             — Browse/buy from merchants",
         "  [bold]sell[/bold]            — Sell items to merchants (half value)",
+        "  [bold]gamble[/bold]          — Games of chance (coin flip, slots)",
+        "  [bold]tip[/bold]             — Tip an NPC",
+        "  [bold]bounty[/bold]          — View/claim bounty contracts",
+        "  [bold]wealth[/bold]          — View economy stats",
         "",
         "[bold cyan]Multiplayer:[/bold cyan]",
         "  [bold]note[/bold]            — Leave a soapstone message (needs Orange Soapstone)",
@@ -1912,6 +1926,262 @@ def _check_quest_progress(state: MudState, action_type: str, target_id: str):
 
 
 # ---------------------------------------------------------------------------
+# Economy Phase 3: Gambling, Tipping, Bounties, Wealth
+# ---------------------------------------------------------------------------
+
+def _handle_gamble(state: MudState, arg: str) -> list[str]:
+    """Gamble gold at Lucky's games of chance."""
+    # Must be in a room with Lucky
+    room = state.rooms[state.current_room]
+    if "lucky" not in room.npcs:
+        return ["There's nobody here to gamble with. Find Lucky in the supply area."]
+
+    parts = arg.strip().split()
+    if len(parts) < 2:
+        return [
+            "\n[bold]🎰 Lucky's Games of Chance[/bold]",
+            f"{'─' * 40}",
+            f"[yellow]Your gold: {state.inventory.gold}g[/yellow]",
+            "",
+            "[bold]Games:[/bold]",
+            "  [bold]gamble flip <amount>[/bold]  — Coin flip, double or nothing (50/50)",
+            "  [bold]gamble slots <amount>[/bold] — Slot machine, 3x payout (1 in 5 chance)",
+            "",
+            "[dim]Minimum bet: 5g. Maximum bet: 100g.[/dim]",
+        ]
+
+    game_type = parts[0].lower()
+    try:
+        amount = int(parts[1])
+    except ValueError:
+        return ["That's not a valid bet. Use a number, like [bold]gamble flip 10[/bold]."]
+
+    if amount < 5:
+        return ["Minimum bet is 5 gold. Even Lucky has standards."]
+    if amount > 100:
+        return ["Maximum bet is 100 gold. Lucky doesn't want to bankrupt you. (That's a lie. He just doesn't have enough gold to cover it.)"]
+    if amount > state.inventory.gold:
+        return [f"You only have {state.inventory.gold}g. Can't bet what you don't have."]
+
+    state.inventory.gold -= amount
+    state.gold_spent += amount
+    state.gold_gambled += amount
+
+    if game_type == "flip":
+        return _gamble_flip(state, amount)
+    elif game_type in ("slots", "slot"):
+        return _gamble_slots(state, amount)
+    else:
+        state.inventory.gold += amount  # Refund
+        state.gold_spent -= amount
+        state.gold_gambled -= amount
+        return [f"Unknown game '{game_type}'. Try [bold]flip[/bold] or [bold]slots[/bold]."]
+
+
+def _gamble_flip(state: MudState, amount: int) -> list[str]:
+    """Coin flip — 50/50 double or nothing."""
+    lines = [f"\n[bold]🪙 Coin Flip — {amount}g bet[/bold]"]
+    lines.append("Lucky flips the coin high into the air...")
+
+    if random.random() < 0.5:
+        winnings = amount * 2
+        state.inventory.gold += winnings
+        state.gold_won_gambling += winnings
+        lines.append(f"[bold green]✨ HEADS! You win {winnings}g![/bold green]")
+        lines.append(f"[yellow]Gold: {state.inventory.gold}g[/yellow]")
+        comment = _buddy_comment(state.party, "shop")
+        if comment:
+            lines.append(comment)
+    else:
+        lines.append(f"[bold red]💀 TAILS! You lose {amount}g![/bold red]")
+        lines.append(f"[yellow]Gold: {state.inventory.gold}g[/yellow]")
+        lines.append("[dim]Lucky pockets the gold with practiced efficiency.[/dim]")
+
+    return lines
+
+
+def _gamble_slots(state: MudState, amount: int) -> list[str]:
+    """Slot machine — 1 in 5 for 3x payout, small consolation prizes."""
+    symbols = ["🍒", "🔔", "💎", "7️⃣", "🍀", "⭐", "🎯"]
+    reels = [random.choice(symbols) for _ in range(3)]
+    lines = [f"\n[bold]🎰 Slot Machine — {amount}g bet[/bold]"]
+    lines.append(f"  ┃ {reels[0]} ┃ {reels[1]} ┃ {reels[2]} ┃")
+
+    if reels[0] == reels[1] == reels[2]:
+        # Jackpot! 5x payout
+        winnings = amount * 5
+        state.inventory.gold += winnings
+        state.gold_won_gambling += winnings
+        lines.append(f"[bold green]🎉 JACKPOT! Three {reels[0]}! You win {winnings}g![/bold green]")
+        lines.append(f"[yellow]Gold: {state.inventory.gold}g[/yellow]")
+    elif reels[0] == reels[1] or reels[1] == reels[2]:
+        # Two matching — return bet
+        state.inventory.gold += amount
+        state.gold_won_gambling += amount
+        lines.append(f"[yellow]Two matching! You get your {amount}g back.[/yellow]")
+        lines.append(f"[yellow]Gold: {state.inventory.gold}g[/yellow]")
+    else:
+        lines.append(f"[red]No match. You lose {amount}g.[/red]")
+        lines.append(f"[yellow]Gold: {state.inventory.gold}g[/yellow]")
+        lines.append("[dim]Lucky whistles innocently.[/dim]")
+
+    return lines
+
+
+def _handle_wealth(state: MudState, _arg: str) -> list[str]:
+    """Show economy statistics."""
+    net = state.inventory.gold
+    lines = [
+        "\n[bold]💰 Wealth Report[/bold]",
+        f"{'─' * 40}",
+        f"[yellow]Current Gold: {net}g[/yellow]",
+        "",
+        "[bold]Earnings:[/bold]",
+        f"  Quest rewards: {state.gold_earned}g",
+        f"  Gambling wins: {state.gold_won_gambling}g",
+        "",
+        "[bold]Spending:[/bold]",
+        f"  Items purchased: {state.gold_spent - state.gold_gambled}g",
+        f"  Gold gambled: {state.gold_gambled}g",
+        f"  Tips given: {state.tips_given}g",
+        "",
+        f"[bold]Bounties completed:[/bold] {state.bounties_completed}",
+    ]
+
+    # Fun titles based on wealth
+    if net >= 500:
+        lines.append("\n[bold magenta]Title: Venture Capitalist[/bold magenta]")
+    elif net >= 200:
+        lines.append("\n[bold cyan]Title: Senior Engineer (with stock options)[/bold cyan]")
+    elif net >= 50:
+        lines.append("\n[bold green]Title: Mid-Level (pays rent, barely)[/bold green]")
+    elif net >= 10:
+        lines.append("\n[bold yellow]Title: Junior Developer[/bold yellow]")
+    else:
+        lines.append("\n[bold red]Title: Unpaid Intern[/bold red]")
+
+    return lines
+
+
+def _handle_tip(state: MudState, arg: str) -> list[str]:
+    """Tip an NPC for flavor text."""
+    room = state.rooms[state.current_room]
+    if not arg:
+        if room.npcs:
+            npc_names = [state.npcs[nid].name for nid in room.npcs if nid in state.npcs]
+            return [f"Tip who? NPCs here: {', '.join(npc_names)}. Usage: [bold]tip <name> <amount>[/bold]"]
+        return ["There's nobody here to tip."]
+
+    parts = arg.strip().split()
+    if len(parts) < 2:
+        return ["Usage: [bold]tip <name> <amount>[/bold] (e.g., tip gerald 5)"]
+
+    npc_name = parts[0].lower()
+    try:
+        tip_amount = int(parts[1])
+    except ValueError:
+        return ["That's not a valid amount."]
+
+    if tip_amount < 1:
+        return ["At least tip 1 gold. Have some dignity."]
+    if tip_amount > state.inventory.gold:
+        return [f"You only have {state.inventory.gold}g."]
+
+    # Find NPC by name
+    target_npc = None
+    for nid in room.npcs:
+        if nid in state.npcs and state.npcs[nid].name.lower() == npc_name:
+            target_npc = state.npcs[nid]
+            break
+
+    if not target_npc:
+        return [f"There's no '{npc_name}' here to tip."]
+
+    state.inventory.gold -= tip_amount
+    state.tips_given += tip_amount
+
+    # Fun responses by NPC
+    tip_responses = {
+        "sysadmin": f"Gerald pockets the {tip_amount}g without breaking eye contact with his monitors. \"Uptime just went up 0.001%.\"",
+        "intern": f"Skyler's eyes go wide. \"{tip_amount} gold?! I'm gonna buy SO many energy drinks!\"",
+        "product_manager": f"Brenda accepts the {tip_amount}g and immediately starts a new Jira ticket titled 'Revenue Stream: Tips.'",
+        "coffee_machine": f"The Coffee Machine absorbs the {tip_amount}g. Its display reads: 'GRATITUDE.EXE LOADED. ERROR: EMOTION NOT FOUND.'",
+        "vendor": f"Dave bites the gold to check if it's real. It is. \"Pleasure doing business.\"",
+        "lucky": f"Lucky grins. \"{tip_amount}g? Want to put that on a coin flip instead?\"",
+        "rubber_duck_sage": f"The Rubber Duck Sage accepts the {tip_amount}g with a gentle quack. You feel enlightened. Probably.",
+        "senior_dev": f"Miriam glances at the {tip_amount}g. \"I don't need gold. I need someone to read the documentation. But thanks.\"",
+        "scrum_master": f"Todd writes '{tip_amount}g received' on a sticky note and puts it on the sprint board.",
+        "oncall_engineer": f"Marcus looks at the {tip_amount}g with dead eyes. \"Does this mean I can go home?\"",
+        "qa_lead": f"Priya examines the {tip_amount}g. \"Is this gold tested? Does it have unit tests? I'm not accepting untested gold.\"",
+    }
+
+    response = tip_responses.get(target_npc.id,
+        f"{target_npc.name} accepts the {tip_amount}g with a nod.")
+
+    return [
+        f"[yellow]-{tip_amount}g[/yellow]",
+        f"[green]{response}[/green]",
+        f"[yellow]Gold: {state.inventory.gold}g[/yellow]",
+    ]
+
+
+# Bounty definitions (repeatable mini-quests)
+BOUNTIES = [
+    {"id": "bounty_explore", "name": "Explorer's Survey", "description": "Visit 5 different rooms", "goal_type": "rooms_visited", "goal_count": 5, "reward": 15},
+    {"id": "bounty_fighter", "name": "Bug Bounty (Literal)", "description": "Defeat 3 hostile NPCs", "goal_type": "npcs_defeated", "goal_count": 3, "reward": 25},
+    {"id": "bounty_talker", "name": "Social Networking", "description": "Talk to 5 NPCs", "goal_type": "npcs_talked", "goal_count": 5, "reward": 10},
+    {"id": "bounty_collector", "name": "Hoarder's Delight", "description": "Collect 5 items", "goal_type": "items_collected", "goal_count": 5, "reward": 20},
+    {"id": "bounty_tourist", "name": "Grand Tour", "description": "Visit 12 different rooms", "goal_type": "rooms_visited", "goal_count": 12, "reward": 40},
+]
+
+
+def _handle_bounty(state: MudState, arg: str) -> list[str]:
+    """View and claim bounty rewards."""
+    lines = [
+        "\n[bold]📋 Bounty Board[/bold]",
+        f"{'─' * 40}",
+        "[dim]Complete objectives to earn gold rewards.[/dim]",
+        "",
+    ]
+
+    for bounty in BOUNTIES:
+        current = getattr(state, bounty["goal_type"], 0)
+        goal = bounty["goal_count"]
+        done = current >= goal
+        status = "[bold green]✅ COMPLETE[/bold green]" if done else f"[dim]{current}/{goal}[/dim]"
+
+        lines.append(f"  [bold]{bounty['name']}[/bold] — {bounty['description']}")
+        lines.append(f"    Progress: {status}  |  Reward: [yellow]{bounty['reward']}g[/yellow]")
+
+    # Check if claiming
+    if arg.strip().lower() in ("claim", "collect"):
+        claimed = 0
+        for bounty in BOUNTIES:
+            bid = bounty["id"]
+            current = getattr(state, bounty["goal_type"], 0)
+            if current >= bounty["goal_count"]:
+                # Check if already claimed (use a set on the state)
+                if not hasattr(state, '_bounties_claimed'):
+                    state._bounties_claimed = set()
+                if bid not in state._bounties_claimed:
+                    state._bounties_claimed.add(bid)
+                    state.inventory.gold += bounty["reward"]
+                    state.gold_earned += bounty["reward"]
+                    state.bounties_completed += 1
+                    claimed += bounty["reward"]
+                    lines.append(f"\n[bold green]Claimed: {bounty['name']} — +{bounty['reward']}g![/bold green]")
+
+        if claimed:
+            lines.append(f"\n[yellow]Total claimed: +{claimed}g | Gold: {state.inventory.gold}g[/yellow]")
+        else:
+            lines.append("\n[dim]No unclaimed bounties. Complete more objectives![/dim]")
+    else:
+        lines.append(f"\n[dim]Type [bold]bounty claim[/bold] to collect completed bounties.[/dim]")
+
+    return lines
+
+
+# ---------------------------------------------------------------------------
 # Main command dispatch
 # ---------------------------------------------------------------------------
 
@@ -1938,6 +2208,10 @@ COMMAND_HANDLERS = {
     "help": _handle_help,
     "attack": _handle_attack,
     "flee": _handle_flee,
+    "gamble": _handle_gamble,
+    "wealth": _handle_wealth,
+    "tip": _handle_tip,
+    "bounty": _handle_bounty,
 }
 
 
@@ -2033,6 +2307,9 @@ def get_game_result(state: MudState, buddy_id: int) -> GameResult:
             "npcs_defeated": state.npcs_defeated,
             "quests_completed": state.quests_completed,
             "gold_earned": state.gold_earned,
+            "gold_spent": state.gold_spent,
+            "gold_gambled": state.gold_gambled,
+            "bounties_completed": state.bounties_completed,
             "turns": state.turns,
         },
         xp_earned=xp,

@@ -341,6 +341,18 @@ def build_starter_items() -> dict[str, Item]:
              lore="Four people started StackHaven in a garage with $3,000, three laptops, and this mug. They had no AI assistants, no copilot, no cloud infrastructure. They had themselves, their skills, and the belief that they could build something that mattered. The mug is still warm because what they built is still running. Somewhere, right now, their code is serving a request. And they never needed to be told that this was impressive. They already knew."),
         Item("first_commit", "The First Commit", "A framed printout: 'initial commit'. The code is... HTML with inline styles.", ItemType.QUEST, 0, emoji="📜",
              lore="Every codebase begins with someone brave enough to write the first line. The HTML is ugly. The inline styles are a sin. But it shipped. It worked. It was the seed that grew into everything you see around you. Before you judge the first commit, ask yourself: what have you started from nothing? What have you built when there was no foundation, no template, no 'best practice'? The people who write first commits are the people who make things exist."),
+
+        # --- Economy Phase 3: Gold Sink Cosmetics ---
+        Item("golden_semicolon", "Golden Semicolon", "A semicolon plated in 24-karat gold. It compiles slightly better.", ItemType.COSMETIC, 500, emoji="💰",
+             lore="When you've earned enough gold, you start to wonder: what's it all for? The golden semicolon is the answer nobody asked for. It does nothing. It costs everything. And it's beautiful."),
+        Item("executive_lanyard", "Executive Lanyard", "Says 'THOUGHT LEADER' in holographic lettering. Grants no actual authority.", ItemType.COSMETIC, 150, emoji="🏷️",
+             lore="In the old days, the lanyard was just an ID holder. Then someone made it a status symbol. Then someone made it ironic. Then someone made it expensive. The cycle continues."),
+        Item("rgb_keyboard_skin", "RGB Keyboard Skin", "Your keyboard now changes color based on your mood. Currently: anxious.", ItemType.COSMETIC, 250, emoji="🌈",
+             lore="RGB was supposed to be about personalization. It became about performance. Faster lights, faster code — or so the myth goes. The truth is that we like pretty things, and that's okay."),
+        Item("cloud_in_a_jar", "Cloud in a Jar", "Literally someone else's computer, miniaturized. The metaphor is now physical.", ItemType.COSMETIC, 300, emoji="☁️",
+             lore="When they said 'the cloud is just someone else's computer,' they were right. When they put it in a jar and sold it for 300 gold, they proved that humans will buy anything if you market it correctly."),
+        Item("vintage_floppy", "Vintage Floppy Disk", "1.44 MB of pure nostalgia. Contains a README that just says 'REMEMBER.'", ItemType.COSMETIC, 175, emoji="💾",
+             lore="Before the cloud, before git, before version control — there was the floppy. Your work lived on a disk you could hold. You could lose everything by sitting on it. The stakes were personal."),
     ]}
 
 
@@ -687,6 +699,27 @@ def build_starter_npcs(items: dict[str, Item]) -> dict[str, NPC]:
         },
     )
 
+    npcs["lucky"] = NPC(
+        id="lucky",
+        name="Lucky",
+        title="Dave's Business Partner",
+        description="A buddy-sized figure in a tiny visor and vest, sitting behind a folding table covered in dice, cards, and what appears to be a roulette wheel made from a hard drive platter. A sign reads: 'LUCKY'S GAMES OF CHANCE — The House Always Wins (Terms & Conditions Apply)'",
+        disposition=NPCDisposition.MERCHANT,
+        emoji="🎰",
+        dialogue={
+            "greeting": DialogueLine(
+                "\"Step right up! Feeling lucky? I've got Coin Flip — double or nothing! Or try the Slots — three matching symbols wins big! Type [bold]gamble flip <amount>[/bold] or [bold]gamble slots <amount>[/bold] to play!\"",
+            ),
+            "idle": DialogueLine(
+                "\"The odds are fair! Mostly! Approximately! In a statistical sense!\"",
+            ),
+            "buy": DialogueLine(
+                "\"I don't sell items, friend. I sell EXCITEMENT. Try [bold]gamble[/bold]!\"",
+            ),
+        },
+        shop_items=["golden_semicolon", "executive_lanyard", "rgb_keyboard_skin", "cloud_in_a_jar", "vintage_floppy"],
+    )
+
     return npcs
 
 
@@ -767,14 +800,35 @@ def build_starter_rooms() -> dict[str, Room]:
         short_description="Dave's supply closet. Everything is for sale. Don't ask questions.",
         exits=[
             RoomExit("west", "town_square", "Back to the open-plan office."),
+            RoomExit("east", "back_room", "A curtain of tangled ethernet cables. You hear dice clicking."),
         ],
-        npcs=["vendor"],
+        npcs=["vendor", "lucky"],
         ambient=[
             "Dave adjusts a price tag without looking up.",
             "A box in the corner is labeled 'DEFINITELY NOT STOLEN.'",
             "You hear a muffled beep from behind a stack of keyboards.",
         ],
         emoji="🏪",
+        zone="town",
+    )
+
+    rooms["back_room"] = Room(
+        id="back_room",
+        name="Lucky's Back Room",
+        description="Behind a curtain of ethernet cables, a small room has been converted into what can only be described as a casino for one. A hard drive platter spins as a roulette wheel. Dice carved from old CPUs scatter across a folding table. Lucky presides over it all with the confidence of someone who has never once calculated the actual odds. A chalkboard on the wall tracks 'HOUSE WINNINGS' in increasingly large numbers. A bounty board on the wall lists available contracts.",
+        short_description="Lucky's gambling den. The house always wins. (Terms & conditions apply.)",
+        exits=[
+            RoomExit("west", "supply_closet", "Back to Dave's domain."),
+        ],
+        npcs=["lucky"],
+        ambient=[
+            "Lucky flips a coin and catches it without looking.",
+            "The hard drive roulette wheel spins with a faint whirring noise.",
+            "Someone has scratched 'I lost everything' into the table. Below it: 'Same.'",
+            "Lucky counts a small pile of gold coins and grins.",
+            "A sign reads: 'All games are fair. Fairness is relative.'",
+        ],
+        emoji="🎰",
         zone="town",
     )
 

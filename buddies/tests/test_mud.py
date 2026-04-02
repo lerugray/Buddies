@@ -672,3 +672,272 @@ class TestLoreSystem:
         from buddies.core.games.mud_world import Item, ItemType
         item = Item("test_no_lore", "Test", "No lore here", ItemType.JUNK)
         assert item.lore == ""
+
+
+# ---------------------------------------------------------------------------
+# Economy Phase 3: Setup tests
+# ---------------------------------------------------------------------------
+
+class TestEconomySetup:
+    def test_back_room_exists(self):
+        state = _make_game()
+        assert "back_room" in state.rooms
+        assert state.rooms["back_room"].name == "Lucky's Back Room"
+
+    def test_lucky_npc_exists(self):
+        state = _make_game()
+        assert "lucky" in state.npcs
+        assert state.npcs["lucky"].disposition == NPCDisposition.MERCHANT
+
+    def test_supply_closet_has_back_room_exit(self):
+        state = _make_game()
+        room = state.rooms["supply_closet"]
+        destinations = [ex.destination for ex in room.exits]
+        assert "back_room" in destinations
+
+
+# ---------------------------------------------------------------------------
+# Gamble command tests
+# ---------------------------------------------------------------------------
+
+class TestGambleCommand:
+    def test_gamble_no_args_shows_help(self):
+        state = _make_game()
+        state.current_room = "back_room"
+        lines = process_command(state, "gamble")
+        text = "\n".join(lines)
+        assert "Games of Chance" in text
+        assert "flip" in text
+        assert "slots" in text
+
+    def test_gamble_flip_works(self):
+        state = _make_game()
+        state.current_room = "back_room"
+        state.inventory.gold = 50
+        lines = process_command(state, "gamble flip 10")
+        text = "\n".join(lines)
+        assert "Coin Flip" in text
+        assert state.gold_gambled == 10
+        # Gold should have changed (either won or lost)
+        assert state.inventory.gold != 50 or state.gold_won_gambling > 0
+
+    def test_gamble_slots_works(self):
+        state = _make_game()
+        state.current_room = "back_room"
+        state.inventory.gold = 50
+        lines = process_command(state, "gamble slots 10")
+        text = "\n".join(lines)
+        assert "Slot Machine" in text
+        # Should show slot symbols in the output
+        assert "┃" in text
+
+    def test_gamble_flip_min_bet_rejected(self):
+        state = _make_game()
+        state.current_room = "back_room"
+        state.inventory.gold = 50
+        lines = process_command(state, "gamble flip 3")
+        text = "\n".join(lines)
+        assert "Minimum" in text or "minimum" in text
+        assert state.inventory.gold == 50  # No gold deducted
+
+    def test_gamble_flip_max_bet_rejected(self):
+        state = _make_game()
+        state.current_room = "back_room"
+        state.inventory.gold = 500
+        lines = process_command(state, "gamble flip 200")
+        text = "\n".join(lines)
+        assert "Maximum" in text or "maximum" in text
+        assert state.inventory.gold == 500
+
+    def test_gamble_insufficient_gold(self):
+        state = _make_game()
+        state.current_room = "back_room"
+        state.inventory.gold = 5
+        lines = process_command(state, "gamble flip 10")
+        text = "\n".join(lines)
+        assert "5g" in text  # Shows current gold
+        assert state.inventory.gold == 5  # Unchanged
+
+    def test_gamble_wrong_room(self):
+        state = _make_game()
+        state.current_room = "lobby"
+        lines = process_command(state, "gamble flip 10")
+        text = "\n".join(lines)
+        assert "nobody" in text.lower()
+
+    def test_gamble_unknown_game_type(self):
+        state = _make_game()
+        state.current_room = "back_room"
+        state.inventory.gold = 50
+        lines = process_command(state, "gamble roulette 10")
+        text = "\n".join(lines)
+        assert "Unknown" in text or "unknown" in text or "flip" in text.lower()
+        assert state.inventory.gold == 50  # Refunded
+        assert state.gold_gambled == 0  # Not counted
+
+
+# ---------------------------------------------------------------------------
+# Wealth command tests
+# ---------------------------------------------------------------------------
+
+class TestWealthCommand:
+    def test_wealth_shows_gold(self):
+        state = _make_game()
+        state.inventory.gold = 42
+        lines = process_command(state, "wealth")
+        text = "\n".join(lines)
+        assert "42g" in text
+        assert "Wealth Report" in text
+
+    def test_wealth_title_venture_capitalist(self):
+        state = _make_game()
+        state.inventory.gold = 500
+        lines = process_command(state, "wealth")
+        text = "\n".join(lines)
+        assert "Venture Capitalist" in text
+
+    def test_wealth_shows_gambling_stats(self):
+        state = _make_game()
+        state.current_room = "back_room"
+        state.inventory.gold = 50
+        process_command(state, "gamble flip 10")
+        lines = process_command(state, "wealth")
+        text = "\n".join(lines)
+        assert "Gambling wins" in text or "Gold gambled" in text
+        assert "gambled" in text.lower()
+
+    def test_wealth_shows_tips(self):
+        state = _make_game()
+        state.current_room = "town_square"
+        state.inventory.gold = 50
+        process_command(state, "tip gerald 5")
+        lines = process_command(state, "wealth")
+        text = "\n".join(lines)
+        assert "Tips given" in text
+        assert "5g" in text
+
+
+# ---------------------------------------------------------------------------
+# Tip command tests
+# ---------------------------------------------------------------------------
+
+class TestTipCommand:
+    def test_tip_no_args_lists_npcs(self):
+        state = _make_game()
+        state.current_room = "town_square"
+        lines = process_command(state, "tip")
+        text = "\n".join(lines)
+        assert "Tip who" in text or "tip" in text.lower()
+
+    def test_tip_npc_deducts_gold(self):
+        state = _make_game()
+        state.current_room = "town_square"
+        state.inventory.gold = 50
+        lines = process_command(state, "tip gerald 5")
+        text = "\n".join(lines)
+        assert state.inventory.gold == 45
+        assert "Gerald" in text or "gerald" in text.lower()
+
+    def test_tip_nonexistent_npc(self):
+        state = _make_game()
+        state.current_room = "town_square"
+        state.inventory.gold = 50
+        lines = process_command(state, "tip nonexistent 5")
+        text = "\n".join(lines)
+        assert "no" in text.lower() or "not" in text.lower()
+        assert state.inventory.gold == 50  # Unchanged
+
+    def test_tip_insufficient_gold(self):
+        state = _make_game()
+        state.current_room = "town_square"
+        state.inventory.gold = 3
+        lines = process_command(state, "tip gerald 9999")
+        text = "\n".join(lines)
+        assert "3g" in text  # Shows current gold
+        assert state.inventory.gold == 3
+
+    def test_tips_given_tracks_total(self):
+        state = _make_game()
+        state.current_room = "town_square"
+        state.inventory.gold = 50
+        process_command(state, "tip gerald 5")
+        process_command(state, "tip gerald 3")
+        assert state.tips_given == 8
+
+
+# ---------------------------------------------------------------------------
+# Bounty command tests
+# ---------------------------------------------------------------------------
+
+class TestBountyCommand:
+    def test_bounty_shows_all_bounties(self):
+        from buddies.core.games.mud_engine import BOUNTIES
+        state = _make_game()
+        lines = process_command(state, "bounty")
+        text = "\n".join(lines)
+        assert "Bounty Board" in text
+        for bounty in BOUNTIES:
+            assert bounty["name"] in text
+
+    def test_bounty_tracks_progress(self):
+        state = _make_game()
+        state.rooms_visited = 3
+        state.npcs_defeated = 1
+        lines = process_command(state, "bounty")
+        text = "\n".join(lines)
+        assert "3/5" in text  # Explorer's Survey progress
+        assert "1/3" in text  # Bug Bounty progress
+
+    def test_bounty_claim_awards_gold(self):
+        state = _make_game()
+        state.rooms_visited = 5  # Completes Explorer's Survey (reward: 15g)
+        initial_gold = state.inventory.gold
+        lines = process_command(state, "bounty claim")
+        text = "\n".join(lines)
+        assert "Claimed" in text
+        assert state.inventory.gold == initial_gold + 15
+        assert state.bounties_completed == 1
+
+    def test_bounty_claim_nothing_complete(self):
+        state = _make_game()
+        state.rooms_visited = 0
+        state.npcs_defeated = 0
+        state.npcs_talked = 0
+        state.items_collected = 0
+        lines = process_command(state, "bounty claim")
+        text = "\n".join(lines)
+        assert "No unclaimed" in text or "Complete more" in text
+
+    def test_bounty_cannot_claim_twice(self):
+        state = _make_game()
+        state.rooms_visited = 5  # Complete Explorer's Survey
+        process_command(state, "bounty claim")
+        gold_after_first_claim = state.inventory.gold
+        process_command(state, "bounty claim")
+        assert state.inventory.gold == gold_after_first_claim  # No double payout
+        assert state.bounties_completed == 1
+
+
+# ---------------------------------------------------------------------------
+# New cosmetic items tests
+# ---------------------------------------------------------------------------
+
+class TestNewCosmetics:
+    def test_new_cosmetic_items_exist(self):
+        state = _make_game()
+        new_cosmetics = ["golden_semicolon", "executive_lanyard", "rgb_keyboard_skin", "cloud_in_a_jar", "vintage_floppy"]
+        for item_id in new_cosmetics:
+            assert item_id in state.items, f"Missing cosmetic item: {item_id}"
+            assert state.items[item_id].item_type == ItemType.COSMETIC
+
+    def test_all_new_cosmetics_have_lore(self):
+        state = _make_game()
+        new_cosmetics = ["golden_semicolon", "executive_lanyard", "rgb_keyboard_skin", "cloud_in_a_jar", "vintage_floppy"]
+        for item_id in new_cosmetics:
+            assert state.items[item_id].lore, f"Cosmetic {item_id} missing lore text"
+
+    def test_all_new_cosmetics_have_value(self):
+        state = _make_game()
+        new_cosmetics = ["golden_semicolon", "executive_lanyard", "rgb_keyboard_skin", "cloud_in_a_jar", "vintage_floppy"]
+        for item_id in new_cosmetics:
+            assert state.items[item_id].value > 0, f"Cosmetic {item_id} has no value"

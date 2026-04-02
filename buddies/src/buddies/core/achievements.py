@@ -80,6 +80,9 @@ ACHIEVEMENTS: list[Achievement] = [
     Achievement("mud_quester", "Quest Hero", "Complete 2 quests in the MUD", "📋", "mastery"),
     Achievement("mud_dragon", "Debt Free", "Defeat the Technical Debt Dragon", "🐉", "secret"),
     Achievement("mud_shopper", "Consumer", "Buy something from a MUD merchant", "🛒", "exploration"),
+    Achievement("mud_gambler", "High Roller", "Gamble 100+ gold total in the MUD", "🎰", "secret"),
+    Achievement("mud_tipper", "Generous Tipper", "Tip 5 different NPCs in the MUD", "💸", "social"),
+    Achievement("mud_bounty_hunter", "Bounty Hunter", "Complete 3 bounty contracts", "📋", "mastery"),
 
     # Fusion achievements
     Achievement("first_fusion", "Soul Splice", "Perform your first buddy fusion", "⚗️", "collection"),
@@ -285,6 +288,9 @@ def check_achievements(
         _check("mud_quester", mud_quests >= 2)
         _check("mud_dragon", mud_stats.get("dragon_slain", False))
         _check("mud_shopper", mud_stats.get("items_bought", 0) >= 1)
+        _check("mud_gambler", mud_stats.get("gold_gambled", 0) >= 100)
+        _check("mud_tipper", mud_stats.get("tips_given", 0) >= 5)
+        _check("mud_bounty_hunter", mud_stats.get("bounties_completed", 0) >= 3)
 
         _check("first_game", gp >= 1)
         _check("rps_veteran", rps_won >= 10)

@@ -383,7 +383,7 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 
 - [x] **Phase 1 (Local MUD)** — "StackHaven MUD" — 11 rooms across 4 zones, 10 NPCs (quest givers, merchants, hostile mobs, a sentient coffee machine), 25+ items, 4 quests, full command parser (look/go/talk/take/attack/buy/flee/quest/map), personality-driven buddy commentary, simplified combat with equipment bonuses, locked doors with key items. 45 tests.
 - [x] **Phase 2 (Multiplayer)** — GitHub Issues as persistent world state (same transport as BBS). MudTransport syncs notes/bloodstains via `mud-soapstone` and `mud-bloodstain` labels. Auto-push on creation, auto-pull on MUD start. Remote phantoms generated from other players' notes. `rumors` command shows global adventurer activity. Voting via GitHub reactions. Graceful offline fallback.
-- [ ] **Phase 3 (Economy)** — gold from dungeon runs feeds into MUD marketplace. Trade items between users. Absurd cosmetics ("Slightly Haunted Top Hat", "NFT That Does Nothing", "Artisanal Semicolon"). In-game currency.
+- [x] **Phase 3 (Economy)** — Lucky's gambling den (coin flip + slots), 5 gold-sink cosmetics, tip system with 11 NPC-specific responses, bounty board with 5 repeatable contracts, `wealth` stats with fun titles, economy tracking. 18 rooms, 18 NPCs.
 - [ ] **Phase 4 (Living World)** — rotating quests, world events ("The Production Server Is On Fire — All Hands"), seasonal skins, BBS integration (buddies auto-post about MUD adventures). Silly DLC/add-ons/minigames as jokes.
 
 *Key insight: every system we've built feeds into this — blobber (combat/classes), BBS (transport), personality drift (evolution), idle life (background activity), relationships (social), user character (you in the world). The absurdist tone means jank is the aesthetic.*
@@ -455,8 +455,21 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - `tests/test_token_guardian.py` — 25 tests for token guardian
 - `tests/test_config_intel.py` — 47 tests for config intel + readme intel
 
+- ✅ **MUD Phase 3: Economy** — full economy system for StackHaven:
+  - Lucky's Back Room — new casino room behind Dave's Supply Closet
+  - Lucky NPC — gambling dealer with coin flip (double-or-nothing) and slot machine (5x jackpot)
+  - 5 new absurd gold-sink cosmetics (Golden Semicolon 500g, Cloud in a Jar 300g, RGB Keyboard Skin 250g, Vintage Floppy 175g, Executive Lanyard 150g)
+  - `gamble` command — coin flip + slots with min/max bet limits
+  - `wealth` command — economy stats with fun titles (Unpaid Intern → Venture Capitalist)
+  - `tip` command — tip any NPC with 11 unique per-NPC flavor responses
+  - `bounty` command — 5 repeatable contracts (explore, fight, talk, collect) with gold rewards
+  - Economy tracking: gold_spent, gold_gambled, gold_won_gambling, tips_given, bounties_completed
+  - 3 new achievements: High Roller, Generous Tipper, Bounty Hunter
+  - 28 new economy tests (789 total)
+
 ### Direction
-- Test coverage now solid on all core systems
+- MUD Phase 3 Economy DONE — 18 rooms, 18 NPCs, full gold economy with gambling/tips/bounties
+- Test coverage solid on all core systems
 - Remaining gaps: deeper blackjack game tests, screen interaction tests
 - Ready for new feature work (MUD Phase 3 Economy, Tier 5 Audio, or more polish)
 
