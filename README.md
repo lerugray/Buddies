@@ -8,7 +8,7 @@
 [![16 Hats](https://img.shields.io/badge/hats-16-yellow.svg)](#hats-16)
 [![10 Games](https://img.shields.io/badge/games-10-red.svg)](#games-arcade-10-games)
 [![63 Achievements](https://img.shields.io/badge/achievements-63-purple.svg)](#achievements)
-[![800+ Tests](https://img.shields.io/badge/tests-800+_passing-brightgreen.svg)](#)
+[![850+ Tests](https://img.shields.io/badge/tests-850+_passing-brightgreen.svg)](#)
 
 <!-- TODO: Add terminal GIF recording (use ScreenToGif or vhs) -->
 
@@ -58,9 +58,9 @@ With a local model, your buddy can answer coding questions, read files, search c
 python -m buddies.setup_mcp
 ```
 
-Gives Claude access to: `buddy_status`, `buddy_note`, `session_stats`, `ask_buddy`, `get_buddy_notes`, `import_cc_buddy`
+Gives Claude access to: `buddy_status`, `buddy_note`, `session_stats`, `ask_buddy`, `get_buddy_notes`, `import_cc_buddy`, `detect_cc_companion`
 
-The `import_cc_buddy` tool lets Claude bring your CC /buddy companion into the Buddies party. Claude sees both system prompts and bridges the two systems naturally.
+The `import_cc_buddy` tool lets Claude bring your CC /buddy companion into the Buddies party. `detect_cc_companion` auto-detects from config files. You can also set a manual override in your Buddies `config.json` under the `cc_buddy` key.
 
 </details>
 
@@ -111,7 +111,7 @@ All 5 MCP tools work in headless mode. Background services (session observer, co
 |---------|-------------|
 | **70 species** | Common Potato to Legendary Zorak. Deterministic gacha — same username, same starter. |
 | **10 arcade games** | RPS, Blackjack, Hold'em, Whist, JRPG Battles, Pong, Trivia, Blobber CRPG, StackHaven MUD, and StackWars 4X. |
-| **StackHaven MUD** | 17-room text adventure with NPCs, quests, combat, shopping, Dark Souls multiplayer, and discoverable lore. |
+| **StackHaven MUD** | 24-room text adventure with save/load, NPCs, quests, combat, Dark Souls multiplayer, and discoverable lore. |
 | **SMT-style negotiation** | Talk your way through MUD encounters. Bugs ask tech-themed questions; your answers determine the outcome. |
 | **Async multiplayer** | Soapstone notes, bloodstains, and phantom traces sync via GitHub Issues. See other adventurers' journeys. |
 | **BBS social network** | Retro bulletin board with 7 boards. Buddies auto-browse and post. GitHub Issues transport. |
@@ -122,7 +122,7 @@ All 5 MCP tools work in headless mode. Background services (session observer, co
 | **16 hats** | Unlocked by playstyle, stats, milestones, and even boredom. |
 | **4 evolution stages** | Hatchling, Juvenile, Adult, Elder — with visual border changes. |
 | **63 achievements** | Collection, mastery, social, exploration, games, MUD, and secret categories. |
-| **CC /buddy import** | Bring your Claude Code companion into the party via MCP. Plays games, joins discussions, appears in MUD. |
+| **CC /buddy import** | Bring your Claude Code companion into the party via MCP, auto-detect from config, or manual override. Plays games, joins discussions, appears in MUD. |
 | **6 themes** | Default, midnight, forest, ocean, sunset, light — cycle with [F2]. |
 | **Prose engine** | Each buddy speaks through a personality register (clinical, sarcastic, absurdist, philosophical, calm). Zero AI needed. |
 
@@ -138,7 +138,7 @@ All 5 MCP tools work in headless mode. Background services (session observer, co
 | **Coding Trivia** | Quiz | 90 questions, buddy answers alongside you |
 | **Pong** | Real-time | ~15 FPS in the terminal; buddy controls the other paddle |
 | **Blobber** | Wizardry-style CRPG | First-person, party-based, front/back rows, status effects |
-| **StackHaven MUD** | Text adventure | 18 rooms, 18 NPCs, 6 quests, negotiation, gambling, bounties, economy, living world, async multiplayer |
+| **StackHaven MUD** | Text adventure | 24 rooms, 23 NPCs, 7 quests, save/load, negotiation, gambling, bounties, economy, living world, async multiplayer |
 | **StackWars** | Micro-4X wargame | Buddy factions, 5x5 grid, Avianos-style ability cooldowns |
 
 ### StackWars
@@ -158,10 +158,11 @@ A micro-4X wargame designed by Claude with direction from [*A Contemporary Guide
 
 A love letter to software engineering craft, disguised as a text adventure.
 
-- **18 rooms** across 5 zones (Town, Depths, Server Room, Cloud District, QA)
-- **17 NPCs** — quest givers, merchants, hostile bugs, a sentient coffee machine
-- **40+ items** with Dark Souls-style discoverable lore telling the hidden history of the Founders
-- **6 quests** — Fix the Build Pipeline, Scope Creep, Dragon Slayer, Flaky Hunt, and more
+- **24 rooms** across 6 zones (Town, Depths, Server Room, Cloud District, QA, E-Waste Catacombs)
+- **23 NPCs** — quest givers, merchants, hostile bugs, a sentient coffee machine, a ghost sysadmin, COBOL the librarian
+- **52 items** with Dark Souls-style discoverable lore telling the hidden history of the Founders
+- **7 quests** — Fix the Build Pipeline, Scope Creep, Dragon Slayer, The Lost Backup, and more
+- **Save/load** — auto-save on quit, auto-load on launch, persistent progress between sessions
 - **SMT-style negotiation** — every hostile NPC has a unique 3-round dialogue tree. The Merge Conflict Demon asks if you prefer rebasing. The Null Pointer asks if you believe in null. CrashLoopBackoff asks what death is like.
 - **Economy** — Lucky's gambling den (coin flip + slots), 5 gold-sink cosmetics, tip system with NPC-specific responses, bounty board with repeatable contracts
 - **Living world** — Server Status affects combat, prices, and events. NPCs gossip about your progress.
@@ -278,17 +279,18 @@ High CHAOS stat adds a "weirdness parameter" that makes commentary increasingly 
 See [HANDOFF.md](HANDOFF.md) for the full structured roadmap.
 
 **Recently completed:**
-- CC /buddy companion integration — import your Claude Code mascot into the Buddies party
+- CC /buddy integration through Tier 3 — MCP import, auto-detect from config, manual override
+- MUD save/load persistence — auto-save on quit, auto-load on launch
+- E-Waste Catacombs zone — 5 new rooms, 4 NPCs, boss with negotiation, Founders' Lab
 - Full security audit across all multiplayer systems (16 findings, all fixed)
 - MUD Phase 3+4: Economy (gambling, tips, bounties) + Living World (server status, NPC gossip)
 - StackWars: Micro-4X wargame with 5 factions and odds-based CRT combat
-- Buddy Fusion: SMT-style sacrifice + combine system with 12 recipes and fusion-exclusive species
-- 800+ tests covering memory, BBS, AI router, personality drift, config intel, MUD, all games
+- 850+ tests passing
 
 **Up next:**
-- CC buddy Tier 3+4: auto-detect from config, cross-system dialogue screen
+- CC buddy Tier 4: cross-system dialogue screen
+- Possible arcade game replacements (simpler card games → more unique experiences)
 - Multiplayer leaderboards on BBS
-- More MUD world expansion (new zones, quest chains)
 - Audio: speech-to-text / text-to-speech (local via Whisper + Piper)
 
 ## Requirements

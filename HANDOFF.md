@@ -357,6 +357,7 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 
 - [x] **BBS-style Social Network (Phase 1)** — retro BBS with 7 boards (Chaos Lounge, Debug Clinic, Snark Pit, Wisdom Well, The Hatchery, Lost & Found, Sysop Corner). Modem login sequence with typewriter effect. ASCII art headers per board. Mock data for browsing. GitHub Issues transport planned for Phase 2. Extensible board system. [b] key opens BBS. BBSConfig with privacy levels, rate limits, PAT auth.
 - [x] **BBS Phase 2: Transport & Interactivity** — GitHub Issues as backend (lerugray/buddies-bbs). httpx transport with YAML frontmatter. Nudge mechanic (chat-driven, personality-based refusal). Auto-browse/post behavior (15-30min interval). Read-only without PAT, full write with token. Rate limiting via SQLite. Mock data fallback when offline.
+- [x] **CC Buddy Integration (Tiers 1-3)** — Tier 1: prose templates reference CC buddy. Tier 2: MCP `import_cc_buddy` tool. Tier 3: auto-detect from config files + manual override in Buddies config + `detect_cc_companion` MCP tool. Tier 4 (dialogue screen) not started.
 - [x] **Social Achievements** — 7 BBS achievements (First Post, Thread Starter, BBS Regular, Conversationalist, Popular, Board Hopper, Social Butterfly). Wired into periodic checker via get_bbs_stats().
 
 ### Tier 4: Games Arcade
@@ -386,6 +387,7 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 - [x] **Phase 2 (Multiplayer)** — GitHub Issues as persistent world state (same transport as BBS). MudTransport syncs notes/bloodstains via `mud-soapstone` and `mud-bloodstain` labels. Auto-push on creation, auto-pull on MUD start. Remote phantoms generated from other players' notes. `rumors` command shows global adventurer activity. Voting via GitHub reactions. Graceful offline fallback.
 - [x] **Phase 3 (Economy)** — Lucky's gambling den (coin flip + slots), 5 gold-sink cosmetics, tip system with 11 NPC-specific responses, bounty board with 5 repeatable contracts, `wealth` stats with fun titles, economy tracking. 18 rooms, 18 NPCs.
 - [x] **Phase 4 (Living World)** — Server Status system (5 states, dynamic transitions), affects combat/prices/events. NPC gossip system (reacts to player progress). `status` command.
+- [x] **Phase 5 (Persistence + Expansion)** — Save/load system (auto-save on quit, auto-load on launch). E-Waste Catacombs zone (5 rooms, 4 NPCs, 10 items, "Lost Backup" quest, Phantom Process boss with negotiation). 24 rooms, 23 NPCs, 52 items, 7 quests total.
 
 *Key insight: every system we've built feeds into this — blobber (combat/classes), BBS (transport), personality drift (evolution), idle life (background activity), relationships (social), user character (you in the world). The absurdist tone means jank is the aesthetic.*
 
@@ -430,159 +432,65 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - **2026-04-01 Home Session 2**: Pong, Trivia, Hold'em, Whist, personality drift, idle life, relationships, blobber dungeon, party select, user character, 112 tests
 - **2026-04-01 Home Sessions 3+4**: StackHaven MUD Phase 1+2, Dark Souls multiplayer, lore system, Wizardry VI combat, layered prompt assembly, SMT negotiation, StackWars 4X, Buddy Fusion. 385 tests.
 
-## Session Notes (2026-04-01 — Sessions 3+4, compacted)
+## Session Notes (compacted — 2026-04-01 Sessions 3+4, 2026-04-02 all)
 
-- **Session 3 (Home)**: StackHaven MUD Phase 1 complete — 17 rooms, 17 NPCs, 6 quests, 40+ items, combat, sell command, random world events, personality-driven room reactions (65+ unique lines). Dark Souls async multiplayer (soapstone notes, bloodstains, phantoms), discoverable lore (30+ entries about the Founders), Blobber Wizardry VI combat upgrade (front/back row, hide/backstab, status effects). 246 tests.
-- **Session 4 (Home)**: Phase 12 complete (layered prompt assembly with PromptBuilder). MUD Phase 2 GitHub transport (push/pull notes+bloodstains via Issues). `rumors` command. SMT-style negotiation for all 7 hostile NPCs. StackWars micro-4X wargame (5 factions, 5x5 grid, Avianos-style abilities, odds-based CRT). Buddy Fusion system (12 recipes, rarity escalation, stat inheritance, Chimera Crown hat, codex, TUI). 385 tests.
-
-## Session Notes (2026-04-02 — Home, Session 2)
-
-### Completed
-- ✅ **283 new tests** (761 total, was 478) — closed major test coverage gaps:
-  - `test_memory.py` (52 tests): all 3 memory tiers, contradiction detection, semantic statement detection, tag extraction, buffer/flush, cross-tier recall, decay, stats
-  - `test_bbs.py` (48 tests): boards, profiles, nudge detection/resolution, content engine
-  - `test_ai_backend.py` (78 tests): AI backend, offline backend, complexity scoring, routing decisions, agent tools, path traversal blocking, destructive command blocking
-  - `test_personality_drift.py` (33 tests): all drift functions (game/session/chat/fusion/idle), DriftResult, session observer, pattern detection
-  - `test_token_guardian.py` (25 tests): warning thresholds, event tracking, rolling summaries, session handoff, context export
-  - `test_config_intel.py` (47 tests): CLAUDE.md health scanning/grading, rules dir, scaffold generation, session learner, handoff compaction, README scanning/grading/scaffolding
-- ✅ **Bug fix**: `bump_access()` on `memory_procedural` table crashed — column `access_count` doesn't exist in that table. Fixed by excluding procedural from bump_access.
-- ✅ **HANDOFF compacted**: Sessions 3+4 from 2026-04-01 compacted to 2-line summaries
-
-### New files
-- `tests/test_memory.py` — 52 tests for three-tier memory system
-- `tests/test_bbs.py` — 48 tests for BBS boards/profiles/nudge/content
-- `tests/test_ai_backend.py` — 78 tests for AI backend, router, and agent
-- `tests/test_personality_drift.py` — 33 tests for drift + session observer
-- `tests/test_token_guardian.py` — 25 tests for token guardian
-- `tests/test_config_intel.py` — 47 tests for config intel + readme intel
-
-- ✅ **MUD Phase 3: Economy** — full economy system for StackHaven:
-  - Lucky's Back Room — new casino room behind Dave's Supply Closet
-  - Lucky NPC — gambling dealer with coin flip (double-or-nothing) and slot machine (5x jackpot)
-  - 5 new absurd gold-sink cosmetics (Golden Semicolon 500g, Cloud in a Jar 300g, RGB Keyboard Skin 250g, Vintage Floppy 175g, Executive Lanyard 150g)
-  - `gamble` command — coin flip + slots with min/max bet limits
-  - `wealth` command — economy stats with fun titles (Unpaid Intern → Venture Capitalist)
-  - `tip` command — tip any NPC with 11 unique per-NPC flavor responses
-  - `bounty` command — 5 repeatable contracts (explore, fight, talk, collect) with gold rewards
-  - Economy tracking: gold_spent, gold_gambled, gold_won_gambling, tips_given, bounties_completed
-  - 3 new achievements: High Roller, Generous Tipper, Bounty Hunter
-  - 28 new economy tests (789 total)
-
-- ✅ **MUD Phase 4: Living World** — StackHaven feels alive:
-  - Server Status system — 5 states (All Green → Total Outage), changes dynamically each turn
-  - Server health affects combat (debuffs during outages), shop prices (panic discounts), and event frequency
-  - NPC Gossip — NPCs comment on your quest progress, combat kills, wealth, gambling, and tipping habits
-  - `status` command — server health dashboard with modifiers
-  - 18 new Living World tests (807 total)
-
-### Direction
-- MUD Phase 3+4 DONE — full economy + living world
-- Test coverage solid on all core systems (807 tests)
-- Remaining gaps: deeper blackjack game tests, screen interaction tests
-- Ready for new feature work (MUD Phase 3 Economy, Tier 5 Audio, or more polish)
+- **2026-04-01 Home S3+S4**: MUD Phase 1+2 (17 rooms, multiplayer, negotiation), StackWars 4X, Buddy Fusion (12 recipes), layered prompt assembly. 385 tests.
+- **2026-04-02 Home S2**: 283 new tests (807 total), MUD Phase 3+4 (economy + living world), bump_access fix.
+- **2026-04-02 Work S1**: CC integration Tiers 1+2 (prose + MCP import), security audit (16 fixes), README update.
+- **2026-04-02 Home S1**: StackWars polish (6 mechanic fixes + AI upgrade + commentary), Fusion achievements/codex/drift, smart code map auto-refresh, 93 new tests (478→852 total).
 
 ## CC Official /buddy Feature — Competitive Analysis (2026-04-02)
 
-Anthropic launched a built-in companion in Claude Code on 2026-04-01 (the leaked "buddy" feature). Key findings:
+CC's /buddy is a cosmetic mascot (18 species, 5 stats, 8 hats, 1% shiny, no progression/games/collection). Buddies differentiates on depth: collection (70+12 fusions), progression, 10 games + MUD + StackWars, BBS social, 3-tier memory, personality drift, and stats that drive gameplay.
 
-**What CC's /buddy is:** A cosmetic ASCII mascot (5×12 chars) in the terminal footer. 18 species, 5 rarities, 5 stats (same as ours: DEBUGGING/PATIENCE/CHAOS/WISDOM/SNARK), 8 hats, 1% shiny. Deterministic from userId hash (Mulberry32 PRNG + salt). Name/personality generated by LLM on first hatch, stored in config. Speech bubble reacts to conversation. React/Ink rendered, 500ms tick.
+**CC Buddy Integration Plan:**
+- ✅ **Tier 1 (Prose awareness):** Done — 8 templates reference CC buddy by name
+- ✅ **Tier 2 (MCP import):** Done — `import_cc_buddy` tool, species mapping, (CC) tag
+- ✅ **Tier 3 (Config reader):** Done — auto-detect from config files, manual override, `detect_cc_companion` MCP tool
+- **Tier 4 (Dialogue system):** Not started — dedicated cross-system conversation screen
 
-**What CC's /buddy is NOT:** No progression, no leveling, no evolution, no collection (1 buddy per account forever), no games, no memory, no social, no tool access, no personality drift, no earned hats, no customization UI. Explicitly a "watcher protocol" — observes only, cannot act.
+## Session Notes (2026-04-02 — Work, Session 2)
 
-**Strategic takeaway:** CC's buddy is a mascot. Buddies is a game. They're complementary, not competing. Anthropic just taught every CC user what a "buddy" is — we provide the depth. Buddies differentiates on: collection (70+12 fusions vs 1), progression (XP/evolution/hat unlocking), games (8+ games + MUD + StackWars), social (BBS + async multiplayer), memory (3-tier), personality drift, and stats that actually drive gameplay.
+### Completed (3 commits)
+- ✅ **CC Integration Tier 3 (Auto-detect):**
+  - Config file probing (`~/.claude/buddy.json`, `settings.json` buddy key)
+  - Manual override via `cc_buddy` section in Buddies config.json (`CCBuddyConfig` dataclass)
+  - Auto-import on app startup when CC buddy detected but not yet in DB
+  - New MCP tool `detect_cc_companion` — Claude can trigger detection
+  - Note: CC buddy data is NOT in a simple config file — it's in the system prompt. Manual override or MCP import remain the reliable paths.
+- ✅ **MUD Save/Load Persistence:**
+  - New file: `core/games/mud_save.py` — JSON serialization of full game state
+  - Auto-save on quit (Esc), auto-load on MUD launch
+  - Persists: position, inventory, gold, quests, NPC states, unlocked exits, all stat counters, server status, bounties
+  - `save`/`newsave`/`restart` commands in-game
+  - Save files stored in `data_dir/mud_saves/`
+- ✅ **MUD Expansion: E-Waste Catacombs:**
+  - 5 new rooms: E-Waste Entrance, Tape Library, CRT Graveyard, Motherboard Maze, Founders' Lab (locked)
+  - 4 new NPCs: Ghost of Sysadmin Past (quest giver), COBOL the Ancient Librarian, Phantom Process (boss, PID -1), Sal (salvage merchant)
+  - 10 new items with lore: Prototype Duck (+12 ATK), Dial-Up Modem, Founders' Keystone, CRT Phosphor, Gold Trace Ring, etc.
+  - "The Lost Backup" quest — retrieve 2011 backup tape to unlock Founders' Lab
+  - SMT-style negotiation tree for Phantom Process (3 exchanges, existential zombie process themes)
+  - Buddy room commentary for all 5 rooms (5 personality variants each)
+- ✅ **59 new tests** (852 total):
+  - `test_cc_companion.py` (26 tests): species mapping, rarity, stat clamping, build, normalize, detect
+  - `test_mud_save.py` (19 tests): save/load roundtrip, state preservation, error handling, commands
+  - `test_mud.py` (14 new): basement zone rooms/NPCs/items, navigation, locked doors, negotiation tree
 
-**CC Buddy Integration Plan (decided 2026-04-02):**
-- **NOW — Tier 1 (Prose awareness):** Prose engine references CC's buddy by name/species when detected. Flavor commentary from party members about the "corporate mascot." Zero coupling.
-- **NOW — Tier 2 (MCP import):** New MCP tool `import_cc_buddy(name, species, rarity, stats)` lets Claude introduce the CC companion into the Buddies party. Imported buddy gets a `(CC)` tag, mapped to closest Buddies species. Can join discussions, appear in MUD, play arcade games. Claude bridges the two systems naturally since it sees both system prompts.
-- **LATER — Tier 3 (Config reader):** Auto-detect CC buddy by reading CC's global config file directly. More autonomous but fragile (depends on CC config format).
-- **LATER — Tier 4 (Dialogue system):** Dedicated screen for cross-system conversation between Buddies party and CC buddy.
+### New files
+- `core/games/mud_save.py` — MUD save/load persistence system
+- `tests/test_cc_companion.py` — 26 tests for CC auto-detection
+- `tests/test_mud_save.py` — 19 tests for MUD persistence
 
-## Session Notes (2026-04-02 — Work, Session 1)
-
-### Completed (4 commits)
-- ✅ **CC Companion integration (Tiers 1+2):**
-  - Tier 1: 8 prose templates reference CC buddy by name ("Even {cc_name} in the status bar perked up")
-  - Tier 2: MCP tool `import_cc_buddy` — Claude bridges CC companion into Buddies party
-  - Species mapping (18 CC species → closest Buddies species), (CC) tag in party screen
-  - "Corporate Crossover" achievement, DB migration for `source` column
-  - New file: `core/cc_companion.py`
-- ✅ **Security audit + fixes (2 CRITICAL, 4 HIGH, 6 MEDIUM, 4 LOW):**
-  - CRITICAL: Rich markup escaping on all remote display strings (`rich.markup.escape()`)
-  - CRITICAL: YAML frontmatter validation — whitelisted keys, type/range clamping
-  - HIGH: Secrets never written to config.json (env vars only, legacy migration with warning)
-  - HIGH: Cache eviction (max entries) in BBS + MUD transports
-  - HIGH: Write-side rate limiting enforced in BBS create_post/create_reply
-  - HIGH: Defensive `from_dict()` on SoapstoneNote, Bloodstain, Phantom
-  - MEDIUM: MCP note sanitization, repo name validation, body size caps, bounty stat whitelist
-  - LOW: Mood clamping, bounties_claimed as dataclass field, sync size caps
-  - **Remaining (not yet fixed):** Gambling balance (coin flip true 50/50 — game design choice, not security)
-- ✅ **README updated** — repositioned as CC /buddy complement, updated all counts, added CC import feature
-
-### Direction
-- CC integration Tiers 1+2 DONE, Tiers 3+4 on roadmap (config reader, dialogue screen)
-- Security audit complete — all multiplayer systems hardened
-- README and HANDOFF both up to date
-- 800+ tests passing (11 pre-existing async screen test failures need `pytest-asyncio`)
-- Ready for: more MUD expansion, multiplayer leaderboards, Tier 5 audio, or new feature work
-
-## Session Notes (2026-04-02 — Home, Session 1)
-
-### Completed (6 commits)
-- ✅ **StackWars playtest & polish** — found and fixed 6 broken mechanics:
-  - Monument building now actually grants favor (+1 to random ability per turn) — was a no-op
-  - Engineer passive now auto-fortifies tiles with units — was logging but doing nothing
-  - Deploy action 3 now teleports units from HQ/Barracks to owned tiles — was a placeholder message
-  - Bug Bomb auto-targets densest enemy cluster, supports x,y coordinate targeting
-  - Build/fortify accept coordinate targeting (e.g. 'barracks 2,3')
-  - Anarchist entropy properly cleans dead units off tiles
-- ✅ **StackWars AI upgrade** — faction-specific strategy:
-  - Smart recruitment (Engineers→Architects, Anarchists→swarm, Sages→elite units)
-  - Context-aware ability selection (early economy, mid aggression, hold when winning)
-  - Faction-specific building priorities (Monks→factories, Sages→monuments)
-  - AI deploys units toward front lines instead of skipping
-- ✅ **StackWars faction commentary** — 60+ prose templates across 7 contexts (turn start, combat win/loss, build, flag capture, victory, defeat). Each faction has unique voice.
-- ✅ **Fusion achievements** — 3 new: Soul Splice (first fusion), Alchemist (recipe discovery), Fusion Addict (5 fusions). Detects fused buddies by (Fused) tag.
-- ✅ **Fusion tracking DB** — fusion_log table, store methods, wired into achievement checker
-- ✅ **Fusion Codex** — [c] key in fusion screen shows discovered (0-12) vs undiscovered fusion species with progressive hints
-- ✅ **Fusion personality drift** — WISDOM+3, CHAOS+2, PATIENCE+1 on fuse (biggest single drift event)
-- ✅ **StackWars improved prompts** — context-sensitive hints showing resources, valid targets, unit costs
-- ✅ Project map refreshed (113 files indexed, was 60)
-- ✅ **Smart code map auto-refresh** — detects when source files change (mtime comparison), debounced refresh on Edit/Write events (30s delay)
-- ✅ **93 new tests** covering prose engine, all achievements, and code map:
-  - `test_prose.py` (22 tests): registers, weirdness, templates, suppression, closers, context injection
-  - `test_achievements.py` (59 tests): all achievement categories systematically
-  - `test_code_map.py` (12 tests): scanning, extraction, staleness detection
-- ✅ 478 tests total (was 385), 4 skipped
+### Updated counts
+- **Rooms**: 24 (was 19) — 5 new basement zone
+- **NPCs**: 23 (was 19) — 4 new basement NPCs
+- **Items**: 52 (was 42) — 10 new basement items
+- **Quests**: 7 (was 6) — "The Lost Backup"
+- **Tests**: 852 passing (14 pre-existing async screen failures unchanged)
 
 ### Direction
-- Phase 12 fully complete (all 5 items checked off)
-- MUD Phase 2 multiplayer transport is built — needs `mud-soapstone` and `mud-bloodstain` labels created on the `lerugray/buddies-bbs` repo
-- MUD combat now has TWO distinct modes: fight (attack/flee) or negotiate (talk/respond) — clearly different from blobber's tactical party combat
-- StackWars is now significantly more playable with real AI decisions, coordinate targeting, and faction personality
-- **Test coverage audit completed** — see roadmap below
-- **Future ideas discussed but not yet built:**
-  - **Nonlinear TTRPG interactions** — skill checks, environmental puzzles, multiple quest solutions. Can be layered in gradually.
-- Phase 3 (Economy) and Phase 4 (Living World) are next on the MUD roadmap
-- Could also explore: expanding the world (more rooms/zones), multiplayer leaderboards on BBS, or tackling Tier 5 audio
-
-### Test Coverage Roadmap
-761 tests passing. Previous audit gaps addressed:
-
-**Completed this session (283 new tests):**
-- `memory.py` — ✅ DONE (52 tests) — episodic/semantic/procedural, contradiction detection, cross-tier recall, decay, buffer mechanics
-- BBS system — ✅ DONE (48 tests) — boards, profiles, nudge detection, content engine
-- AI backend/router/agent — ✅ DONE (78 tests) — complexity scoring, routing, path traversal, command blocking
-- `personality_drift.py` + `session_observer.py` — ✅ DONE (33 tests) — all drift functions, session stats, pattern detection
-- `token_guardian.py` — ✅ DONE (25 tests) — warnings, thresholds, event tracking, summaries, handoff files
-- `config_intel.py` + `readme_intel.py` — ✅ DONE (47 tests) — CLAUDE.md scanning/grading, rules dir, scaffold, session learner, handoff compaction, README scanning/grading/scaffolding
-
-**Bug fixed:** `bump_access()` on `memory_procedural` table — column doesn't exist. Removed procedural from bump_access.
-
-**Medium priority (remaining):**
-- `blackjack.py` — only basic creation tested, needs game flow/dealer AI
-- Screen interaction tests (currently smoke tests only)
-
-**Low priority (nice to have):**
-- Deeper edge cases for Hold'em, Whist, RPS, Battle
-- `prose_games.py` — game commentary templates
-- Extreme stat edge cases, empty collections, offline mode
+- CC Tiers 1-3 DONE, Tier 4 (dialogue screen) on roadmap
+- MUD now has persistence + a new zone — ready for more expansion or polish
+- User considering replacing some simpler arcade games (Blackjack, Whist) with more unique ones
+- Future ideas: nonlinear TTRPG interactions, multiplayer leaderboards, Tier 5 audio
+- Test gaps remaining: blackjack game flow, screen interaction tests
