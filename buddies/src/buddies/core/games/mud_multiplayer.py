@@ -126,7 +126,18 @@ class SoapstoneNote:
 
     @classmethod
     def from_dict(cls, d: dict) -> SoapstoneNote:
-        return cls(**d)
+        """Construct from dict with field validation."""
+        return cls(
+            id=str(d.get("id", "")),
+            room_id=str(d.get("room_id", ""))[:50],
+            message=str(d.get("message", ""))[:200],
+            author_name=str(d.get("author_name", ""))[:50],
+            author_emoji=str(d.get("author_emoji", ""))[:4],
+            timestamp=float(d.get("timestamp", time.time())),
+            upvotes=max(0, int(d.get("upvotes", 0))),
+            downvotes=max(0, int(d.get("downvotes", 0))),
+            is_phantom=bool(d.get("is_phantom", False)),
+        )
 
 
 @dataclass
@@ -146,7 +157,17 @@ class Bloodstain:
 
     @classmethod
     def from_dict(cls, d: dict) -> Bloodstain:
-        return cls(**d)
+        """Construct from dict with field validation."""
+        return cls(
+            id=str(d.get("id", "")),
+            room_id=str(d.get("room_id", ""))[:50],
+            cause_of_death=str(d.get("cause_of_death", ""))[:100],
+            buddy_name=str(d.get("buddy_name", ""))[:50],
+            buddy_emoji=str(d.get("buddy_emoji", ""))[:4],
+            buddy_level=max(1, min(100, int(d.get("buddy_level", 1)))),
+            timestamp=float(d.get("timestamp", time.time())),
+            is_phantom=bool(d.get("is_phantom", False)),
+        )
 
 
 @dataclass
@@ -164,7 +185,15 @@ class Phantom:
 
     @classmethod
     def from_dict(cls, d: dict) -> Phantom:
-        return cls(**d)
+        """Construct from dict with field validation."""
+        return cls(
+            room_id=str(d.get("room_id", ""))[:50],
+            buddy_name=str(d.get("buddy_name", ""))[:50],
+            buddy_emoji=str(d.get("buddy_emoji", ""))[:4],
+            buddy_species=str(d.get("buddy_species", ""))[:30],
+            action=str(d.get("action", ""))[:100],
+            timestamp=float(d.get("timestamp", time.time())),
+        )
 
 
 # ---------------------------------------------------------------------------

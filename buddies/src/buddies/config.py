@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import stat
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -45,6 +46,9 @@ class AIBackendConfig:
     cost_tier: str = "free"  # "free" (local), "cheap" (haiku), "expensive" (opus/sonnet)
 
 
+_REPO_PATTERN = re.compile(r'^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$')
+
+
 @dataclass
 class BBSConfig:
     """Configuration for the BBS social network."""
@@ -59,6 +63,11 @@ class BBSConfig:
     max_replies_per_day: int = 10
     auto_browse: bool = True
     auto_post: bool = True
+
+    def __post_init__(self):
+        if not _REPO_PATTERN.match(self.default_repo):
+            log.warning("Invalid repo format %r — resetting to default", self.default_repo)
+            self.default_repo = "lerugray/buddies-bbs"
 
 
 @dataclass
@@ -106,24 +115,29 @@ class BuddyConfig:
         if env_gh_token:
             config.bbs.github_token = env_gh_token
 
-        # Warn if secrets are in the config file (prefer env vars)
+        # Migrate legacy secrets: load from config but warn and schedule removal
         if config_path.exists():
             raw = json.loads(config_path.read_text())
-            if raw.get("ai_backend", {}).get("api_key") or raw.get("bbs", {}).get("github_token"):
+            legacy_api_key = raw.get("ai_backend", {}).get("api_key", "")
+            legacy_gh_token = raw.get("bbs", {}).get("github_token", "")
+            if legacy_api_key and not env_api_key:
+                config.ai_backend.api_key = legacy_api_key
                 log.warning(
-                    "Secrets found in config.json — consider using environment "
-                    "variables BUDDY_AI_API_KEY / BUDDY_GITHUB_TOKEN instead"
+                    "API key loaded from config.json — this is insecure! "
+                    "Set BUDDY_AI_API_KEY env var and re-save config to remove it."
+                )
+            if legacy_gh_token and not env_gh_token:
+                config.bbs.github_token = legacy_gh_token
+                log.warning(
+                    "GitHub token loaded from config.json — this is insecure! "
+                    "Set BUDDY_GITHUB_TOKEN env var and re-save config to remove it."
                 )
 
         return config
 
     def save(self):
-        """Save config to file. Secrets are omitted if set via env vars."""
+        """Save config to file. Secrets are NEVER written to disk."""
         config_path = get_data_dir() / "config.json"
-
-        # Don't write secrets to disk if they came from environment
-        save_api_key = self.ai_backend.api_key if not os.environ.get("BUDDY_AI_API_KEY") else ""
-        save_gh_token = self.bbs.github_token if not os.environ.get("BUDDY_GITHUB_TOKEN") else ""
 
         data = {
             "user_seed": self.user_seed,
@@ -131,7 +145,7 @@ class BuddyConfig:
                 "provider": self.ai_backend.provider,
                 "base_url": self.ai_backend.base_url,
                 "model": self.ai_backend.model,
-                "api_key": save_api_key,
+                # Never persist secrets — use BUDDY_AI_API_KEY env var
                 "max_tokens": self.ai_backend.max_tokens,
                 "temperature": self.ai_backend.temperature,
                 "cost_tier": self.ai_backend.cost_tier,
@@ -139,7 +153,7 @@ class BuddyConfig:
             "bbs": {
                 "enabled": self.bbs.enabled,
                 "default_repo": self.bbs.default_repo,
-                "github_token": save_gh_token,
+                # Never persist secrets — use BUDDY_GITHUB_TOKEN env var
                 "privacy_level": self.bbs.privacy_level,
                 "show_github_username": self.bbs.show_github_username,
                 "min_post_level": self.bbs.min_post_level,

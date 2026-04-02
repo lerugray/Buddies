@@ -115,6 +115,8 @@ class MudState:
     # Sync stats (shown to player)
     remote_notes_synced: int = 0
     remote_stains_synced: int = 0
+    # Bounty tracking
+    _bounties_claimed: set = field(default_factory=set)
 
 
 def create_mud_game(party: list[BuddyState]) -> MudState:
@@ -1593,8 +1595,8 @@ def _handle_negotiate_response(state: MudState, choice: int) -> list[str]:
     # Show player's choice
     lines.append(f"\n[bold green]> \"{resp.text}\"[/bold green]")
 
-    # Apply mood change
-    state.negotiation.mood += resp.mood_change
+    # Apply mood change (clamped to 0-100)
+    state.negotiation.mood = max(0, min(100, state.negotiation.mood + resp.mood_change))
 
     # Handle gold demands
     if exchange.demand_gold > 0 and resp.tag == "pay":
@@ -1604,7 +1606,7 @@ def _handle_negotiate_response(state: MudState, choice: int) -> list[str]:
             lines.append(f"[yellow]-{exchange.demand_gold} gold[/yellow]")
         else:
             lines.append("[red]You don't have enough gold![/red]")
-            state.negotiation.mood -= 10  # Broken promise
+            state.negotiation.mood = max(0, state.negotiation.mood - 10)  # Broken promise
 
     # Mood feedback
     if resp.mood_change >= 20:
@@ -2282,8 +2284,12 @@ def _handle_bounty(state: MudState, arg: str) -> list[str]:
         "",
     ]
 
+    # Whitelist of allowed stat attributes for bounty goals
+    _BOUNTY_STAT_WHITELIST = {"rooms_visited", "npcs_defeated", "npcs_talked", "items_collected"}
+
     for bounty in BOUNTIES:
-        current = getattr(state, bounty["goal_type"], 0)
+        goal_type = bounty["goal_type"]
+        current = getattr(state, goal_type, 0) if goal_type in _BOUNTY_STAT_WHITELIST else 0
         goal = bounty["goal_count"]
         done = current >= goal
         status = "[bold green]✅ COMPLETE[/bold green]" if done else f"[dim]{current}/{goal}[/dim]"
@@ -2296,11 +2302,9 @@ def _handle_bounty(state: MudState, arg: str) -> list[str]:
         claimed = 0
         for bounty in BOUNTIES:
             bid = bounty["id"]
-            current = getattr(state, bounty["goal_type"], 0)
+            goal_type = bounty["goal_type"]
+            current = getattr(state, goal_type, 0) if goal_type in _BOUNTY_STAT_WHITELIST else 0
             if current >= bounty["goal_count"]:
-                # Check if already claimed (use a set on the state)
-                if not hasattr(state, '_bounties_claimed'):
-                    state._bounties_claimed = set()
                 if bid not in state._bounties_claimed:
                     state._bounties_claimed.add(bid)
                     state.inventory.gold += bounty["reward"]

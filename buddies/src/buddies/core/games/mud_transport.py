@@ -33,6 +33,7 @@ log = logging.getLogger(__name__)
 
 GITHUB_API = "https://api.github.com"
 CACHE_TTL = 300  # 5 minutes — same as BBS
+MAX_CACHE_ENTRIES = 50  # Evict oldest when exceeded
 
 
 @dataclass
@@ -131,7 +132,15 @@ class MudTransport:
         return None
 
     def _cache_set(self, key: str, data: object):
-        self._cache[key] = _CacheEntry(data=data, expires=time.time() + CACHE_TTL)
+        now = time.time()
+        # Prune expired entries first
+        if len(self._cache) >= MAX_CACHE_ENTRIES:
+            self._cache = {k: v for k, v in self._cache.items() if v.expires > now}
+        # If still too large, evict oldest
+        if len(self._cache) >= MAX_CACHE_ENTRIES:
+            oldest_key = min(self._cache, key=lambda k: self._cache[k].expires)
+            del self._cache[oldest_key]
+        self._cache[key] = _CacheEntry(data=data, expires=now + CACHE_TTL)
 
     # ── Push: Local → GitHub ──
 
@@ -389,21 +398,26 @@ class MudTransport:
         remote_notes = await self.fetch_all_notes()
         remote_stains = await self.fetch_all_bloodstains()
 
-        # Merge notes — skip any with IDs we already have
+        # Merge notes — skip any with IDs we already have, cap at 200
         local_ids = {n.id for n in store.notes}
         for note in remote_notes:
             if note.id not in local_ids:
                 store.notes.append(note)
                 counts["notes"] += 1
+        # Cap total notes to prevent unbounded growth
+        if len(store.notes) > 200:
+            store.notes = store.notes[-200:]
 
-        # Merge bloodstains
+        # Merge bloodstains, cap at 50
         local_stain_ids = {b.id for b in store.bloodstains}
         for stain in remote_stains:
             if stain.id not in local_stain_ids:
                 store.bloodstains.append(stain)
                 counts["bloodstains"] += 1
+        if len(store.bloodstains) > 50:
+            store.bloodstains = store.bloodstains[-50:]
 
-        # Generate phantoms from remote data
+        # Generate phantoms from remote data, cap at 100
         # Other players' buddies become phantom traces
         for note in remote_notes:
             if note.id not in local_ids:
@@ -416,6 +430,8 @@ class MudTransport:
                     timestamp=note.timestamp,
                 )
                 store.phantoms.append(phantom)
+        if len(store.phantoms) > 100:
+            store.phantoms = store.phantoms[-100:]
 
         if counts["notes"] > 0 or counts["bloodstains"] > 0:
             store.save()
@@ -604,7 +620,7 @@ def _sanitize_bloodstain_frontmatter(meta: dict) -> dict:
 
 def _parse_note_issue(issue: dict) -> SoapstoneNote | None:
     """Parse a GitHub Issue into a SoapstoneNote."""
-    body = issue.get("body", "") or ""
+    body = (issue.get("body", "") or "")[:1000]  # Cap body size
     meta = _parse_frontmatter(body)
     meta = _sanitize_note_frontmatter(meta)
 
@@ -635,7 +651,7 @@ def _parse_note_issue(issue: dict) -> SoapstoneNote | None:
 
 def _parse_bloodstain_issue(issue: dict) -> Bloodstain | None:
     """Parse a GitHub Issue into a Bloodstain."""
-    body = issue.get("body", "") or ""
+    body = (issue.get("body", "") or "")[:1000]  # Cap body size
     meta = _parse_frontmatter(body)
     meta = _sanitize_bloodstain_frontmatter(meta)
 

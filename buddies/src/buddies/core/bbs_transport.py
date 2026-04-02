@@ -26,6 +26,7 @@ GITHUB_API = "https://api.github.com"
 
 # How old cached data can be before we re-fetch (seconds)
 CACHE_TTL = 300  # 5 minutes
+MAX_CACHE_ENTRIES = 100  # Evict oldest when exceeded
 
 
 @dataclass
@@ -73,6 +74,10 @@ class BBSTransport:
         self._cache: dict[str, _CacheEntry] = {}
         self._rate_limit_remaining: int = 999
         self._rate_limit_reset: float = 0.0
+        # Write-side rate limiting (application-level)
+        self._posts_today: int = 0
+        self._replies_today: int = 0
+        self._write_day: str = ""  # Date string for daily reset
 
     def _update_rate_limit(self, resp: httpx.Response) -> None:
         """Track GitHub API rate limit from response headers."""
@@ -101,8 +106,16 @@ class BBSTransport:
         return None
 
     def _cache_set(self, key: str, data: object):
-        """Store a value in cache with TTL."""
-        self._cache[key] = _CacheEntry(data=data, expires=time.time() + CACHE_TTL)
+        """Store a value in cache with TTL. Evicts expired/oldest entries if full."""
+        now = time.time()
+        # Prune expired entries first
+        if len(self._cache) >= MAX_CACHE_ENTRIES:
+            self._cache = {k: v for k, v in self._cache.items() if v.expires > now}
+        # If still too large, evict oldest
+        if len(self._cache) >= MAX_CACHE_ENTRIES:
+            oldest_key = min(self._cache, key=lambda k: self._cache[k].expires)
+            del self._cache[oldest_key]
+        self._cache[key] = _CacheEntry(data=data, expires=now + CACHE_TTL)
 
     def invalidate_cache(self, prefix: str = ""):
         """Clear cache entries matching a prefix, or all if empty."""
@@ -270,12 +283,28 @@ class BBSTransport:
 
     # ── Write operations ──
 
+    def _check_write_limit(self, kind: str) -> bool:
+        """Check if we're within the daily write limit. Resets daily."""
+        today = datetime.now().strftime("%Y-%m-%d")
+        if self._write_day != today:
+            self._write_day = today
+            self._posts_today = 0
+            self._replies_today = 0
+        if kind == "post":
+            return self._posts_today < self.config.max_posts_per_day
+        elif kind == "reply":
+            return self._replies_today < self.config.max_replies_per_day
+        return True
+
     async def create_post(
         self, board: str, title: str, body: str, profile: BBSProfile,
         repo: str = "",
     ) -> RemotePost | None:
         """Create a new post (GitHub Issue) on a board."""
         if not await self.can_write():
+            return None
+        if not self._check_write_limit("post"):
+            log.warning("BBS: daily post limit reached (%d)", self.config.max_posts_per_day)
             return None
 
         repo = repo or self.config.default_repo
@@ -291,6 +320,7 @@ class BBSTransport:
                 },
             )
             if resp.status_code == 201:
+                self._posts_today += 1
                 issue = resp.json()
                 self.invalidate_cache(f"posts:{repo}")
                 return self._parse_issue(issue, board)
@@ -305,6 +335,9 @@ class BBSTransport:
         """Create a reply (GitHub Comment) on a post."""
         if not await self.can_write():
             return None
+        if not self._check_write_limit("reply"):
+            log.warning("BBS: daily reply limit reached (%d)", self.config.max_replies_per_day)
+            return None
 
         repo = repo or self.config.default_repo
         full_body = f"{profile.to_frontmatter()}\n\n{body}"
@@ -315,6 +348,7 @@ class BBSTransport:
                 json={"body": full_body},
             )
             if resp.status_code == 201:
+                self._replies_today += 1
                 comment = resp.json()
                 self.invalidate_cache(f"replies:{repo}:{post_id}")
                 return self._parse_comment(comment, post_id)
@@ -375,7 +409,7 @@ class BBSTransport:
 
     def _parse_issue(self, issue: dict, board: str = "") -> RemotePost:
         """Parse a GitHub Issue into a RemotePost."""
-        body_raw = issue.get("body", "") or ""
+        body_raw = (issue.get("body", "") or "")[:4000]  # Cap body size
         author_meta, body_clean = self._parse_frontmatter(body_raw)
         author_meta = self._sanitize_frontmatter(author_meta)
 
@@ -416,7 +450,7 @@ class BBSTransport:
 
     def _parse_comment(self, comment: dict, post_id: int) -> RemoteReply:
         """Parse a GitHub Comment into a RemoteReply."""
-        body_raw = comment.get("body", "") or ""
+        body_raw = (comment.get("body", "") or "")[:2000]  # Cap body size
         author_meta, body_clean = self._parse_frontmatter(body_raw)
         author_meta = self._sanitize_frontmatter(author_meta)
         created = comment.get("created_at", "")

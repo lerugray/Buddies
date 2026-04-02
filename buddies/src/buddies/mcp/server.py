@@ -104,8 +104,10 @@ async def buddy_note(message: str) -> str:
         return "Error: message cannot be empty."
     if len(message) > 2000:
         return "Error: message too long (max 2000 characters)."
+    # Strip Rich markup to prevent injection when displayed in TUI
+    clean_message = message[:2000].replace("[", "\\[")
     store = await _get_store()
-    await store.add_note(source="Claude", message=message[:2000])
+    await store.add_note(source="Claude", message=clean_message)
     return f"Note saved! Your buddy will show it to the user."
 
 
