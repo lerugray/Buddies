@@ -497,6 +497,26 @@ Anthropic launched a built-in companion in Claude Code on 2026-04-01 (the leaked
 - **LATER — Tier 3 (Config reader):** Auto-detect CC buddy by reading CC's global config file directly. More autonomous but fragile (depends on CC config format).
 - **LATER — Tier 4 (Dialogue system):** Dedicated screen for cross-system conversation between Buddies party and CC buddy.
 
+## Session Notes (2026-04-02 — Work, Session 1)
+
+### Completed (4 commits)
+- ✅ **CC Companion integration (Tiers 1+2):**
+  - Tier 1: 8 prose templates reference CC buddy by name ("Even {cc_name} in the status bar perked up")
+  - Tier 2: MCP tool `import_cc_buddy` — Claude bridges CC companion into Buddies party
+  - Species mapping (18 CC species → closest Buddies species), (CC) tag in party screen
+  - "Corporate Crossover" achievement, DB migration for `source` column
+  - New file: `core/cc_companion.py`
+- ✅ **Security audit + fixes (2 CRITICAL, 4 HIGH, 6 MEDIUM, 4 LOW):**
+  - CRITICAL: Rich markup escaping on all remote display strings (`rich.markup.escape()`)
+  - CRITICAL: YAML frontmatter validation — whitelisted keys, type/range clamping
+  - HIGH: Secrets never written to config.json (env vars only, legacy migration with warning)
+  - HIGH: Cache eviction (max entries) in BBS + MUD transports
+  - HIGH: Write-side rate limiting enforced in BBS create_post/create_reply
+  - HIGH: Defensive `from_dict()` on SoapstoneNote, Bloodstain, Phantom
+  - MEDIUM: MCP note sanitization, repo name validation, body size caps, bounty stat whitelist
+  - LOW: Mood clamping, bounties_claimed as dataclass field, sync size caps
+  - **Remaining (not yet fixed):** Gambling balance (coin flip true 50/50 — game design choice, not security)
+
 ## Session Notes (2026-04-02 — Home, Session 1)
 
 ### Completed (6 commits)
