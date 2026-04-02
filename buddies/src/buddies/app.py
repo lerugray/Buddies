@@ -1486,6 +1486,12 @@ class BuddyApp(App):
             except Exception:
                 game_stats = None
 
+            # Fetch fusion stats for fusion achievements
+            try:
+                fusion_stats = await self.store.get_fusion_stats()
+            except Exception:
+                fusion_stats = None
+
             newly = check_achievements(
                 buddies=buddies,
                 active_buddy=active,
@@ -1498,6 +1504,7 @@ class BuddyApp(App):
                 themes_changed=self._themes_changed,
                 bbs_stats=bbs_stats,
                 game_stats=game_stats,
+                fusion_stats=fusion_stats,
                 unlocked_ids=self._unlocked_achievements,
             )
 

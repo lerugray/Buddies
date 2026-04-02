@@ -616,3 +616,29 @@ class BuddyStore:
             (post_id, max_age_minutes),
         ) as cursor:
             return [dict(r) for r in await cursor.fetchall()]
+
+    # --- Fusion ---
+
+    async def log_fusion(self, parent_a_species: str, parent_b_species: str,
+                         result_species: str, result_buddy_id: int,
+                         recipe_name: str | None = None) -> None:
+        """Log a completed fusion event."""
+        await self.db.execute(
+            "INSERT INTO fusion_log (parent_a_species, parent_b_species, result_species, "
+            "recipe_name, result_buddy_id) VALUES (?, ?, ?, ?, ?)",
+            (parent_a_species, parent_b_species, result_species, recipe_name, result_buddy_id),
+        )
+        await self.db.commit()
+
+    async def get_fusion_stats(self) -> dict:
+        """Get aggregate fusion stats for achievements."""
+        stats = {"total": 0, "recipes": 0}
+        async with self.db.execute(
+            "SELECT COUNT(*), SUM(CASE WHEN recipe_name IS NOT NULL THEN 1 ELSE 0 END) "
+            "FROM fusion_log"
+        ) as cursor:
+            row = await cursor.fetchone()
+            if row:
+                stats["total"] = row[0] or 0
+                stats["recipes"] = row[1] or 0
+        return stats

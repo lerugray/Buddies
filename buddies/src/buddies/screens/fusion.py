@@ -269,6 +269,16 @@ class FusionScreen(Screen):
             **{f"stat_{k}": v for k, v in stats.items()},
         )
 
+        # Log the fusion event
+        recipe_name = result.recipe_used.result if result.recipe_used else None
+        await self.store.log_fusion(
+            parent_a_species=a.get("species", ""),
+            parent_b_species=b.get("species", ""),
+            result_species=species.name,
+            result_buddy_id=fused_id,
+            recipe_name=recipe_name,
+        )
+
         # Delete both parents
         await self.store.delete_buddy(a_id)
         await self.store.delete_buddy(b_id)

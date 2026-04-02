@@ -143,6 +143,16 @@ CREATE TABLE IF NOT EXISTS memory_procedural (
     active INTEGER NOT NULL DEFAULT 1,
     last_applied TEXT DEFAULT NULL
 );
+CREATE TABLE IF NOT EXISTS fusion_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+    parent_a_species TEXT NOT NULL,
+    parent_b_species TEXT NOT NULL,
+    result_species TEXT NOT NULL,
+    recipe_name TEXT DEFAULT NULL,
+    result_buddy_id INTEGER NOT NULL,
+    FOREIGN KEY (result_buddy_id) REFERENCES buddy(id)
+);
 """
 
 # Migration steps for existing databases (idempotent — safe to run on every startup)

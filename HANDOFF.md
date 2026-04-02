@@ -797,12 +797,31 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
   - 25 tests
   - **TUI wired in**: FusionScreen with 3-phase flow (select parent A → select parent B → preview + confirm). [f] keybinding from main app. Recipe browser via [r]. Back navigation between phases. Auto-activates fused buddy if a parent was active.
 
+## Session Notes (2026-04-02 — Home)
+
+### Completed (2 commits)
+- ✅ **StackWars playtest & polish** — found and fixed 6 broken mechanics:
+  - Monument building now actually grants favor (+1 to random ability per turn) — was a no-op
+  - Engineer passive now auto-fortifies tiles with units — was logging but doing nothing
+  - Deploy action 3 now teleports units from HQ/Barracks to owned tiles — was a placeholder message
+  - Bug Bomb auto-targets densest enemy cluster, supports x,y coordinate targeting
+  - Build/fortify accept coordinate targeting (e.g. 'barracks 2,3')
+  - Anarchist entropy properly cleans dead units off tiles
+- ✅ **StackWars AI upgrade** — faction-specific strategy:
+  - Smart recruitment (Engineers→Architects, Anarchists→swarm, Sages→elite units)
+  - Context-aware ability selection (early economy, mid aggression, hold when winning)
+  - Faction-specific building priorities (Monks→factories, Sages→monuments)
+  - AI deploys units toward front lines instead of skipping
+- ✅ **StackWars faction commentary** — 60+ prose templates across 7 contexts (turn start, combat win/loss, build, flag capture, victory, defeat). Each faction has unique voice.
+- ✅ **Fusion achievements** — 3 new: Soul Splice (first fusion), Alchemist (recipe discovery), Fusion Addict (5 fusions). Detects fused buddies by (Fused) tag.
+- ✅ 385 tests (+12 new), 4 skipped
+
 ### Direction
 - Phase 12 fully complete (all 5 items checked off)
 - MUD Phase 2 multiplayer transport is built — needs `mud-soapstone` and `mud-bloodstain` labels created on the `lerugray/buddies-bbs` repo
 - MUD combat now has TWO distinct modes: fight (attack/flee) or negotiate (talk/respond) — clearly different from blobber's tactical party combat
+- StackWars is now significantly more playable with real AI decisions, coordinate targeting, and faction personality
 - **Future ideas discussed but not yet built:**
-  - **Buddy fusion** (SMT-style) — combine 2 buddies to create special/unique species. Needs design work on fusion catalog, meaningful outcomes, and collection loop integration.
   - **Nonlinear TTRPG interactions** — skill checks, environmental puzzles, multiple quest solutions. Can be layered in gradually.
 - Phase 3 (Economy) and Phase 4 (Living World) are next on the MUD roadmap
 - Could also explore: expanding the world (more rooms/zones), multiplayer leaderboards on BBS, or tackling Tier 5 audio
