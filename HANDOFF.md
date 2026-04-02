@@ -799,7 +799,7 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 
 ## Session Notes (2026-04-02 — Home)
 
-### Completed (2 commits)
+### Completed (6 commits)
 - ✅ **StackWars playtest & polish** — found and fixed 6 broken mechanics:
   - Monument building now actually grants favor (+1 to random ability per turn) — was a no-op
   - Engineer passive now auto-fortifies tiles with units — was logging but doing nothing
@@ -814,7 +814,12 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
   - AI deploys units toward front lines instead of skipping
 - ✅ **StackWars faction commentary** — 60+ prose templates across 7 contexts (turn start, combat win/loss, build, flag capture, victory, defeat). Each faction has unique voice.
 - ✅ **Fusion achievements** — 3 new: Soul Splice (first fusion), Alchemist (recipe discovery), Fusion Addict (5 fusions). Detects fused buddies by (Fused) tag.
-- ✅ 385 tests (+12 new), 4 skipped
+- ✅ **Fusion tracking DB** — fusion_log table, store methods, wired into achievement checker
+- ✅ **Fusion Codex** — [c] key in fusion screen shows discovered (0-12) vs undiscovered fusion species with progressive hints
+- ✅ **Fusion personality drift** — WISDOM+3, CHAOS+2, PATIENCE+1 on fuse (biggest single drift event)
+- ✅ **StackWars improved prompts** — context-sensitive hints showing resources, valid targets, unit costs
+- ✅ Project map refreshed (113 files indexed, was 60)
+- ✅ 385 tests (+12 new), 4-5 skipped
 
 ### Direction
 - Phase 12 fully complete (all 5 items checked off)
