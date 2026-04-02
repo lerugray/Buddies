@@ -15,10 +15,15 @@ from textual.screen import Screen
 from buddies.core.buddy_brain import BuddyState
 from buddies.core.games import GameType, GameOutcome, GameResult
 from buddies.core.games.stackwars import (
-    StackWarsState, create_stackwars, AbilityType,
+    StackWarsState, create_stackwars, AbilityType, FLAGS_TO_WIN,
     choose_ability, execute_action, skip_action,
     render_map, render_status, FACTION_EMOJI, FACTION_DESC,
     ABILITY_ACTIONS, faction_from_buddy,
+)
+from buddies.core.games.prose_games import (
+    pick_stackwars_line,
+    STACKWARS_TURN_START, STACKWARS_COMBAT_WIN, STACKWARS_COMBAT_LOSE,
+    STACKWARS_BUILD, STACKWARS_FLAG_CAPTURED, STACKWARS_VICTORY, STACKWARS_DEFEAT,
 )
 
 
@@ -77,6 +82,8 @@ class StackWarsScreen(Screen):
         super().__init__()
         self.buddy_state = buddy_state
         self.state = create_stackwars(buddy_state)
+        self._faction_name = faction_from_buddy(buddy_state).value
+        self._last_flags = 0
 
     def compose(self) -> ComposeResult:
         with Horizontal():
@@ -164,6 +171,9 @@ class StackWarsScreen(Screen):
         for line in lines:
             log.write(line)
 
+        # Inject faction commentary based on what happened
+        self._inject_commentary(log, lines)
+
         self._update_sidebar()
 
         # Show next prompt
@@ -227,6 +237,53 @@ class StackWarsScreen(Screen):
             return execute_action(self.state, raw)
 
         return ["Type 'help' for commands."]
+
+    def _inject_commentary(self, log: RichLog, lines: list[str]) -> None:
+        """Add faction-flavored buddy commentary based on what just happened."""
+        combined = " ".join(lines).lower()
+        f = self._faction_name
+        name = self.buddy_state.name
+
+        if self.state.game_over:
+            if self.state.winner == 0:
+                line = pick_stackwars_line(STACKWARS_VICTORY, f)
+            else:
+                line = pick_stackwars_line(STACKWARS_DEFEAT, f)
+            log.write(f"\n[italic dim]{name}: \"{line}\"[/italic dim]")
+            return
+
+        # Combat commentary
+        if "victory" in combined or "wins" in combined:
+            line = pick_stackwars_line(STACKWARS_COMBAT_WIN, f)
+            log.write(f"[italic dim]{name}: \"{line}\"[/italic dim]")
+        elif "repulsed" in combined or "holds" in combined:
+            line = pick_stackwars_line(STACKWARS_COMBAT_LOSE, f)
+            log.write(f"[italic dim]{name}: \"{line}\"[/italic dim]")
+
+        # Build commentary
+        if "built" in combined:
+            line = pick_stackwars_line(STACKWARS_BUILD, f)
+            log.write(f"[italic dim]{name}: \"{line}\"[/italic dim]")
+
+        # Flag capture detection
+        current_flags = self.state.count_flags(0)
+        if current_flags > self._last_flags:
+            line = pick_stackwars_line(
+                STACKWARS_FLAG_CAPTURED, f,
+                flags=current_flags, target=FLAGS_TO_WIN,
+            )
+            log.write(f"[italic dim]{name}: \"{line}\"[/italic dim]")
+        self._last_flags = current_flags
+
+        # Turn start commentary (when it's the player's turn and ability phase)
+        if ("turn" in combined and "choose" not in combined
+                and self.state.phase == "choose_ability"
+                and not self.state.active_player.is_ai
+                and self.state.turn > 1):
+            import random
+            if random.random() < 0.4:  # Don't spam every turn
+                line = pick_stackwars_line(STACKWARS_TURN_START, f)
+                log.write(f"[italic dim]{name}: \"{line}\"[/italic dim]")
 
     def _update_sidebar(self):
         # Map

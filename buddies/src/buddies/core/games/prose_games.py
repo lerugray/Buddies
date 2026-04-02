@@ -526,6 +526,208 @@ PONG_TAUNT = [
 ]
 
 
+# ---------------------------------------------------------------------------
+# StackWars templates — faction-flavored commentary
+# ---------------------------------------------------------------------------
+
+STACKWARS_TURN_START: dict[str, list[str]] = {
+    "engineers": [
+        "Systems nominal. Initiating turn sequence.",
+        "Running threat assessment... deploying countermeasures.",
+        "All units reporting in. Optimal formation achieved.",
+        "Debug mode: ON. Let's be methodical about this.",
+    ],
+    "anarchists": [
+        "LEEROY JENKINS!! ...I mean, strategically.",
+        "Rules? Where we're going, we don't need rules.",
+        "Let's see what happens when I press ALL the buttons.",
+        "Chaos isn't a pit. Chaos is a LADDER.",
+    ],
+    "provocateurs": [
+        "Oh, they left their flank exposed. How... generous.",
+        "Time to make them regret every decision they've ever made.",
+        "I wonder what their Code balance looks like right now...",
+        "Let's sabotage something. For morale.",
+    ],
+    "sages": [
+        "The patterns are clear to those who study them.",
+        "Patience and knowledge will prevail. Eventually.",
+        "Every move teaches us something. Let us learn.",
+        "The ancient scrolls speak of this exact board state.",
+    ],
+    "monks": [
+        "Steady. Disciplined. Unyielding.",
+        "We need not rush. The flags aren't going anywhere.",
+        "Our walls will outlast their ambition.",
+        "Another turn, another brick in the fortress.",
+    ],
+}
+
+STACKWARS_COMBAT_WIN: dict[str, list[str]] = {
+    "engineers": [
+        "As calculated. Enemy neutralized.",
+        "Target eliminated. Adjusting formation.",
+        "The numbers don't lie.",
+    ],
+    "anarchists": [
+        "BOOM! Did NOT see that coming! ...neither did I!",
+        "ANARCHY! BEAUTIFUL ANARCHY!",
+        "They exploded! That was AWESOME!",
+    ],
+    "provocateurs": [
+        "Oh no, did that hurt? Anyway...",
+        "I'd say 'sorry' but we both know I'm not.",
+        "That was almost too easy. Almost.",
+    ],
+    "sages": [
+        "As the ancients predicted.",
+        "Victory through understanding.",
+        "Knowledge is the ultimate weapon.",
+    ],
+    "monks": [
+        "The mountain does not move.",
+        "Patience rewarded.",
+        "They broke upon our walls like waves.",
+    ],
+}
+
+STACKWARS_COMBAT_LOSE: dict[str, list[str]] = {
+    "engineers": [
+        "Recalculating... that wasn't in the model.",
+        "Unexpected output. Logging for analysis.",
+        "We need to patch that vulnerability.",
+    ],
+    "anarchists": [
+        "Okay THAT was unexpected. Respect.",
+        "...that's fine. Everything is FINE.",
+        "Pfft, I meant to do that. Somehow.",
+    ],
+    "provocateurs": [
+        "...I'll remember that.",
+        "Oh, they think they're clever? How cute.",
+        "Note to self: sabotage harder next time.",
+    ],
+    "sages": [
+        "A lesson learned. The cost was... acceptable.",
+        "Even defeat is a teacher.",
+        "Hmm. The scrolls didn't mention THIS.",
+    ],
+    "monks": [
+        "The wall cracks, but does not fall.",
+        "We endure. We rebuild. We persist.",
+        "A setback. Nothing more.",
+    ],
+}
+
+STACKWARS_BUILD: dict[str, list[str]] = {
+    "engineers": [
+        "Structure placed. Efficiency rating: optimal.",
+        "Load-bearing calculations complete. Building deployed.",
+    ],
+    "anarchists": [
+        "I built something! It probably won't explode!",
+        "Is it up to code? WHO CARES!",
+    ],
+    "provocateurs": [
+        "Let them watch us build. Let them worry.",
+        "Every brick is a psychological weapon.",
+    ],
+    "sages": [
+        "A monument to accumulated wisdom.",
+        "The foundation of future victories.",
+    ],
+    "monks": [
+        "Stone by stone, the fortress grows.",
+        "Another day, another wall.",
+    ],
+}
+
+STACKWARS_FLAG_CAPTURED: dict[str, list[str]] = {
+    "engineers": [
+        "Objective secured. {flags}/{target} flags held.",
+        "Flag captured. Updating strategic assessment.",
+    ],
+    "anarchists": [
+        "YOINK! That flag is OURS now!",
+        "Flag captured! Can we set it on fire? No? Fine.",
+    ],
+    "provocateurs": [
+        "Oh, was that YOUR flag? My mistake.",
+        "Flag liberated. You're welcome.",
+    ],
+    "sages": [
+        "The flag yields to wisdom, not force.",
+        "Another step toward the inevitable conclusion.",
+    ],
+    "monks": [
+        "The flag finds peace under our protection.",
+        "Secured. It will not be lost again.",
+    ],
+}
+
+STACKWARS_VICTORY: dict[str, list[str]] = {
+    "engineers": [
+        "Mission accomplished. All objectives met within parameters.",
+        "Victory achieved through superior logistics. As expected.",
+    ],
+    "anarchists": [
+        "WE WON! I HAVE NO IDEA HOW BUT WE WON!",
+        "CHAOS REIGNS! THE FLAGS ARE OURS! PARTY!!",
+    ],
+    "provocateurs": [
+        "Oh, is it over? I was just getting started.",
+        "GG. And by GG I mean 'get good.'",
+    ],
+    "sages": [
+        "Victory was always the logical conclusion. We merely hastened it.",
+        "The ancient wisdom prevails once more.",
+    ],
+    "monks": [
+        "The patient hand claims the final flag.",
+        "We endured. We prevailed. As always.",
+    ],
+}
+
+STACKWARS_DEFEAT: dict[str, list[str]] = {
+    "engineers": [
+        "Post-mortem analysis required. Several assumptions were... incorrect.",
+        "Defeat logged. Updating models for next engagement.",
+    ],
+    "anarchists": [
+        "...REMATCH! BEST OF THREE! BEST OF FIVE!",
+        "That doesn't count. I wasn't even trying. Much.",
+    ],
+    "provocateurs": [
+        "Fine. You win THIS time. Enjoy it.",
+        "I LET you win. For the content.",
+    ],
+    "sages": [
+        "Even the wisest must sometimes accept defeat. This is that time.",
+        "A defeat is merely a lesson in disguise. A very painful disguise.",
+    ],
+    "monks": [
+        "The mountain endures, even in defeat.",
+        "We will meditate on this. Extensively.",
+    ],
+}
+
+
+def pick_stackwars_line(
+    pool: dict[str, list[str]],
+    faction: str,
+    **kwargs,
+) -> str:
+    """Pick a faction-flavored line for StackWars commentary."""
+    lines = pool.get(faction, pool.get("engineers", [""]))
+    if not lines:
+        return ""
+    line = random.choice(lines)
+    try:
+        return line.format(**kwargs)
+    except (KeyError, IndexError):
+        return line
+
+
 def pick_game_line(
     pool: list[str] | dict[str, list[str]],
     state: BuddyState | None = None,
