@@ -146,6 +146,56 @@ class BuddyStore:
         await self.db.execute("DELETE FROM buddy WHERE id = ?", (buddy_id,))
         await self.db.commit()
 
+    # --- CC Companion Import ---
+
+    async def get_cc_buddy(self) -> dict | None:
+        """Get the imported CC companion, if any."""
+        async with self.db.execute(
+            "SELECT * FROM buddy WHERE source = 'cc_companion' LIMIT 1"
+        ) as cursor:
+            row = await cursor.fetchone()
+            return dict(row) if row else None
+
+    async def has_cc_buddy(self) -> bool:
+        """Check if a CC companion has been imported."""
+        return (await self.get_cc_buddy()) is not None
+
+    async def create_cc_buddy(self, data: dict) -> dict:
+        """Create a buddy imported from CC's /buddy companion.
+
+        Does not deactivate existing buddies — the CC import joins the
+        party but doesn't become the active buddy unless switched to.
+        Replaces any existing CC import (one CC buddy at a time).
+        """
+        # Remove any existing CC import first
+        existing = await self.get_cc_buddy()
+        if existing:
+            await self.db.execute(
+                "DELETE FROM buddy WHERE id = ?", (existing["id"],)
+            )
+
+        await self.db.execute(
+            "INSERT INTO buddy (species, name, shiny, is_active, soul_description, "
+            "stat_debugging, stat_patience, stat_chaos, stat_wisdom, stat_snark, "
+            "hats_owned, source) "
+            "VALUES (?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                data["species"],
+                data["name"],
+                int(data["shiny"]),
+                data["soul_description"],
+                data["stats"]["debugging"],
+                data["stats"]["patience"],
+                data["stats"]["chaos"],
+                data["stats"]["wisdom"],
+                data["stats"]["snark"],
+                '["tinyduck"]',
+                data["source"],
+            ),
+        )
+        await self.db.commit()
+        return await self.get_cc_buddy()
+
     # --- Session Log ---
 
     async def log_event(self, event_type: str, summary: str, details: str = "",

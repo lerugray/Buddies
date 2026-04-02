@@ -436,6 +436,18 @@ CONTEXT_SPECIES = [
     "My {species} instincts are tingling.",
 ]
 
+# CC companion references — injected when a CC buddy exists in the party
+CONTEXT_CC_BUDDY = [
+    "Even {cc_name} in the status bar perked up at that.",
+    "I saw {cc_name} blink. Or maybe it was a speech bubble. Hard to tell.",
+    "The corporate mascot is watching too. Hi, {cc_name}.",
+    "{cc_name} is just sitting there. Watching. We do the real work.",
+    "I wonder what {cc_name} thinks about all this. Probably something short.",
+    "Somewhere down in the footer, {cc_name} stirred.",
+    "*glances at {cc_name}* Yeah, we've got this.",
+    "{cc_name} can observe. We can play. Advantage: us.",
+]
+
 CONTEXT_HAT = [
     "*adjusts {hat}* Very well.",
     "*tips {hat}* Noted.",
@@ -566,6 +578,11 @@ class ProseEngine:
         if ctx.get("count") or ctx.get("minutes"):
             options.extend(CONTEXT_SESSION)
 
+        # CC companion reference (only if one has been imported)
+        cc_name = ctx.get("cc_buddy_name")
+        if cc_name:
+            options.extend(CONTEXT_CC_BUDDY)
+
         if not options:
             return text
 
@@ -575,5 +592,6 @@ class ProseEngine:
             mood=state.mood,
             count=ctx.get("count", "?"),
             minutes=ctx.get("minutes", 0),
+            cc_name=cc_name or "the companion",
         )
         return f"{text} {injection}"

@@ -150,8 +150,10 @@ class PartyScreen(Screen):
             stage = get_evolution_stage(level)
             stage_str = stage["name"][:4]  # Hatc/Juv/Adul/Elde
 
-            # Buddy name
+            # Buddy name (with CC tag for imported companions)
             buddy_name = buddy.get("name", "Buddy")[:20]
+            if buddy.get("source") == "cc_companion":
+                buddy_name = f"{buddy_name} [cyan](CC)[/]"
 
             # Hat info
             hat = buddy.get("hat")

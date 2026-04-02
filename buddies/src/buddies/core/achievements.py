@@ -102,6 +102,9 @@ ACHIEVEMENTS: list[Achievement] = [
     Achievement("grumpy_buddy", "Grumpy Cat", "Let a buddy get grumpy", "😤", "secret"),
     Achievement("nightcap_earned", "Sleepyhead", "Unlock the nightcap hat via boredom", "😴", "secret"),
 
+    # CC companion integration
+    Achievement("cc_import", "Corporate Crossover", "Import your Claude Code /buddy companion", "🔗", "secret"),
+
     # Secret achievements
     Achievement("phoenix_owner", "Reborn", "Own a Phoenix", "🔥", "secret"),
     Achievement("claude_owner", "Meta", "Own a Claude buddy", "🤖", "secret"),
@@ -244,6 +247,10 @@ def check_achievements(
     _check("claude_owner", "claude" in species_names)
     _check("zorak_owner", "zorak" in species_names)
     _check("void_cat_owner", "void_cat" in species_names)
+
+    # CC companion import
+    has_cc = any(b.get("source") == "cc_companion" for b in buddies)
+    _check("cc_import", has_cc)
 
     # BBS social achievements
     if bbs_stats:

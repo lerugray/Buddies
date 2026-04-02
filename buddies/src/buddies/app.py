@@ -125,6 +125,7 @@ class BuddyApp(App):
         self._recent_tools: list[str] = []
         self._bored_minutes: float = 0  # Track sustained boredom for nightcap
         self.idle_life: "IdleLife | None" = None
+        self._cc_buddy_name: str | None = None  # Cached name of imported CC companion
         self.relationships: "RelationshipManager | None" = None
         self._typing_timer = None  # Debounce timer for typing detection
 
@@ -182,6 +183,9 @@ class BuddyApp(App):
         self.safety_gates = SafetyGates(store=self.store)
         self.rule_suggester.set_safety_gates(self.safety_gates)
         asyncio.create_task(self.safety_gates.load_golden_suite())
+
+        # Check for imported CC companion (for prose references)
+        asyncio.create_task(self._load_cc_buddy_name())
 
         # Start a new conversation (auto-saves every message)
         buddy_name = self.buddy_state.name if self.buddy_state else "Buddy"
@@ -261,6 +265,15 @@ class BuddyApp(App):
         self.observer.on_event(self._on_memory_event)
         self._memory_flush_task = asyncio.create_task(self._memory_flush_loop())
         asyncio.create_task(self._memory_startup_decay())
+
+    async def _load_cc_buddy_name(self):
+        """Cache the CC companion's name for prose injection."""
+        try:
+            cc = await self.store.get_cc_buddy()
+            if cc:
+                self._cc_buddy_name = cc["name"]
+        except Exception:
+            pass
 
     async def _show_ai_status(self):
         ai_available = await self.ai_backend.is_available()
@@ -685,6 +698,7 @@ class BuddyApp(App):
                     "count": self.observer.stats.event_count,
                     "minutes": self.observer.stats.duration_minutes,
                     "tool": event.tool_name,
+                    "cc_buddy_name": self._cc_buddy_name,
                 }
                 thought = self.prose.thought(trigger, self.buddy_state, ctx)
                 if thought:
@@ -889,6 +903,7 @@ class BuddyApp(App):
                 ctx = {
                     "count": self.observer.stats.event_count,
                     "minutes": self.observer.stats.duration_minutes,
+                    "cc_buddy_name": self._cc_buddy_name,
                 }
                 thought = self.prose.thought("idle", self.buddy_state, ctx)
                 if thought:

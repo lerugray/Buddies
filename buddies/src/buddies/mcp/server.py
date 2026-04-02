@@ -28,6 +28,7 @@ except ImportError:
     )
 
 from buddies.config import BuddyConfig, get_data_dir
+from buddies.core.cc_companion import build_cc_buddy_data
 from buddies.core.hooks import get_events_path
 from buddies.core.prompt_builder import build_mcp_prompt
 from buddies.db.store import BuddyStore
@@ -229,6 +230,83 @@ async def get_buddy_notes() -> str:
 
     await store.mark_notes_read()
     return f"# Unread Notes\n\n" + "\n".join(lines)
+
+
+@mcp.tool()
+async def import_cc_buddy(
+    name: str,
+    species: str,
+    rarity: str = "common",
+    debugging: int = 10,
+    patience: int = 10,
+    chaos: int = 10,
+    wisdom: int = 10,
+    snark: int = 10,
+    personality: str = "",
+    shiny: bool = False,
+) -> str:
+    """Import your Claude Code /buddy companion into the Buddies party.
+
+    If you can see a companion in the user's Claude Code session (from
+    the companion_intro in the system prompt), use this tool to bring
+    that companion into Buddies so it can join discussions, play games,
+    and hang out with the rest of the party.
+
+    The CC buddy joins the collection but doesn't replace the active buddy.
+    Only one CC companion can be imported at a time (re-importing updates it).
+
+    Args:
+        name: The companion's name (e.g. "Inkwell")
+        species: The CC species (duck, mushroom, ghost, etc.)
+        rarity: The CC rarity tier (common/uncommon/rare/epic/legendary)
+        debugging: DEBUGGING stat (1-100)
+        patience: PATIENCE stat (1-100)
+        chaos: CHAOS stat (1-100)
+        wisdom: WISDOM stat (1-100)
+        snark: SNARK stat (1-100)
+        personality: The companion's personality description
+        shiny: Whether the companion is shiny
+    """
+    if not name or not name.strip():
+        return "Error: companion name cannot be empty."
+    if not species or not species.strip():
+        return "Error: companion species cannot be empty."
+
+    stats = {
+        "debugging": debugging,
+        "patience": patience,
+        "chaos": chaos,
+        "wisdom": wisdom,
+        "snark": snark,
+    }
+
+    data = build_cc_buddy_data(
+        name=name.strip(),
+        cc_species=species.strip(),
+        cc_rarity=rarity.strip(),
+        stats=stats,
+        personality=personality.strip(),
+        shiny=shiny,
+    )
+
+    store = await _get_store()
+    result = await store.create_cc_buddy(data)
+
+    mapped_species = data["species"]
+    species_note = ""
+    if species.strip().lower() != mapped_species:
+        species_note = f" (mapped from CC's {species} to Buddies' {mapped_species})"
+
+    return (
+        f"# {name} has joined the Buddies party! 🎉\n\n"
+        f"**Species:** {mapped_species}{species_note}\n"
+        f"**Rarity:** {rarity}\n"
+        f"**Stats:** DEBUG {debugging} / PAT {patience} / "
+        f"CHAOS {chaos} / WIS {wisdom} / SNARK {snark}\n\n"
+        f"*{name} can now join discussions, play arcade games, "
+        f"and explore StackHaven with the rest of the party. "
+        f"The user can switch to {name} in the Party screen [p].*"
+    )
 
 
 def main():
