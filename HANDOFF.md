@@ -364,12 +364,12 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 *Fun stuff. [x] key opens the arcade. Stats drive AI playstyle across all games.*
 
 - [x] **Games Arcade hub** — ASCII art arcade menu, game selection, XP/mood rewards on completion. [x] keybinding.
-- [x] **Rock-Paper-Scissors** — Best-of-5 tournament. AI driven by personality (CHAOS=random, WISDOM=pattern-tracking, DEBUGGING=counter-strategy, PATIENCE=stubborn favorite). 90+ prose templates with register-flavored trash talk.
 - [x] **Game engine foundation** — GamePersonality blended from all 5 stats, shared card infrastructure (Card/Deck/Hand with ASCII art), game result tracking in DB, 9 new achievements (49 total).
-- [x] **Blackjack** — Player vs buddy-dealer. Hit/stand/double. Personality-driven dealer (CHAOS hits when shouldn't, PATIENCE stands early). 20+ prose templates.
+- [x] **Buffer Overflow (Snake)** — Grid-based snake with StackHaven power-ups (speed boost, multiplier, memory leak, garbage collector) and firewall obstacles. Personality warps obstacle patterns, speed ramp, and item rates. Balance-tested via 50-run simulations.
+- [x] **Stack Descent (Ski Free)** — 7-lane vertical scroller. The Auditor (the yeti) chases you after ~15s. 4 obstacle types, 3 pickup types. Personality affects lane patterns, scroll speed, and commentary.
+- [x] **Deploy or Die (Deckbuilder)** — Survive 7 sprints of production hell. ~30 cards, 15 incident types, 2 boss encounters. Personality warps starting deck + shop weights. Designed with wargame book principles (dual-use tension, one resource, fixed endpoint). Simulation-tested: ~25% greedy win rate.
 - [x] **Texas Hold'em** — You + party buddies at an ASCII poker table. Buddy profile pics at seats, community cards in center. Full hand evaluation (royal flush down to high card). AI betting driven by hand strength × personality. Chip tracking across hands.
 - [x] **Whist** — Partnership trick-taking. You + partner buddy vs 2 opponents. 13 tricks per round, trump suit from last dealt card. AI plays follow suit rules, uses trump strategically based on personality.
-- [x] **JRPG Battles** — Goofy Pokemon-style fights. Type triangle (LOGIC/CHAOS/HACK + DEBUG support). 20 moves across 5 stat pools. 10 enemies (Wild Segfault, Escaped Regex, Production Bug, etc.). HP bars, crits, type effectiveness, level scaling.
 - [x] **Coding Trivia** — 90 questions across 5 categories (basics, history, bugs, culture, languages), 3 difficulty tiers. Buddy answers alongside you based on personality. Perfect score achievement.
 - [x] **Pong** — Real-time TUI game at ~15 FPS via Textual timer. Buddy controls other paddle with personality-driven AI (PATIENCE=precise, CHAOS=overshoots, DEBUGGING=predicts trajectory). Ball speed ramps, rally tracking, pause support.
 - [ ] **Multiplayer (future)** — Async games via GitHub Issues (same transport as BBS). MCP tool for challenges. Leaderboard on BBS.
@@ -491,6 +491,38 @@ CC's /buddy is a cosmetic mascot (18 species, 5 stats, 8 hats, 1% shiny, no prog
 ### Direction
 - CC Tiers 1-3 DONE, Tier 4 (dialogue screen) on roadmap
 - MUD now has persistence + a new zone — ready for more expansion or polish
-- User considering replacing some simpler arcade games (Blackjack, Whist) with more unique ones
 - Future ideas: nonlinear TTRPG interactions, multiplayer leaderboards, Tier 5 audio
-- Test gaps remaining: blackjack game flow, screen interaction tests
+- Test gaps remaining: screen interaction tests
+
+## Session Notes (2026-04-02 — Work, Session 3)
+
+### Completed (2 commits)
+- **Arcade Game Refresh** — replaced RPS, Blackjack, JRPG Battles with:
+  - **Buffer Overflow (Snake)**: grid-based, speed ramp, 5 power-up types (speed boost, multiplier, memory leak, garbage collector), firewall obstacles. Personality warps obstacle patterns, speed ramp, and power-up rates.
+  - **Stack Descent (Ski Free)**: 7-lane vertical scroller, 4 obstacle types, 3 pickup types. The Auditor (the yeti) appears after ~15s and chases you. Personality affects lane patterns and scroll speed.
+  - **Deploy or Die (Deckbuilder)**: Survive 7 sprints. ~30 unique cards across 5 rarities, 15 incident types across 4 severities (+ 2 boss incidents). Personality warps starting deck (2 bonus cards) + shop weights. One resource (Dev Points), one health bar (Stability). Designed using principles from the wargame design book + UFO 50's Party House as a scope reference.
+  - **Combat primitives** extracted from old `battle.py` into `combat.py` for Blobber CRPG reuse
+- **Balance Simulation Testing** (19 tests):
+  - Deckbuilder: found `import random` bug (shadowed module import), rebalanced Commit 1→2 DP and incident damage (low 1→2, med 2→3, high 3→4). Greedy win rate: ~25%.
+  - Ski Free: fixed auditor threshold (600→150 ticks), fixed double-multiply distance bug
+  - All 3 games: personality variance confirmed meaningful, terrain/grid always passable
+- **README sprite GIFs**: render script (`scripts/render_sprites.py`) generates animated GIFs from pixel art data. Banner + 6 individual species in `assets/`.
+- **37 unit tests + 19 balance tests** (852→868 total)
+
+### New files
+- `core/games/snake.py`, `screens/game_snake.py` — Snake engine + screen
+- `core/games/skifree.py`, `screens/game_skifree.py` — Ski Free engine + screen
+- `core/games/deckbuilder.py`, `screens/game_deckbuilder.py` — Deckbuilder engine + screen
+- `core/games/combat.py` — shared combat primitives (extracted from old battle.py)
+- `tests/test_game_balance.py` — 19 balance simulation tests
+- `scripts/render_sprites.py` — sprite GIF renderer for README
+- `assets/buddy-*.gif` — animated sprite GIFs
+
+### Deleted files
+- `core/games/rps.py`, `screens/game_rps.py` — Rock-Paper-Scissors (too simple)
+- `core/games/blackjack.py`, `screens/game_blackjack.py` — Blackjack (redundant with Hold'em)
+- `core/games/battle.py`, `screens/game_battle.py` — JRPG Battles (redundant with Blobber/MUD)
+
+### Updated counts
+- **Tests**: 868 passing
+- **Arcade games**: 10 (same count, 3 replaced with better ones)

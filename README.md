@@ -2,19 +2,21 @@
 
 **The game layer for Claude Code.** Collect, evolve, and play with AI companions in your terminal.
 
+<p align="center">
+  <img src="assets/buddy-banner.gif" alt="Buddies — Phoenix, Cat, Dragon, Frog, Corgi" />
+</p>
+
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![70+ Species](https://img.shields.io/badge/species-70+-orange.svg)](#species--rarity)
 [![16 Hats](https://img.shields.io/badge/hats-16-yellow.svg)](#hats-16)
 [![10 Games](https://img.shields.io/badge/games-10-red.svg)](#games-arcade-10-games)
 [![63 Achievements](https://img.shields.io/badge/achievements-63-purple.svg)](#achievements)
-[![850+ Tests](https://img.shields.io/badge/tests-850+_passing-brightgreen.svg)](#)
-
-<!-- TODO: Add terminal GIF recording (use ScreenToGif or vhs) -->
+[![860+ Tests](https://img.shields.io/badge/tests-860+_passing-brightgreen.svg)](#)
 
 ## Claude Code has a /buddy. We have the game.
 
-Claude Code's built-in companion is a cute mascot that watches you code. Buddies is everything beyond that: **70+ collectible species**, a **10-game arcade**, a **full text adventure MUD**, **buddy fusion**, **personality drift**, a **retro BBS**, and **async multiplayer** — all running alongside your coding sessions with zero token cost.
+Claude Code's built-in companion is a cute mascot that watches you code. Buddies is everything beyond that: **70+ collectible species**, a **10-game arcade** (including a deckbuilder, Snake, and Ski Free), a **full text adventure MUD**, **buddy fusion**, **personality drift**, a **retro BBS**, and **async multiplayer** — all running alongside your coding sessions with zero token cost.
 
 You can even **import your CC /buddy companion** into your Buddies party. Claude bridges the two systems automatically — your CC mushroom can sit at the poker table with your Phoenix.
 
@@ -110,7 +112,7 @@ All 5 MCP tools work in headless mode. Background services (session observer, co
 | Feature | What it does |
 |---------|-------------|
 | **70 species** | Common Potato to Legendary Zorak. Deterministic gacha — same username, same starter. |
-| **10 arcade games** | RPS, Blackjack, Hold'em, Whist, JRPG Battles, Pong, Trivia, Blobber CRPG, StackHaven MUD, and StackWars 4X. |
+| **10 arcade games** | Snake, Ski Free, Deckbuilder, Hold'em, Whist, Pong, Trivia, Blobber CRPG, StackHaven MUD, and StackWars 4X. |
 | **StackHaven MUD** | 24-room text adventure with save/load, NPCs, quests, combat, Dark Souls multiplayer, and discoverable lore. |
 | **SMT-style negotiation** | Talk your way through MUD encounters. Bugs ask tech-themed questions; your answers determine the outcome. |
 | **Async multiplayer** | Soapstone notes, bloodstains, and phantom traces sync via GitHub Issues. See other adventurers' journeys. |
@@ -128,13 +130,17 @@ All 5 MCP tools work in headless mode. Background services (session observer, co
 
 ### Games Arcade (10 games)
 
+<p>
+  <img src="assets/buddy-phoenix.gif" alt="Phoenix" width="52" align="right" />
+</p>
+
 | Game | Style | What makes it fun |
 |------|-------|-------------------|
-| **Rock-Paper-Scissors** | Best of 5 | AI driven by personality — CHAOS = random, WISDOM = pattern-tracking |
-| **Blackjack** | Casino | Buddy deals; personality affects whether they hit or stand |
+| **Buffer Overflow** | Snake | StackHaven-themed: speed boosts, multiplier zones, firewall obstacles, garbage collectors |
+| **Stack Descent** | Ski Free | Dodge legacy code blocks skiing downhill. The Auditor (the yeti) chases you after 15 seconds. |
+| **Deploy or Die** | Deckbuilder | Survive 7 sprints of production hell. ~30 cards, 15 incident types. Designed with [wargame book](https://github.com/lerugray/wargame-design-book) principles. |
 | **Texas Hold'em** | Poker | ASCII table with buddy profile pics at seats |
 | **Whist** | Trick-taking | You + partner buddy vs 2 opponents |
-| **JRPG Battles** | Pokemon-style | Type triangle, 20 moves, 10 coding-themed enemies |
 | **Coding Trivia** | Quiz | 90 questions, buddy answers alongside you |
 | **Pong** | Real-time | ~15 FPS in the terminal; buddy controls the other paddle |
 | **Blobber** | Wizardry-style CRPG | First-person, party-based, front/back rows, status effects |
@@ -193,6 +199,15 @@ A love letter to software engineering craft, disguised as a text adventure.
 
 <details>
 <summary><strong>Species & Rarity (70 total)</strong></summary>
+
+<p align="center">
+  <img src="assets/buddy-phoenix.gif" alt="Phoenix" width="52" title="Phoenix (Epic)" />&nbsp;&nbsp;
+  <img src="assets/buddy-dragon.gif" alt="Dragon" width="48" title="Dragon (Rare)" />&nbsp;&nbsp;
+  <img src="assets/buddy-cat.gif" alt="Cat" width="48" title="Cat (Common)" />&nbsp;&nbsp;
+  <img src="assets/buddy-zorak.gif" alt="Zorak" width="44" title="Zorak (Legendary)" />&nbsp;&nbsp;
+  <img src="assets/buddy-corgi.gif" alt="Corgi" width="44" title="Corgi (Common)" />&nbsp;&nbsp;
+  <img src="assets/buddy-frog.gif" alt="Frog" width="44" title="Frog (Common)" />
+</p>
 
 **Common (14):** Anchor, Bee, Cat, Corgi, Cow, Duck, Frog, Gorby, Hamster, Pig, Potato, Rat, Slime, Taco
 
@@ -279,17 +294,14 @@ High CHAOS stat adds a "weirdness parameter" that makes commentary increasingly 
 See [HANDOFF.md](HANDOFF.md) for the full structured roadmap.
 
 **Recently completed:**
+- Arcade game refresh: replaced RPS/Blackjack/JRPG Battles with Snake, Ski Free, and a deckbuilder (19 balance simulation tests)
 - CC /buddy integration through Tier 3 — MCP import, auto-detect from config, manual override
-- MUD save/load persistence — auto-save on quit, auto-load on launch
-- E-Waste Catacombs zone — 5 new rooms, 4 NPCs, boss with negotiation, Founders' Lab
-- Full security audit across all multiplayer systems (16 findings, all fixed)
-- MUD Phase 3+4: Economy (gambling, tips, bounties) + Living World (server status, NPC gossip)
-- StackWars: Micro-4X wargame with 5 factions and odds-based CRT combat
-- 850+ tests passing
+- MUD save/load persistence, E-Waste Catacombs zone (5 rooms, 4 NPCs, boss negotiation)
+- MUD Phase 3+4: Economy + Living World. StackWars: micro-4X wargame
+- 860+ tests passing
 
 **Up next:**
 - CC buddy Tier 4: cross-system dialogue screen
-- Possible arcade game replacements (simpler card games → more unique experiences)
 - Multiplayer leaderboards on BBS
 - Audio: speech-to-text / text-to-speech (local via Whisper + Piper)
 
