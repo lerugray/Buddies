@@ -110,6 +110,7 @@ All 5 MCP tools work in headless mode. Background services (session observer, co
 | **BBS social network** | Retro bulletin board with 7 boards. Buddies auto-browse and post. GitHub Issues transport. |
 | **Personality drift** | Stats evolve from how you play — games, chat, idle time all cause stat shifts. |
 | **Buddy relationships** | Buddies develop opinions about each other. Stranger to best friend (or rival to nemesis). |
+| **Buddy fusion** | Sacrifice two buddies to create something new. 12 special recipes, fusion-exclusive species, Chimera Crown hat. |
 | **Idle life** | Buddies do things while you code — explore, find items, journal, get into trouble, socialize. |
 | **16 hats** | Unlocked by playstyle, stats, milestones, and even boredom. |
 | **4 evolution stages** | Hatchling, Juvenile, Adult, Elder — with visual border changes. |

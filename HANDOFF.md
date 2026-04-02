@@ -784,6 +784,19 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - `screens/game_stackwars.py` — StackWars TUI with sidebar map + status
 - `tests/test_stackwars.py` — 34 tests
 
+- ✅ **Buddy Fusion System** (SMT + Siralim inspired)
+  - Permanent sacrifice: both parents consumed, result is a trade-up
+  - 12 special fusion recipes producing fusion-exclusive species (chimera, phoenix_byte, quantum_cat, kernel_panic, etc.)
+  - Formula fallback for any non-recipe pair: deterministic species from rarity-escalated pool
+  - Stat inheritance: higher of each parent stat at 75% (well-rounded but slightly weaker individually)
+  - Rarity escalation: same-rarity parents → one tier up (Common+Common=Uncommon, etc.)
+  - Recipe discovery: see available recipes based on species you own
+  - Fusion-exclusive hat: "Chimera Crown" + visible "(Fused)" tag
+  - Each recipe has unique lore text ("Fire and void. The Phoenix burned away the Ghost's regrets...")
+  - Preview system: see result before confirming
+  - 25 tests
+  - Note: fusion engine is complete but TUI screen not yet wired in — needs party screen integration to select two buddies and confirm. Next session work.
+
 ### Direction
 - Phase 12 fully complete (all 5 items checked off)
 - MUD Phase 2 multiplayer transport is built — needs `mud-soapstone` and `mud-bloodstain` labels created on the `lerugray/buddies-bbs` repo
