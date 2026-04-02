@@ -163,6 +163,34 @@ class TestTrivia:
         assert game.player_score == 10
         assert result.score["perfect"]
 
+    def test_seeded_game_deterministic(self):
+        from buddies.core.games.trivia import TriviaGame, create_seeded_questions
+        q1 = create_seeded_questions("test_seed_123")
+        q2 = create_seeded_questions("test_seed_123")
+        assert [q.text for q in q1] == [q.text for q in q2]
+
+    def test_different_seeds_different_questions(self):
+        from buddies.core.games.trivia import create_seeded_questions
+        q1 = create_seeded_questions("seed_a")
+        q2 = create_seeded_questions("seed_b")
+        # Very unlikely to be identical
+        texts1 = [q.text for q in q1]
+        texts2 = [q.text for q in q2]
+        assert texts1 != texts2
+
+    def test_seeded_game_has_10_questions(self):
+        from buddies.core.games.trivia import create_seeded_questions
+        questions = create_seeded_questions("any_seed")
+        assert len(questions) == 10
+
+    def test_seeded_trivia_game(self):
+        from buddies.core.games.trivia import TriviaGame
+        game = TriviaGame(buddy_state=make_buddy(), seed="challenge_seed")
+        assert len(game.questions) == 10
+        # Verify same seed gives same questions
+        game2 = TriviaGame(buddy_state=make_buddy(), seed="challenge_seed")
+        assert [q.text for q in game.questions] == [q.text for q in game2.questions]
+
 
 # ---------------------------------------------------------------------------
 # Hold'em

@@ -119,6 +119,15 @@ ACHIEVEMENTS: list[Achievement] = [
 
     # CC companion integration
     Achievement("cc_import", "Corporate Crossover", "Import your Claude Code /buddy companion", "🔗", "secret"),
+    Achievement("cc_first_chat", "Cross-System Contact", "Have a dialogue with your CC companion", "🔗", "social"),
+    Achievement("cc_topic_5", "Bridge Builder", "Complete 5 CC dialogue topic rounds", "🌉", "social"),
+    Achievement("cc_dialogue_all_party", "Full Assembly", "Have 3+ buddies talk with CC buddy", "🏛️", "social"),
+
+    # Arcade multiplayer
+    Achievement("first_challenge", "Challenger", "Create your first arcade challenge", "⚔️", "social"),
+    Achievement("challenge_win", "Victor", "Beat someone's challenge score", "🏆", "social"),
+    Achievement("leaderboard_top", "High Scorer", "Hold a #1 leaderboard position", "🥇", "mastery"),
+    Achievement("challenge_5", "Rival", "Create 5 arcade challenges", "🎯", "social"),
 
     # Secret achievements
     Achievement("phoenix_owner", "Reborn", "Own a Phoenix", "🔥", "secret"),
@@ -147,6 +156,9 @@ def check_achievements(
     bbs_stats: dict | None = None,
     game_stats: dict | None = None,
     fusion_stats: dict | None = None,
+    arcade_stats: dict | None = None,
+    cc_dialogue_rounds: int = 0,
+    cc_dialogue_party_size: int = 0,
     unlocked_ids: set[str] | None = None,
 ) -> list[Achievement]:
     """Check all achievements and return newly unlocked ones.
@@ -163,6 +175,9 @@ def check_achievements(
         themes_changed: Number of theme changes
         bbs_stats: BBS activity stats dict (posts, replies, total, boards_used, unique_authors)
         game_stats: Game stats dict (games_played, games_won, by_type, rps_max_streak)
+        arcade_stats: Arcade multiplayer stats (challenges_created, challenges_won, top_positions)
+        cc_dialogue_rounds: Total CC dialogue rounds completed
+        cc_dialogue_party_size: Number of party buddies in last CC dialogue
         unlocked_ids: Set of already-unlocked achievement IDs
 
     Returns:
@@ -368,5 +383,20 @@ def check_achievements(
         if "(Fused)" in soul:
             _check("first_fusion", True)
             break
+
+    # Arcade multiplayer achievements
+    if arcade_stats:
+        created = arcade_stats.get("challenges_created", 0)
+        won = arcade_stats.get("challenges_won", 0)
+        top_positions = arcade_stats.get("top_positions", 0)
+        _check("first_challenge", created >= 1)
+        _check("challenge_5", created >= 5)
+        _check("challenge_win", won >= 1)
+        _check("leaderboard_top", top_positions >= 1)
+
+    # CC dialogue achievements
+    _check("cc_first_chat", cc_dialogue_rounds >= 1)
+    _check("cc_topic_5", cc_dialogue_rounds >= 5)
+    _check("cc_dialogue_all_party", cc_dialogue_party_size >= 3)
 
     return newly_unlocked

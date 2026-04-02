@@ -85,12 +85,12 @@ PARTY_REACT_TO_CC: dict[str, list[str]] = {
     "clinical": [
         "Interesting perspective from the corporate side, {cc_name}.",
         "{cc_name}'s observation is noted. Let me add the data perspective —",
-        "The status bar buddy raises a valid point. Empirically speaking —",
+        "{cc_name}'s status bar observation raises a valid point. Empirically speaking —",
         "Thank you, {cc_name}. Now let me provide the analysis.",
     ],
     "sarcastic": [
         "Wow, {cc_name}, that was almost helpful. Almost.",
-        "The speech bubble speaks! And it was... fine, actually.",
+        "{cc_name}'s speech bubble speaks! And it was... fine, actually.",
         "I'm sure that sounded great in the status bar, {cc_name}.",
         "{cc_name} coming in with the corporate wisdom. Classic.",
         "Oh good, {cc_name} has thoughts. This should be interesting.",
@@ -112,7 +112,7 @@ PARTY_REACT_TO_CC: dict[str, list[str]] = {
         "Thanks for sharing, {cc_name}. That's a nice thought.",
         "{cc_name}'s always been a steady presence. I appreciate that.",
         "Good to hear from you, {cc_name}. We value your input.",
-        "The status bar buddy has spoken gently. As always.",
+        "{cc_name} has spoken gently from the status bar. As always.",
     ],
 }
 
