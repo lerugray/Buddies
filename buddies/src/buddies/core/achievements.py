@@ -69,7 +69,7 @@ ACHIEVEMENTS: list[Achievement] = [
     Achievement("battle_veteran", "Battle Veteran", "Win 10 battles", "⚔️", "mastery"),
     Achievement("trivia_master", "Trivia Master", "Score 10/10 on trivia", "🧠", "mastery"),
     Achievement("pong_champion", "Pong Champion", "Win a game of Pong", "🏓", "mastery"),
-    Achievement("dungeon_master", "Dungeon Master", "Clear all 5 floors of the dungeon", "🏰", "mastery"),
+    Achievement("dungeon_master", "Dungeon Delver", "Win a blobber dungeon crawl", "🗡️", "mastery"),
     Achievement("arcade_regular", "Arcade Regular", "Play 25 total games", "🕹️", "mastery"),
     Achievement("all_in_chaos", "ALL IN!", "Win a game with a high-CHAOS buddy", "🎰", "secret"),
 

@@ -11,7 +11,7 @@ A tamagotchi-style local AI companion **collection** that runs alongside Claude 
 - GitHub: lerugray
 - I work across two machines (work computer + home computer)
 - Work machine: Intel Iris Xe (integrated graphics, no dedicated GPU)
-- Home machine: Unknown GPU — check the `passive-income-hub` project for hardware specs, or just ask me
+- Home machine: RTX 3050 4GB (use 3B models for Ollama)
 - **Memory sync rule**: Claude Code memories are local per-machine. Any important project context, creative direction, or design decisions saved to memory MUST also go in this HANDOFF.md so it syncs to the other machine via git. Memory is for Claude's recall; HANDOFF is for cross-machine persistence.
 
 ## Project Status — Phases 1-5 MOSTLY COMPLETE
@@ -611,7 +611,7 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - ✅ **Texas Hold'em** — ASCII poker table with buddy profile pics at seats, full hand evaluator, personality-driven betting AI
 - ✅ **Whist** — 4-player trick-taking with team partnerships, trump suits, suit-following rules
 - ✅ Games Arcade now loads party buddies for multiplayer games (Hold'em, Whist)
-- ✅ **Dungeon Crawl** — cooperative roguelike (8th game). 5 floors, random encounters (12 monsters, 3 bosses, 6 traps, 8 treasures, 6 mysteries). Buddy assists based on stats (DEBUGGING spots traps, CHAOS goes berserk, WISDOM finds secrets, PATIENCE heals).
+- ~~**Dungeon Crawl**~~ — removed (redundant with blobber, which does everything it did but better). Dropped from arcade to keep game count clean.
 - ✅ **Personality Drift** — stats evolve from play patterns. Games boost specific stats (trivia→WISDOM, battles→DEBUGGING). Session tools, chat, and idle time all cause drift. Visible "personality shift" notifications.
 - ✅ **Idle Life** — buddies do things while you code. 50+ event templates across 5 categories (explore, find items, journal, trouble, social). Events appear in session monitor. Social events between party buddies.
 - ✅ **Buddy Relationships** — buddies develop opinions about each other based on stat compatibility and shared activities. Relationship types: stranger→acquaintance→friend→best friend, or rival→nemesis. Affects discussion dynamics.
@@ -648,7 +648,7 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
   - 5 new MUD achievements (MUD Tourist, Bug Squasher, Quest Hero, Debt Free, Consumer)
   - MUD personality drift rule (wisdom+2, patience+1, snark+1)
   - 45 new tests (179 total, 4 skipped)
-  - Wired into Games Arcade as game #10
+  - Wired into Games Arcade as game #9
 
 ### New files
 - `core/games/mud_world.py` — World engine (rooms, NPCs, items, quests)
@@ -701,7 +701,7 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
 - The world is designed to be expandable: add rooms/NPCs/quests by extending build_starter_* functions
 - Multiple quest chains create progression: QA quest → Archive badge → find incident report → get Oncall Pager
 - Pipeline quest → VPN token → Cloud District → Kubernetes Cluster
-- Now 10 games in the arcade
+- Now 9 games in the arcade (dungeon crawl removed — redundant with blobber)
 
 ## Session Notes (2026-04-01 — Home, Session 4)
 

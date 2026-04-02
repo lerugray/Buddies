@@ -175,22 +175,6 @@ class TestGameScreens:
             await pilot.pause()
 
     @pytest.mark.asyncio
-    async def test_dungeon_screen(self, buddy):
-        from textual.app import App
-        from buddies.screens.game_dungeon import DungeonScreen
-
-        class TestApp(App):
-            def on_mount(self):
-                self.push_screen(DungeonScreen(buddy_state=buddy))
-
-        async with TestApp().run_test(size=(100, 30)) as pilot:
-            await pilot.pause()
-            assert pilot.app.screen.__class__.__name__ == "DungeonScreen"
-            # Advance through rooms
-            await pilot.press("space")
-            await pilot.pause()
-
-    @pytest.mark.asyncio
     async def test_crawl_screen(self, buddy, party):
         from textual.app import App
         from buddies.screens.game_crawl import CrawlScreen
@@ -321,7 +305,6 @@ class TestImports:
         from buddies.screens.game_trivia import TriviaScreen
         from buddies.screens.game_holdem import HoldemScreen
         from buddies.screens.game_whist import WhistScreen
-        from buddies.screens.game_dungeon import DungeonScreen
         from buddies.screens.game_crawl import CrawlScreen
 
     def test_all_core_modules_import(self):
@@ -352,7 +335,6 @@ class TestImports:
         from buddies.core.games.trivia import TriviaGame
         from buddies.core.games.holdem import HoldemGame
         from buddies.core.games.whist import WhistGame
-        from buddies.core.games.dungeon import DungeonGame
         from buddies.core.games.crawl import CrawlState
 
     def test_species_catalog_has_70(self):
