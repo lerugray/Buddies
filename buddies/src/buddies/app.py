@@ -1056,6 +1056,19 @@ class BuddyApp(App):
                 self.buddy_state = BuddyState.from_db(data)
                 if self.router:
                     self.router.buddy_state = self.buddy_state
+
+                # Personality drift from fusion — transformative event
+                try:
+                    from buddies.core.personality_drift import drift_for_fusion
+                    drift = drift_for_fusion(self.buddy_state.stats)
+                    if drift.has_changes:
+                        await self.store.update_buddy_by_id(
+                            self.buddy_state.buddy_id,
+                            **{f"stat_{k}": v for k, v in self.buddy_state.stats.items()},
+                        )
+                except Exception:
+                    pass
+
                 self._update_displays()
                 chat = self.query_one("#chat-panel", ChatWindow)
                 chat.add_system("Fusion complete! A new buddy has been born from sacrifice.")

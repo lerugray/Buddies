@@ -55,6 +55,9 @@ CHAT_DRIFT: list[tuple[str, int]] = [("patience", 1)]
 DISCUSSION_DRIFT: list[tuple[str, int]] = [("snark", 1), ("wisdom", 1)]
 BBS_POST_DRIFT: list[tuple[str, int]] = [("snark", 1), ("chaos", 1)]
 
+# Fusion drift — fusing is transformative, boosts wisdom and chaos
+FUSION_DRIFT: list[tuple[str, int]] = [("wisdom", 3), ("chaos", 2), ("patience", 1)]
+
 # Idle/neglect drift (applied periodically when buddy hasn't been interacted with)
 IDLE_DRIFT: list[tuple[str, int]] = [("chaos", 1)]
 
@@ -151,6 +154,11 @@ def drift_for_session_tool(
 def drift_for_chat(stats: dict[str, int]) -> DriftResult:
     """Apply drift from chatting with your buddy."""
     return apply_drift(stats, CHAT_DRIFT, multiplier=0.5)
+
+
+def drift_for_fusion(stats: dict[str, int]) -> DriftResult:
+    """Apply drift from fusing two buddies — a transformative event."""
+    return apply_drift(stats, FUSION_DRIFT)
 
 
 def drift_for_idle(stats: dict[str, int], minutes_idle: int) -> DriftResult:
