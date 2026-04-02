@@ -376,6 +376,35 @@ QUESTIONS: list[Question] = [
 QUESTIONS_PER_ROUND = 10
 
 
+def create_seeded_questions(seed: str) -> list[Question]:
+    """Pick a deterministic set of questions from a seed string.
+
+    Two players using the same seed get the exact same question set
+    in the same order, enabling fair async challenges.
+    """
+    rng = random.Random(seed)
+    pool = list(QUESTIONS)
+    rng.shuffle(pool)
+
+    easy = [q for q in pool if q.difficulty == 1]
+    medium = [q for q in pool if q.difficulty == 2]
+    hard = [q for q in pool if q.difficulty == 3]
+
+    selected: list[Question] = []
+    selected.extend(easy[:3])
+    selected.extend(medium[:4])
+    selected.extend(hard[:3])
+
+    while len(selected) < QUESTIONS_PER_ROUND:
+        remaining = [q for q in pool if q not in selected]
+        if not remaining:
+            break
+        selected.append(remaining[0])
+
+    rng.shuffle(selected)
+    return selected[:QUESTIONS_PER_ROUND]
+
+
 @dataclass
 class TriviaRound:
     """A single trivia question round result."""
@@ -390,6 +419,7 @@ class TriviaRound:
 class TriviaGame:
     """A full trivia game — 10 questions, player and buddy both answer."""
     buddy_state: BuddyState
+    seed: str = ""  # If set, use seeded questions for fair challenges
     personality: GamePersonality = field(init=False)
 
     questions: list[Question] = field(default_factory=list)
@@ -401,7 +431,10 @@ class TriviaGame:
 
     def __post_init__(self):
         self.personality = personality_from_state(self.buddy_state)
-        self._pick_questions()
+        if self.seed:
+            self.questions = create_seeded_questions(self.seed)
+        else:
+            self._pick_questions()
 
     def _pick_questions(self):
         """Pick a balanced set of questions across categories and difficulties."""
