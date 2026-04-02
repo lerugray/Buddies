@@ -421,6 +421,41 @@ ROOM_REACTIONS: dict[str, dict[str, list[str]]] = {
         "wisdom": ["{name}: \"Even the parking garage tells a story. A sad, concrete story.\""],
         "patience": ["{name}: \"Nobody comes down here. It's... kind of nice, actually.\""],
     },
+    "ewaste_entrance": {
+        "debugging": ["{name}: \"These are all salvageable. Every single one. Give me a soldering iron.\""],
+        "chaos": ["{name}: \"AN ENTIRE GRAVEYARD OF COMPUTERS. This is either paradise or a horror movie.\""],
+        "snark": ["{name}: \"'E-waste.' That's what they call the hardware that actually built this company.\""],
+        "wisdom": ["{name}: \"Everything here was state-of-the-art once. Remember that, when your code feels old.\""],
+        "patience": ["{name}: \"It's quiet down here. Respectfully quiet.\""],
+    },
+    "tape_library": {
+        "debugging": ["{name}: \"Magnetic tape. 60+ years of reliability. Try saying that about your SSD.\""],
+        "chaos": ["{name}: \"I wonder what happens if I unravel ALL the tape at once!\""],
+        "snark": ["{name}: \"COBOL is dead, they said. While 95% of ATMs run on it. Sure.\""],
+        "wisdom": ["{name}: \"The tape remembers everything. The question is whether we remember how to read it.\""],
+        "patience": ["{name}: \"There's something calming about a library. Even one made of magnetic tape.\""],
+    },
+    "crt_graveyard": {
+        "debugging": ["{name}: \"Phosphor burn-in. These screens ran so long the images became permanent. Dedication.\""],
+        "chaos": ["{name}: \"GHOST IN THE MACHINE! Literally! There's literally a ghost in these machines!\""],
+        "snark": ["{name}: \"A hundred dead monitors. Each one with better build quality than my current laptop.\""],
+        "wisdom": ["{name}: \"The green glow of a CRT terminal... that was the first color of code.\""],
+        "patience": ["{name}: \"The Phantom Process has been here a long time. Maybe it just needs someone to listen.\""],
+    },
+    "motherboard_maze": {
+        "debugging": ["{name}: \"Gold traces, ceramic capacitors, through-hole components... this is art.\""],
+        "chaos": ["{name}: \"If I lick this motherboard, do you think I'll gain its powers?\""],
+        "snark": ["{name}: \"A 3dfx Voodoo card. Some of us had to EARN our framerates.\""],
+        "wisdom": ["{name}: \"Every component here was designed by someone who understood electricity as a language.\""],
+        "patience": ["{name}: \"It's like a maze made of memories. Each board is a story.\""],
+    },
+    "founders_lab": {
+        "debugging": ["{name}: \"This is where the first build succeeded. The beginning of everything.\""],
+        "chaos": ["{name}: \"...I have nothing chaotic to say. This place is sacred. Even to me.\""],
+        "snark": ["{name}: \"Four desks. Four people. No venture capital. And they built all of this.\""],
+        "wisdom": ["{name}: \"'Let's build something.' That's all the README said. That's all it needed to say.\""],
+        "patience": ["{name}: \"...I could stay here forever. It feels like the beginning of everything.\""],
+    },
 }
 
 

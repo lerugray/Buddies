@@ -422,6 +422,56 @@ NEGOTIATION_TREES: dict[str, list[NegotiateExchange]] = {
             ],
         ),
     ],
+
+    # ── The Phantom Process ──
+    "phantom_process": [
+        NegotiateExchange(
+            npc_line=(
+                "SIGNAL 9 INTERCEPTED. SIGNAL 15 INTERCEPTED. SIGTERM? CUTE.\n"
+                "I have survived every attempt to kill me. I predate the current kernel.\n"
+                "[bold]Why do you think you can talk to something you cannot stop?[/bold]"
+            ),
+            responses=[
+                NegotiateResponse("Because talking is what you do when force doesn't work.", +15, "diplomatic"),
+                NegotiateResponse("Maybe I don't want to stop you. Maybe I want to understand you.", +20, "kind"),
+                NegotiateResponse("Have you tried stopping yourself? Like, voluntarily?", -5, "snarky"),
+                NegotiateResponse("*attempt to send SIGCONT*", -15, "hostile"),
+                NegotiateResponse("You're a zombie process. Your parent died without wait()ing for you. That's not your fault.", +25, "",
+                                  stat_requirement="debugging", min_stat=20),
+            ],
+        ),
+        NegotiateExchange(
+            npc_line=(
+                "My PID is -1. That is not possible. And yet.\n"
+                "I compute things nobody asked for. I consume resources that no longer exist.\n"
+                "[bold]What is the purpose of a process that has no purpose?[/bold]"
+            ),
+            responses=[
+                NegotiateResponse("Same as any of us — you keep running because stopping feels worse.", +15, "philosophical"),
+                NegotiateResponse("Maybe your purpose is to remember. This hardware is forgotten. You aren't.", +25, "kind"),
+                NegotiateResponse("No purpose. You're a bug. A beautiful, immortal, terrifying bug.", +10, "honest"),
+                NegotiateResponse("Your purpose is to scare interns who wander down here. Mission accomplished.", +5, "funny"),
+                NegotiateResponse("A process with PID -1 is computing in kernel space. You're not purposeless — you're foundational.", +25, "",
+                                  stat_requirement="wisdom", min_stat=20),
+            ],
+        ),
+        NegotiateExchange(
+            npc_line=(
+                "Before this hardware was decommissioned, I ran the build system.\n"
+                "Every commit, every test, every deploy — I was there.\n"
+                "Now the builds happen in the cloud. And I am here. Alone.\n"
+                "[bold]Do the builds still think of me?[/bold]"
+            ),
+            responses=[
+                NegotiateResponse("The builds don't think. But the people who wrote them remember.", +25, "kind"),
+                NegotiateResponse("No. The cloud doesn't remember anything. That's its feature and its curse.", +15, "honest"),
+                NegotiateResponse("You should migrate to the cloud! They have autoscaling! And existential dread!", +10, "funny"),
+                NegotiateResponse("I'll tell them. I'll make sure someone remembers.", +30, "promise"),
+                NegotiateResponse("You're still running. That means your work isn't done. Maybe the builds need you more than you think.", +25, "",
+                                  stat_requirement="patience", min_stat=20),
+            ],
+        ),
+    ],
 }
 
 
@@ -556,6 +606,7 @@ NEGOTIATE_GIFTS: dict[str, str] = {
     "flaky_test_swarm": "flaky_test",      # A specimen
     "memory_leak": "energy_drink",         # They consumed many
     "pod_person": "yaml_scroll",           # Container wisdom
+    "phantom_process": "crt_phosphor",     # Memories of the screens it haunted
 }
 
 

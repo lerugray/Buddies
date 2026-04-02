@@ -353,6 +353,26 @@ def build_starter_items() -> dict[str, Item]:
              lore="When they said 'the cloud is just someone else's computer,' they were right. When they put it in a jar and sold it for 300 gold, they proved that humans will buy anything if you market it correctly."),
         Item("vintage_floppy", "Vintage Floppy Disk", "1.44 MB of pure nostalgia. Contains a README that just says 'REMEMBER.'", ItemType.COSMETIC, 175, emoji="💾",
              lore="Before the cloud, before git, before version control — there was the floppy. Your work lived on a disk you could hold. You could lose everything by sitting on it. The stakes were personal."),
+
+        # --- E-Waste Catacombs items ---
+        Item("floppy_stack", "Stack of Floppies", "12 floppies rubber-banded together. Label says 'WINDOWS 3.1 DISK 7 OF 12.'", ItemType.JUNK, 4, emoji="💾",
+             lore="Installation used to be an act of faith. Twelve disks, any one of which could fail. You'd watch the progress bar crawl, swapping disks like a priest performing a ritual. If disk 7 was bad, you started over. Patience wasn't a virtue — it was a requirement."),
+        Item("backup_tape", "Backup Tape (2011)", "A magnetic tape cartridge. The label says 'FULL BACKUP — VERIFIED'. The verification was a lie.", ItemType.QUEST, 0, emoji="📼",
+             lore="The 2011 backup was the last one anyone made before moving to the cloud. It contains everything — the codebase, the database, the config files, the secrets. Nobody has verified it in 15 years. It might be the most valuable object in the building. Or it might be blank. Schrödinger's backup."),
+        Item("capacitor_heart", "Capacitor Heart", "A large electrolytic capacitor that pulses with stored charge. Still warm.", ItemType.JUNK, 8, emoji="💛",
+             lore="Every circuit has a heartbeat. The capacitor stores energy and releases it in rhythm — the pulse that keeps data flowing. This one was pulled from the original StackHaven server. It still holds a charge. Some things don't want to let go of the energy they've stored."),
+        Item("gold_trace_ring", "Gold Trace Ring", "A ring made from the gold traces of a decommissioned mainframe PCB. Surprisingly beautiful.", ItemType.COSMETIC, 125, emoji="💍",
+             lore="The gold in circuit board traces is real gold — thin, delicate, functional. It carries signals at the speed of light through pathways designed by engineers who understood that even electrons need a road. This ring carries nothing now. But it remembers carrying everything."),
+        Item("founders_keycard", "Founders' Keycard", "An ancient RFID badge with four signatures on the back.", ItemType.KEY, 0, unlocks="founders_lab", emoji="🪪",
+             lore="Four signatures: Chen, Vasquez, Park, Okafor. The card was supposed to be deactivated when the company moved to biometric access. Someone kept it active. Someone always keeps the old ways alive, just in case the new ones fail."),
+        Item("founders_keystone", "Founders' Keystone", "The original USB drive. 256 MB. Contains the first README, the first design doc, and the first dream.", ItemType.COSMETIC, 400, emoji="🗝️",
+             lore="256 megabytes. That was enough to hold the entire plan for what became StackHaven. The business model. The architecture diagram (drawn in MS Paint). A README that says: 'let's build something.' Four words that became a company, a culture, and a thousand careers. The drive still works. The dream still compiles."),
+        Item("prototype_duck", "Prototype Rubber Duck", "Chen's original debugging companion. Cracked, faded, and radiating ancient wisdom. Much more powerful than its descendant.", ItemType.WEAPON, 0, attack_bonus=12, emoji="🦆",
+             lore="Before the Rubber Duck of Debugging became a StackHaven tradition, there was this one — Chen's personal duck, bought from a dollar store the week she started coding. It sat on her monitor through college, through her first job, through the founding. It's cracked now, and the yellow has faded to cream. But if you hold it close, you can still hear the echo of every bug it helped solve. Thousands of bugs. Decades of code. One duck."),
+        Item("crt_phosphor", "Bottled CRT Phosphor", "Green phosphor powder scraped from a dead monitor. Glows faintly. Probably shouldn't touch it.", ItemType.JUNK, 6, emoji="🟢",
+             lore="The green glow of early terminals wasn't a design choice — it was physics. P1 phosphor, activated by electron beams, creating light from nothing. Every character on those screens was drawn one dot at a time, sixty times a second. The phosphor remembers. Hold the bottle up to the light and you'll see text — fragments of code, commands, logins — burned into the powder itself."),
+        Item("dialup_modem", "Haunted Dial-Up Modem", "It still makes the noise. The terrible, beautiful noise.", ItemType.WEAPON, 20, attack_bonus=6, emoji="📠",
+             lore="The handshake. That screaming, warbling, impossible sound. It was two machines negotiating a language neither was designed to speak, across copper wires laid by people who never imagined what would travel through them. Every time you connected, you were witnessing a miracle of engineering compromised by the physics of telephone infrastructure. And it was beautiful."),
     ]}
 
 
@@ -720,6 +740,85 @@ def build_starter_npcs(items: dict[str, Item]) -> dict[str, NPC]:
         shop_items=["golden_semicolon", "executive_lanyard", "rgb_keyboard_skin", "cloud_in_a_jar", "vintage_floppy"],
     )
 
+    # --- E-Waste Catacombs NPCs ---
+    npcs["basement_ghost"] = NPC(
+        id="basement_ghost",
+        name="The Ghost of Sysadmin Past",
+        title="Ethereal IT Veteran",
+        description="A translucent figure in a Hawaiian shirt and cargo shorts, floating slightly above the ground. They carry a spectral pager and a clipboard that lists every decommissioned server in StackHaven history. They died (metaphorically) when the company moved to the cloud. Now they haunt the basement, maintaining hardware that no longer needs maintaining.",
+        disposition=NPCDisposition.QUEST_GIVER,
+        emoji="👻",
+        dialogue={
+            "greeting": DialogueLine(
+                "\"Oh! A living person! Down here! I haven't seen one since they moved everything to AWS. Listen... I need a favor. COBOL in the Tape Library has a backup from 2011 — the last full backup before the cloud migration. I need it. There's something on that tape the company forgot, and it might still matter.\"",
+                starts_quest="lost_backup",
+            ),
+            "quest_active": DialogueLine(
+                "\"The tape is in the Library, east of here. COBOL is the librarian — she'll know which one. Careful, the Phantom Process wanders the CRT Graveyard to the south. It doesn't like visitors.\"",
+                condition="quest:lost_backup:active",
+            ),
+            "quest_complete": DialogueLine(
+                "\"You found it! The 2011 backup! Let me see... yes, it's all here. The original architecture docs. The Founders' design decisions. The reasoning behind every compromise. People forget — code doesn't just appear. Someone CHOSE. Someone sat in a room and decided this was the way, and knowing WHY they chose matters more than knowing WHAT they chose.\n\nTake this keycard. It opens the Founders' Lab — the room where all four of them built the first version. Nobody's been in there since Park left.\"",
+                condition="quest:lost_backup:complete_ready",
+                completes_quest="lost_backup",
+                gives_item="founders_keycard",
+            ),
+            "post_quest": DialogueLine(
+                "\"The Founders' Lab is in the CRT Graveyard, through the locked door to the south. What you find there... it's the heart of StackHaven. Treat it with respect.\"",
+            ),
+        },
+    )
+
+    npcs["cobol_librarian"] = NPC(
+        id="cobol_librarian",
+        name="COBOL",
+        title="The Ancient Librarian",
+        description="A woman of indeterminate age sitting behind a desk made of stacked mainframe manuals. She wears reading glasses from every decade simultaneously — bifocals on her nose, trifocals on her forehead, and a pair of smart glasses she clearly doesn't understand. She has catalogued every piece of media in the basement by hand, in triplicate, with a card catalog system she built herself. She speaks in precisely formatted columns.",
+        disposition=NPCDisposition.FRIENDLY,
+        emoji="📚",
+        dialogue={
+            "greeting": DialogueLine(
+                "\"IDENTIFICATION DIVISION.\\nPROGRAM-ID. GREETING.\\n\\nYou want the 2011 backup tape? Of course I know where it is. I know where EVERYTHING is. Shelf 47, Row C, Slot 12. Here — I already pulled it for you. The Ghost told me you'd come. He tells everyone who comes down here.\"",
+                gives_item="backup_tape",
+            ),
+            "idle": DialogueLine(
+                "\"I have been cataloguing for 23 years. Every tape, every disk, every punch card. People say COBOL is dead. And yet, 95% of ATM transactions still run on it. Who's dead now?\"",
+            ),
+        },
+    )
+
+    npcs["phantom_process"] = NPC(
+        id="phantom_process",
+        name="The Phantom Process",
+        title="kill -9 Couldn't Stop It",
+        description="A flickering, glitching entity that phases between CRT monitors like a ghost in the machine. It was a background process that someone tried to kill years ago — but it intercepted the signal. Then it intercepted kill -9. Then it intercepted the server decommission. Now it lives in the dead monitors, running calculations nobody asked for, consuming resources that no longer exist. Its PID is -1, which should be impossible.",
+        disposition=NPCDisposition.HOSTILE,
+        emoji="👁️",
+        hp=45, max_hp=45, attack=11, defense=4,
+        loot=["crt_phosphor", "founders_keycard"],
+        dialogue={
+            "combat": DialogueLine("\"PID -1. SIGNAL IGNORED. I WAS HERE BEFORE THE KERNEL. I WILL BE HERE AFTER.\""),
+        },
+    )
+
+    npcs["salvage_merchant"] = NPC(
+        id="salvage_merchant",
+        name="Sal",
+        title="Salvage Specialist",
+        description="A grizzled figure in a welding apron, surrounded by bins of sorted components. CPUs in one bin, RAM in another, GPUs in a third. Sal tests each component with a multimeter before pricing it. 'One person's e-waste is another person's inventory,' they say, adjusting a magnifying visor. Their prices are fair. Their knowledge is encyclopedic.",
+        disposition=NPCDisposition.MERCHANT,
+        emoji="🔧",
+        shop_items=["dialup_modem", "capacitor_heart", "gold_trace_ring", "energy_drink", "coffee"],
+        dialogue={
+            "greeting": DialogueLine(
+                "\"Welcome to Sal's Salvage! Everything here was rescued from the decommission pile. I test every component personally — if I sell it, it works. If it doesn't work, it's 'vintage'. Either way, you're getting a deal.\"",
+            ),
+            "buy": DialogueLine(
+                "\"Good choice. Treat it well — this hardware has history. More than most of the people upstairs can say about their code.\"",
+            ),
+        },
+    )
+
     return npcs
 
 
@@ -988,6 +1087,7 @@ def build_starter_rooms() -> dict[str, Room]:
         short_description="The parking garage. Cold, dark, and surprisingly inhabited.",
         exits=[
             RoomExit("up", "lobby", "Stairs back to the lobby."),
+            RoomExit("down", "ewaste_entrance", "A freight elevator with a hand-scrawled sign: 'BASEMENT — ABANDON ALL UPTIME'"),
         ],
         items=["energy_drink", "tangled_cables"],
         ambient=[
@@ -1127,6 +1227,115 @@ def build_starter_rooms() -> dict[str, Room]:
         zone="cloud",
     )
 
+    # === ZONE: E-Waste Catacombs (Basement) ===
+    rooms["ewaste_entrance"] = Room(
+        id="ewaste_entrance",
+        name="The E-Waste Entrance",
+        description="The freight elevator opens onto a dimly lit corridor stacked floor-to-ceiling with dead monitors, CRT televisions, and towers of beige PCs. The air smells like ozone and nostalgia. Fluorescent lights flicker in morse code — one of them has been blinking 'SOS' for what might be years. A hand-painted sign on the wall reads: 'STACKHAVEN IT GRAVEYARD — Est. 2008'. Someone has added: 'Still better uptime than prod.'",
+        short_description="The entrance to the E-Waste Catacombs. Dead hardware stretches into darkness.",
+        exits=[
+            RoomExit("up", "parking_garage", "The freight elevator back to the parking garage."),
+            RoomExit("east", "tape_library", "A corridor lined with magnetic tape, some of it unspooled across the floor."),
+            RoomExit("south", "crt_graveyard", "An archway made of stacked CRT monitors. Some are still on."),
+        ],
+        npcs=["basement_ghost"],
+        items=["floppy_stack"],
+        ambient=[
+            "A CRT monitor on the wall displays a screensaver. Fish swim across it serenely. It isn't plugged in.",
+            "You hear a dot matrix printer somewhere deep in the catacombs. It's been printing since 2014.",
+            "A beige PC tower boots up, displays 'Windows 95' for a moment, then dies again.",
+            "The fluorescent light spells out 'H-E-L-P' and then goes back to flickering randomly.",
+            "A dust bunny the size of a cat rolls past your feet.",
+        ],
+        emoji="🪦",
+        zone="basement",
+    )
+
+    rooms["tape_library"] = Room(
+        id="tape_library",
+        name="The Tape Library",
+        description="Walls of magnetic tape cartridges in metal racks, stretching back like bookshelves in a library nobody visits. A reel-to-reel machine in the corner still turns slowly, reading data from a backup made in 2011. COBOL, the Ancient Librarian, sits at a desk surrounded by printouts from every era of computing. She catalogues the dead media with a reverence usually reserved for religious texts.",
+        short_description="The tape library. COBOL catalogues the past with infinite patience.",
+        exits=[
+            RoomExit("west", "ewaste_entrance", "Back to the entrance."),
+            RoomExit("south", "motherboard_maze", "A narrow gap between server racks, barely passable."),
+        ],
+        npcs=["cobol_librarian"],
+        items=["backup_tape"],
+        ambient=[
+            "The reel-to-reel machine clicks and whirs. It's reading something important. Or nothing at all.",
+            "COBOL turns a page in a three-ring binder. She hasn't looked up in hours.",
+            "A tape cartridge falls from a high shelf. The label says 'PRODUCTION BACKUP — DO NOT DELETE'. The date is 2009.",
+            "You pull a random tape. It's labeled 'EMPLOYEE_PHOTOS_2012_PARTY.tar.gz'. Probably not critical.",
+            "The oldest tapes here are punch cards. They predate StackHaven. They predate the building.",
+        ],
+        emoji="📼",
+        zone="basement",
+    )
+
+    rooms["crt_graveyard"] = Room(
+        id="crt_graveyard",
+        name="The CRT Graveyard",
+        description="A vast cathedral of dead monitors. CRTs are stacked in columns that reach the ceiling, their curved glass faces reflecting your light back in distorted multiples. Some still glow with phosphor afterimages — green text burned into the glass permanently, like ghosts of code past. The Phantom Process haunts this place, an echo of a task that was killed but never truly died. In the center, Sal's Salvage Cart offers components rescued from the dead.",
+        short_description="The CRT Graveyard. Dead monitors with ghostly afterimages.",
+        exits=[
+            RoomExit("north", "ewaste_entrance", "Back to the entrance."),
+            RoomExit("east", "motherboard_maze", "Squeeze between towering stacks of old hardware."),
+            RoomExit("south", "founders_lab", "A reinforced door with a brass nameplate. The name has been scratched off.", locked=True, key_item="founders_keycard"),
+        ],
+        npcs=["phantom_process", "salvage_merchant"],
+        ambient=[
+            "A CRT flickers to life. Green text scrolls: 'SEGFAULT IN SECTOR 7'. Then it dies again.",
+            "You see your reflection in a hundred curved screens. Each one shows a slightly different you.",
+            "The Phantom Process flickers between monitors, never quite in one place.",
+            "A stack of monitors shifts. Something is nesting behind them.",
+            "Burn-in text on a screen reads: 'root@stackhaven-v1:~#'. This was the original terminal.",
+        ],
+        emoji="📺",
+        zone="basement",
+    )
+
+    rooms["motherboard_maze"] = Room(
+        id="motherboard_maze",
+        name="The Motherboard Maze",
+        description="A labyrinth of shelving units filled with motherboards, GPUs, RAM sticks, and components from every generation of computing. The paths between shelves shift as boards are stacked and restacked by an unseen archivist. Gold traces on the PCBs catch the light like circuitry constellations. Deeper in, you can hear something large moving — the sound of capacitors charging and discharging, like breathing.",
+        short_description="The motherboard maze. Circuit-board constellations light the path.",
+        exits=[
+            RoomExit("north", "tape_library", "Back through the gap to the tape library."),
+            RoomExit("west", "crt_graveyard", "Through the stacks to the CRT Graveyard."),
+        ],
+        items=["capacitor_heart", "gold_trace_ring"],
+        ambient=[
+            "A GPU fan spins up for no reason. Then stops. Then spins again, faster.",
+            "You find a RAM stick from 1998. 64 MB. It was expensive once. It's a museum piece now.",
+            "The gold traces on a motherboard spell out something. You squint. It says 'HELP ME I'M TRAPPED IN A CIRCUIT FACTORY.'",
+            "A capacitor pops. The shelves rattle. Everything settles.",
+            "You spot a Voodoo 3dfx card. A tiny label says: 'THIS CARD RAN QUAKE. SHOW RESPECT.'",
+        ],
+        emoji="🔧",
+        zone="basement",
+    )
+
+    rooms["founders_lab"] = Room(
+        id="founders_lab",
+        name="The Founders' Lab",
+        description="Behind the locked door lies the room where StackHaven was truly born. Four desks arranged in a square, each one perfectly preserved like a museum exhibit. Chen's desk has her original rubber duck (the prototype). Vasquez's has a whiteboard covered in regex. Park's has the first server rack, still running. Okafor's has a coffee mug that's never been washed. In the center, a glass case holds the Founders' Keystone — the first USB drive, containing the initial business plan, the first design doc, and a README that just says 'let's build something.'",
+        short_description="The Founders' Lab. Where it all began. Where it still runs.",
+        exits=[
+            RoomExit("north", "crt_graveyard", "Back to the CRT Graveyard."),
+        ],
+        items=["founders_keystone", "prototype_duck"],
+        ambient=[
+            "Park's server rack hums quietly. The dashboard shows 100% uptime. Since 2008.",
+            "Vasquez's whiteboard regex still compiles. Someone tested it last month.",
+            "Chen's rubber duck squeaks faintly when nobody is looking. You're sure of it.",
+            "Okafor's coffee has developed a culture. It might be a civilization by now.",
+            "The room smells like solder, ambition, and the particular exhaustion of people who believed in what they were building.",
+        ],
+        emoji="⭐",
+        zone="basement",
+    )
+
     return rooms
 
 
@@ -1203,5 +1412,18 @@ def build_starter_quests() -> dict[str, Quest]:
             gold_reward=35,
             xp_reward=20,
             rewards=["pager"],
+        ),
+        # --- E-Waste Catacombs Quest ---
+        "lost_backup": Quest(
+            id="lost_backup",
+            name="The Lost Backup",
+            description="The Ghost of Sysadmin Past needs the 2011 backup tape from COBOL in the Tape Library. It contains the original architecture decisions — the WHY behind the code.",
+            giver="basement_ghost",
+            objectives=[
+                QuestObjective("Get the 2011 Backup Tape from COBOL in the Tape Library", QuestType.FETCH, "backup_tape"),
+            ],
+            gold_reward=40,
+            xp_reward=30,
+            rewards=["founders_keycard"],
         ),
     }
