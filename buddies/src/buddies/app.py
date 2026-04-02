@@ -57,6 +57,7 @@ from buddies.core.memory import MemoryManager
 from buddies.core.code_map import write_project_map, is_map_stale
 from buddies.core.obsidian_vault import ObsidianVault
 from buddies.core.machine_detect import detect_machine, get_multi_machine_advice
+from buddies.core.games.arcade_multiplayer import ArcadeMultiplayerStore
 
 
 CSS_PATH = Path(__file__).parent / "styles" / "buddy.tcss"
@@ -115,6 +116,7 @@ class BuddyApp(App):
         self.bbs_nudge_detector = NudgeDetector()
         self.bbs_nudge_resolver: NudgeResolver | None = None
         self.bbs_auto: BBSAutoActivity | None = None
+        self.arcade_store = ArcadeMultiplayerStore()
         self._rules_suggested: list[str] = []
         self._unlocked_achievements: set[str] = set()
         self._messages_sent: int = 0
@@ -1242,7 +1244,11 @@ class BuddyApp(App):
         except Exception:
             pass
         self.push_screen(
-            GamesScreen(buddy_state=self.buddy_state, party_states=party_states),
+            GamesScreen(
+                buddy_state=self.buddy_state,
+                party_states=party_states,
+                arcade_store=self.arcade_store,
+            ),
             callback=self._on_games_dismissed,
         )
 

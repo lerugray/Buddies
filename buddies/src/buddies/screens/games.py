@@ -12,7 +12,14 @@ from textual.widgets import Static, Footer, RichLog
 from textual.screen import Screen
 
 from buddies.core.buddy_brain import BuddyState
-from buddies.core.games import GameResult
+from buddies.core.games import GameType, GameResult
+from buddies.core.games.arcade_multiplayer import (
+    ArcadeMultiplayerStore,
+    LEADERBOARD_GAMES,
+    CHALLENGEABLE_GAMES,
+    extract_score_value,
+)
+from buddies.screens.arcade_challenges import ArcadeChallengesScreen
 from buddies.screens.game_snake import SnakeScreen
 from buddies.screens.game_skifree import SkiFreeScreen
 from buddies.screens.game_deckbuilder import DeckbuilderScreen
@@ -40,7 +47,7 @@ GAME_MENU = """\
   [bold cyan]9[/bold cyan]  🏢 [bold]StackHaven MUD[/bold]           — Text adventure in a broken tech company
   [bold cyan]0[/bold cyan]  ⚔️ [bold]StackWars[/bold]                — Micro-4X wargame (buddy factions!)
 
-[dim]Press a number to play  |  Esc=Back[/dim]"""
+[dim]Press a number to play  |  h=Challenges  l=Leaderboard  Esc=Back[/dim]"""
 
 
 class GamesScreen(Screen):
@@ -57,6 +64,8 @@ class GamesScreen(Screen):
         Binding("8", "play_crawl", "Blobber", show=True),
         Binding("9", "play_mud", "MUD", show=True),
         Binding("0", "play_stackwars", "StackWars", show=True),
+        Binding("h", "show_challenges", "Challenges", show=True),
+        Binding("l", "show_leaderboard", "Leaderboard", show=True),
         Binding("escape", "back", "Back", show=True),
     ]
 
@@ -74,10 +83,16 @@ class GamesScreen(Screen):
     }
     """
 
-    def __init__(self, buddy_state: BuddyState, party_states: list[BuddyState] | None = None):
+    def __init__(
+        self,
+        buddy_state: BuddyState,
+        party_states: list[BuddyState] | None = None,
+        arcade_store: ArcadeMultiplayerStore | None = None,
+    ):
         super().__init__()
         self.buddy_state = buddy_state
         self.party_states = party_states or []
+        self.arcade_store = arcade_store or ArcadeMultiplayerStore()
         self._last_result: GameResult | None = None
         self._pending_results: list[GameResult] = []
 
@@ -127,9 +142,27 @@ class GamesScreen(Screen):
         """Handle game screen dismissal — forward result to app for XP, return to menu."""
         if result:
             self._last_result = result
-            # Forward to app immediately so XP/mood is awarded per game
             self._pending_results.append(result)
+            # Auto-post to leaderboard for eligible games
+            self._maybe_post_score(result)
         self._show_menu()
+
+    def _maybe_post_score(self, result: GameResult) -> None:
+        """Auto-post score to leaderboard for eligible games."""
+        try:
+            gt = result.game_type
+            if gt not in LEADERBOARD_GAMES:
+                return
+            bs = self.buddy_state
+            self.arcade_store.add_leaderboard_entry(
+                game_type=gt.value,
+                buddy_name=bs.name,
+                buddy_species=bs.species.name,
+                buddy_emoji=bs.species.emoji,
+                score=result.score,
+            )
+        except Exception:
+            pass  # Never block gameplay on leaderboard errors
 
     def action_play_snake(self):
         self.app.push_screen(
@@ -233,6 +266,18 @@ class GamesScreen(Screen):
             MudScreen(buddy_state=self.buddy_state, party_states=self.party_states),
             callback=self._on_game_dismissed,
         )
+
+    def action_show_challenges(self):
+        """Open the challenges browser."""
+        self.app.push_screen(
+            ArcadeChallengesScreen(store=self.arcade_store),
+        )
+
+    def action_show_leaderboard(self):
+        """Open the leaderboard viewer."""
+        screen = ArcadeChallengesScreen(store=self.arcade_store)
+        screen._view = "leaderboard"
+        self.app.push_screen(screen)
 
     def _coming_soon(self, name: str):
         display = self.query_one("#arcade-display", RichLog)
