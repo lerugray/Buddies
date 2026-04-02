@@ -224,3 +224,37 @@ class TestDisplay:
         lines = format_fusion_preview(result)
         combined = "\n".join(lines)
         assert "Special Recipe" in combined
+
+
+# ---------------------------------------------------------------------------
+# Fusion achievements
+# ---------------------------------------------------------------------------
+
+class TestFusionAchievements:
+    def test_fusion_achievement_exists(self):
+        from buddies.core.achievements import ACHIEVEMENT_MAP
+        assert "first_fusion" in ACHIEVEMENT_MAP
+        assert "recipe_fusion" in ACHIEVEMENT_MAP
+        assert "fusion_collector" in ACHIEVEMENT_MAP
+
+    def test_fusion_stats_trigger_achievement(self):
+        from buddies.core.achievements import check_achievements
+        buddies = [{"species": "duck", "level": 1, "hats_owned": "[]"}]
+        result = check_achievements(buddies, fusion_stats={"total": 1, "recipes": 0})
+        ids = {a.id for a in result}
+        assert "first_fusion" in ids
+
+    def test_recipe_fusion_triggers_achievement(self):
+        from buddies.core.achievements import check_achievements
+        buddies = [{"species": "duck", "level": 1, "hats_owned": "[]"}]
+        result = check_achievements(buddies, fusion_stats={"total": 1, "recipes": 1})
+        ids = {a.id for a in result}
+        assert "recipe_fusion" in ids
+
+    def test_fused_tag_triggers_achievement(self):
+        from buddies.core.achievements import check_achievements
+        buddies = [{"species": "chimera", "level": 1, "hats_owned": "[]",
+                     "soul_description": "(Fused) Two souls in one body."}]
+        result = check_achievements(buddies)
+        ids = {a.id for a in result}
+        assert "first_fusion" in ids

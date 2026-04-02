@@ -322,3 +322,119 @@ class TestFactions:
             assert "attack" in stats
             assert "defense" in stats
             assert "cost" in stats
+
+
+# ---------------------------------------------------------------------------
+# Coordinate parsing
+# ---------------------------------------------------------------------------
+
+class TestCoordinateParsing:
+    def test_parse_comma_coords(self):
+        from buddies.core.games.stackwars import _parse_coords
+        assert _parse_coords("2,3") == (2, 3)
+
+    def test_parse_space_coords(self):
+        from buddies.core.games.stackwars import _parse_coords
+        assert _parse_coords("2 3") == (2, 3)
+
+    def test_reject_out_of_bounds(self):
+        from buddies.core.games.stackwars import _parse_coords
+        assert _parse_coords("5,5") is None
+        assert _parse_coords("-1,0") is None
+
+    def test_reject_garbage(self):
+        from buddies.core.games.stackwars import _parse_coords
+        assert _parse_coords("abc") is None
+        assert _parse_coords("") is None
+
+
+# ---------------------------------------------------------------------------
+# Fixed mechanics
+# ---------------------------------------------------------------------------
+
+class TestFixedMechanics:
+    def test_engineer_passive_actually_fortifies(self):
+        """Engineer passive should auto-fortify tiles with units."""
+        from buddies.core.games.stackwars import _apply_faction_passive, PlayerState
+        buddy = make_buddy(dominant="debugging")
+        state = create_stackwars(buddy)
+        player = state.players[0]
+        assert player.faction == Faction.ENGINEERS
+
+        # Place a unit on an unfortified tile
+        tile = state.grid[1][0]
+        tile.owner = 0
+        tile.units = [Unit(UnitType.SCRIPT_KIDDIE, 0)]
+        tile.fortified = False
+
+        lines = _apply_faction_passive(state, player)
+        assert tile.fortified is True
+
+    def test_monument_grants_favor(self):
+        """Monument building should actually grant favor."""
+        from buddies.core.games.stackwars import Building, _end_turn
+        buddy = make_buddy()
+        state = create_stackwars(buddy)
+        player = state.players[0]
+
+        # Build a monument on an owned tile
+        tile = state.grid[0][0]  # HQ
+        # Place monument on a different tile
+        tile2 = state.grid[0][1]
+        tile2.owner = 0
+        tile2.building = Building(BuildingType.MONUMENT, 0)
+
+        # Record initial favor
+        initial_favor = sum(player.favor.values())
+        choose_ability(state, AbilityType.MARCH)
+        # Execute all 3 actions to trigger _end_turn
+        for _ in range(3):
+            skip_action(state)
+        # Favor should have increased from monument
+        new_favor = sum(state.players[0].favor.values())
+        # Monument gives +1 favor to random ability
+        assert new_favor > initial_favor
+
+    def test_anarchist_entropy_cleans_dead_units(self):
+        """Dead units from anarchist entropy should be removed from tile."""
+        buddy = make_buddy(dominant="chaos")
+        state = create_stackwars(buddy)
+        player = state.players[0]
+        assert player.faction == Faction.ANARCHISTS
+
+        # Place a 1-HP unit (will die from entropy)
+        tile = state.grid[0][0]
+        weak_unit = Unit(UnitType.SCRIPT_KIDDIE, 0, hp=1)
+        tile.units = [weak_unit]
+        # Add enough units to trigger entropy (needs > 3)
+        for _ in range(4):
+            tile.units.append(Unit(UnitType.SCRIPT_KIDDIE, 0, hp=10))
+
+        # Run entropy repeatedly — eventually it should kill and clean up
+        random.seed(42)
+        from buddies.core.games.stackwars import _apply_faction_passive
+        for _ in range(50):
+            _apply_faction_passive(state, player)
+        # All units on tile should be alive
+        for u in tile.units:
+            assert u.alive
+
+    def test_bug_bomb_targets_densest_cluster(self):
+        """Bug bomb should auto-target the tile with most enemies."""
+        from buddies.core.games.stackwars import _action_bug_bomb
+        buddy = make_buddy()
+        state = create_stackwars(buddy)
+        player = state.players[0]
+        player.bugs = 5
+
+        # Place 1 enemy at (1,1), 3 enemies at (3,3)
+        state.grid[1][1].units = [Unit(UnitType.SCRIPT_KIDDIE, 1)]
+        state.grid[3][3].units = [
+            Unit(UnitType.SCRIPT_KIDDIE, 1),
+            Unit(UnitType.SCRIPT_KIDDIE, 1),
+            Unit(UnitType.SCRIPT_KIDDIE, 1),
+        ]
+
+        lines = _action_bug_bomb(state, "")
+        # Should target (3,3) — the densest cluster
+        assert any("3,3" in l for l in lines)

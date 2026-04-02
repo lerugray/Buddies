@@ -580,6 +580,25 @@ def skip_action(state: StackWarsState) -> list[str]:
 
 
 # ---------------------------------------------------------------------------
+# Coordinate parsing helper
+# ---------------------------------------------------------------------------
+
+def _parse_coords(text: str) -> tuple[int, int] | None:
+    """Parse 'x,y' or 'x y' coordinate input. Returns (x, y) or None."""
+    text = text.strip().lower()
+    for sep in [",", " "]:
+        if sep in text:
+            parts = text.split(sep, 1)
+            try:
+                x, y = int(parts[0].strip()), int(parts[1].strip())
+                if 0 <= x < GRID_W and 0 <= y < GRID_H:
+                    return (x, y)
+            except (ValueError, IndexError):
+                pass
+    return None
+
+
+# ---------------------------------------------------------------------------
 # Action implementations
 # ---------------------------------------------------------------------------
 
@@ -630,16 +649,54 @@ def _action_recruit(state: StackWarsState, unit_name: str) -> list[str]:
 
 
 def _action_teleport_unit(state: StackWarsState, target: str) -> list[str]:
-    """Move a unit to any owned tile (deploy action)."""
-    # Auto-skip if no units to deploy
-    units = state.player_units(state.active_player.index)
-    if not units:
-        return ["[dim]No units to deploy.[/dim]"]
-    return ["[dim]Deploy: units at HQ can move to any owned tile next March phase.[/dim]"]
+    """Teleport a unit from HQ/Barracks to any owned tile."""
+    player = state.active_player
+
+    # Find units at HQ or Barracks
+    spawn_units: list[tuple[int, int, Unit]] = []
+    for x, y, unit in state.player_units(player.index):
+        tile = state.grid[y][x]
+        if tile.terrain == Terrain.HQ or (tile.building and tile.building.building_type == BuildingType.BARRACKS):
+            spawn_units.append((x, y, unit))
+
+    if not spawn_units:
+        return ["[dim]No units at HQ/Barracks to deploy.[/dim]"]
+
+    # Find owned tiles to deploy to (excluding spawn tile itself)
+    owned = [t for t in state.player_tiles(player.index)
+             if not (t.terrain == Terrain.FIREWALL)]
+
+    if not owned:
+        return ["[dim]No owned tiles to deploy to.[/dim]"]
+
+    if not target:
+        lines = [f"[bold]Deploy a unit to an owned tile.[/bold]"]
+        lines.append(f"  {len(spawn_units)} unit(s) available at staging areas.")
+        lines.append("[dim]Type target coordinates (e.g. '2,3') or 'skip'.[/dim]")
+        return lines
+
+    # Parse coordinates
+    coords = _parse_coords(target)
+    if not coords:
+        return ["[dim]Type coordinates like '2,3' or 'skip'.[/dim]"]
+
+    tx, ty = coords
+    dest = state.tile_at(tx, ty)
+    if not dest or dest.owner != player.index:
+        return [f"[red]({tx},{ty}) is not an owned tile.[/red]"]
+    if dest.terrain == Terrain.FIREWALL:
+        return [f"[red]Can't deploy through a firewall.[/red]"]
+
+    # Move first available unit
+    sx, sy, unit = spawn_units[0]
+    state.grid[sy][sx].units.remove(unit)
+    dest.units.append(unit)
+    unit.moved_this_turn = True
+    return [f"[green]Deployed {unit.emoji} {unit.name} from ({sx},{sy}) to ({tx},{ty})![/green]"]
 
 
 def _action_build(state: StackWarsState, target: str) -> list[str]:
-    """Build a structure on an owned tile."""
+    """Build a structure on an owned tile. Input: 'building_name' or 'building_name x,y'."""
     player = state.active_player
 
     if not target:
@@ -647,7 +704,7 @@ def _action_build(state: StackWarsState, target: str) -> list[str]:
         for bt in BuildingType:
             s = BUILDING_STATS[bt]
             lines.append(f"  {s['emoji']} [bold]{s['name']}[/bold] — {s['cost']} Code")
-        lines.append("[dim]Type the building name (factory, barracks, fortress, monument).[/dim]")
+        lines.append("[dim]Type: building name (e.g. 'barracks') or 'barracks 1,2' for a specific tile.[/dim]")
         return lines
 
     type_map = {
@@ -657,20 +714,36 @@ def _action_build(state: StackWarsState, target: str) -> list[str]:
         "monument": BuildingType.MONUMENT, "mon": BuildingType.MONUMENT, "4": BuildingType.MONUMENT,
     }
 
-    btype = type_map.get(target.lower().strip())
+    # Parse "building x,y" or just "building"
+    parts = target.lower().strip().split(maxsplit=1)
+    building_name = parts[0]
+    coord_str = parts[1] if len(parts) > 1 else ""
+
+    btype = type_map.get(building_name)
     if not btype:
-        return [f"Unknown building '{target}'."]
+        return [f"Unknown building '{building_name}'. Try: factory, barracks, fortress, monument"]
 
     cost = BUILDING_STATS[btype]["cost"]
     if player.code < cost:
         return [f"[red]Not enough Code! Need {cost}, have {player.code}.[/red]"]
 
-    # Find an owned tile without a building (prefer non-HQ)
+    # Try specific coordinates first
     build_tile = None
-    for tile in state.player_tiles(player.index):
-        if not tile.building and tile.terrain not in (Terrain.FIREWALL, Terrain.HQ):
-            build_tile = tile
-            break
+    if coord_str:
+        coords = _parse_coords(coord_str)
+        if coords:
+            tile = state.tile_at(*coords)
+            if tile and tile.owner == player.index and not tile.building and tile.terrain not in (Terrain.FIREWALL, Terrain.HQ):
+                build_tile = tile
+            elif tile:
+                return [f"[red]Can't build at ({coords[0]},{coords[1]}) — must be your tile, no building, not HQ/firewall.[/red]"]
+
+    # Auto-pick if no coords given
+    if not build_tile:
+        for tile in state.player_tiles(player.index):
+            if not tile.building and tile.terrain not in (Terrain.FIREWALL, Terrain.HQ):
+                build_tile = tile
+                break
 
     if not build_tile:
         return ["[red]No available tile to build on![/red]"]
@@ -681,8 +754,21 @@ def _action_build(state: StackWarsState, target: str) -> list[str]:
 
 
 def _action_fortify(state: StackWarsState, target: str) -> list[str]:
-    """Fortify an owned tile (+1 defense)."""
+    """Fortify an owned tile (+1 defense). Optional target: 'x,y'."""
     player = state.active_player
+
+    # Try specific coordinates
+    if target:
+        coords = _parse_coords(target)
+        if coords:
+            tile = state.tile_at(*coords)
+            if tile and tile.owner == player.index and not tile.fortified and tile.units:
+                tile.fortified = True
+                return [f"[green]Fortified tile ({tile.x},{tile.y}) — +1 defense.[/green]"]
+            elif tile:
+                return [f"[red]Can't fortify ({coords[0]},{coords[1]}) — must be owned, unfortified, with units.[/red]"]
+
+    # Auto-pick
     for tile in state.player_tiles(player.index):
         if not tile.fortified and tile.units:
             tile.fortified = True
@@ -777,28 +863,49 @@ def _action_scout(state: StackWarsState) -> list[str]:
 
 
 def _action_bug_bomb(state: StackWarsState, target: str) -> list[str]:
-    """Deal 2 damage to all enemy units on a tile. Costs 3 Bugs."""
+    """Deal 2 damage to all enemy units on a tile. Costs 3 Bugs. Target: 'x,y' or auto-picks densest cluster."""
     player = state.active_player
     if player.bugs < 3:
         return [f"[red]Need 3 Bugs, have {player.bugs}.[/red]"]
 
-    # Find a tile with enemy units
+    # Collect all tiles with enemies
+    enemy_tiles: list[tuple[int, int, list[Unit]]] = []
     for y in range(GRID_H):
         for x in range(GRID_W):
-            tile = state.grid[y][x]
-            enemies = [u for u in tile.units if u.owner != player.index]
+            enemies = [u for u in state.grid[y][x].units if u.owner != player.index]
             if enemies:
-                player.bugs -= 3
-                dmg = 2 + player.blessings[AbilityType.INVOKE.value]
-                killed = 0
-                for u in enemies:
-                    u.hp -= dmg
-                    if not u.alive:
-                        killed += 1
-                tile.units = [u for u in tile.units if u.alive]
-                return [f"[magenta]Bug Bomb at ({x},{y})! {dmg} damage to {len(enemies)} enemies, {killed} killed.[/magenta]"]
+                enemy_tiles.append((x, y, enemies))
 
-    return ["[dim]No enemy units visible to bomb.[/dim]"]
+    if not enemy_tiles:
+        return ["[dim]No enemy units visible to bomb.[/dim]"]
+
+    # Try specific coordinates
+    bomb_x, bomb_y, bomb_enemies = None, None, None
+    if target:
+        coords = _parse_coords(target)
+        if coords:
+            for ex, ey, enemies in enemy_tiles:
+                if ex == coords[0] and ey == coords[1]:
+                    bomb_x, bomb_y, bomb_enemies = ex, ey, enemies
+                    break
+            if not bomb_enemies:
+                return [f"[red]No enemies at ({coords[0]},{coords[1]}).[/red]"]
+
+    # Auto-target: pick tile with most enemy units
+    if not bomb_enemies:
+        enemy_tiles.sort(key=lambda t: len(t[2]), reverse=True)
+        bomb_x, bomb_y, bomb_enemies = enemy_tiles[0]
+
+    player.bugs -= 3
+    tile = state.grid[bomb_y][bomb_x]
+    dmg = 2 + player.blessings[AbilityType.INVOKE.value]
+    killed = 0
+    for u in bomb_enemies:
+        u.hp -= dmg
+        if not u.alive:
+            killed += 1
+    tile.units = [u for u in tile.units if u.alive]
+    return [f"[magenta]Bug Bomb at ({bomb_x},{bomb_y})! {dmg} damage to {len(bomb_enemies)} enemies, {killed} killed.[/magenta]"]
 
 
 def _action_server_income(state: StackWarsState) -> list[str]:
@@ -948,15 +1055,14 @@ def _apply_faction_passive(state: StackWarsState, player: PlayerState) -> list[s
     emoji = FACTION_EMOJI[player.faction]
 
     if player.faction == Faction.ENGINEERS:
-        # Intel passive: see enemy unit count on all tiles (already visible in scout)
-        # Bonus: +1 defense on all owned tiles with units
+        # Engineers auto-fortify any tile with units (precision, discipline)
         boosted = 0
         for tile in state.player_tiles(player.index):
             if tile.units and not tile.fortified:
-                # Engineers' precision — their units dig in automatically
+                tile.fortified = True
                 boosted += 1
         if boosted:
-            lines.append(f"[dim]{emoji} Engineer discipline: {boosted} tile(s) gain defensive posture.[/dim]")
+            lines.append(f"[dim]{emoji} Engineer discipline: {boosted} tile(s) auto-fortified.[/dim]")
 
     elif player.faction == Faction.ANARCHISTS:
         # Chaos passive: 25% chance to spawn a free Script Kiddie at a random owned tile
@@ -970,9 +1076,10 @@ def _apply_faction_passive(state: StackWarsState, player: PlayerState) -> list[s
         # Garrison decay — anarchists lose 1 HP on a random unit each turn (weakness)
         units = state.player_units(player.index)
         if len(units) > 3 and random.random() < 0.3:
-            _, _, victim = random.choice(units)
+            vx, vy, victim = random.choice(units)
             victim.hp -= 1
             if not victim.alive:
+                state.grid[vy][vx].units = [u for u in state.grid[vy][vx].units if u.alive]
                 lines.append(f"[dim]{emoji} Anarchist entropy: a unit deserted.[/dim]")
             else:
                 lines.append(f"[dim]{emoji} Anarchist entropy: a unit grows restless (-1 HP).[/dim]")
@@ -1032,8 +1139,12 @@ def _end_turn(state: StackWarsState) -> list[str]:
                 player.code += 2
             elif tile.building.building_type == BuildingType.MONUMENT:
                 # Bonus favor for a random ability
-                abilities = list(AbilityType)
-                random.choice(abilities)
+                chosen_ab = random.choice(list(AbilityType))
+                player.favor[chosen_ab.value] += 1
+                fav = player.favor[chosen_ab.value]
+                if fav > 0 and fav % 2 == 0:
+                    player.blessings[chosen_ab.value] += 1
+                    lines.append(f"[dim]Monument inspires: {chosen_ab.value.title()} blessed (Lv.{player.blessings[chosen_ab.value]})![/dim]")
     player.cap_resources()
 
     # Faction passive abilities
@@ -1091,57 +1202,216 @@ def _end_turn(state: StackWarsState) -> list[str]:
 # AI opponent
 # ---------------------------------------------------------------------------
 
+def _ai_choose_ability(state: StackWarsState, player: PlayerState) -> AbilityType:
+    """Choose ability based on faction personality and game state."""
+    available = player.available_abilities()
+    if not available:
+        return list(AbilityType)[0]  # fallback
+
+    flags = state.count_flags(player.index)
+    units = state.player_units(player.index)
+    turn = state.turn
+
+    # Situational overrides
+    if flags >= FLAGS_TO_WIN and AbilityType.BUILD in available:
+        return AbilityType.BUILD  # Fortify to hold
+    if len(units) <= 1 and AbilityType.DEPLOY in available:
+        return AbilityType.DEPLOY  # Need more troops
+    if turn <= 3 and AbilityType.RALLY in available:
+        return AbilityType.RALLY  # Early economy
+
+    # Faction priority with phase awareness
+    early = turn <= 8
+    mid = 8 < turn <= 18
+
+    priority: dict[Faction, list[AbilityType]] = {
+        Faction.ENGINEERS: (
+            [AbilityType.BUILD, AbilityType.DEPLOY, AbilityType.MARCH, AbilityType.INVOKE, AbilityType.RALLY] if early else
+            [AbilityType.MARCH, AbilityType.INVOKE, AbilityType.DEPLOY, AbilityType.BUILD, AbilityType.RALLY]
+        ),
+        Faction.ANARCHISTS: (
+            [AbilityType.DEPLOY, AbilityType.MARCH, AbilityType.RALLY, AbilityType.INVOKE, AbilityType.BUILD] if early else
+            [AbilityType.MARCH, AbilityType.DEPLOY, AbilityType.INVOKE, AbilityType.RALLY, AbilityType.BUILD]
+        ),
+        Faction.PROVOCATEURS: (
+            [AbilityType.INVOKE, AbilityType.DEPLOY, AbilityType.MARCH, AbilityType.RALLY, AbilityType.BUILD] if early else
+            [AbilityType.INVOKE, AbilityType.MARCH, AbilityType.DEPLOY, AbilityType.RALLY, AbilityType.BUILD]
+        ),
+        Faction.SAGES: (
+            [AbilityType.RALLY, AbilityType.BUILD, AbilityType.DEPLOY, AbilityType.MARCH, AbilityType.INVOKE] if early else
+            [AbilityType.DEPLOY, AbilityType.MARCH, AbilityType.INVOKE, AbilityType.BUILD, AbilityType.RALLY]
+        ),
+        Faction.MONKS: (
+            [AbilityType.BUILD, AbilityType.RALLY, AbilityType.DEPLOY, AbilityType.MARCH, AbilityType.INVOKE] if early else
+            [AbilityType.RALLY, AbilityType.BUILD, AbilityType.MARCH, AbilityType.DEPLOY, AbilityType.INVOKE]
+        ),
+    }
+
+    for pref in priority.get(player.faction, list(AbilityType)):
+        if pref in available:
+            return pref
+    return available[0]
+
+
+def _ai_recruit_unit(player: PlayerState, faction: Faction) -> str:
+    """AI decides which unit to recruit based on faction and resources."""
+    code = player.code
+
+    # Faction-specific recruitment preferences
+    if faction == Faction.ANARCHISTS:
+        # Swarm — lots of cheap units, occasional Operator for speed
+        if code >= 4 and random.random() < 0.3:
+            return "operator"
+        return "kiddie"
+    elif faction == Faction.ENGINEERS:
+        # Balanced — Architects for defense, Hackers for ranged
+        if code >= 8 and random.random() < 0.2:
+            return "sysadmin"
+        if code >= 5:
+            return random.choice(["architect", "hacker"])
+        return "kiddie"
+    elif faction == Faction.PROVOCATEURS:
+        # Glass cannon — Hackers and Operators
+        if code >= 5:
+            return random.choice(["hacker", "operator"])
+        return "kiddie"
+    elif faction == Faction.SAGES:
+        # Elite — save for expensive units
+        if code >= 8:
+            return "sysadmin"
+        if code >= 5:
+            return "architect"
+        return "kiddie"
+    elif faction == Faction.MONKS:
+        # Defensive — Architects and Sysadmins
+        if code >= 8 and random.random() < 0.3:
+            return "sysadmin"
+        if code >= 5:
+            return "architect"
+        return "kiddie"
+
+    return "kiddie"
+
+
+def _ai_build_choice(player: PlayerState, faction: Faction, state: StackWarsState) -> str:
+    """AI decides what to build based on faction and current buildings."""
+    code = player.code
+    existing_buildings: list[BuildingType] = []
+    for tile in state.player_tiles(player.index):
+        if tile.building and tile.building.owner == player.index:
+            existing_buildings.append(tile.building.building_type)
+
+    has_barracks = BuildingType.BARRACKS in existing_buildings
+    has_factory = BuildingType.SEED_FACTORY in existing_buildings
+
+    if faction == Faction.MONKS:
+        # Economy first
+        if not has_factory and code >= 8:
+            return "factory"
+        if not has_barracks and code >= 6:
+            return "barracks"
+        if code >= 10:
+            return "fortress"
+    elif faction == Faction.ENGINEERS:
+        # Defense oriented
+        if not has_barracks and code >= 6:
+            return "barracks"
+        if code >= 10:
+            return "fortress"
+        if not has_factory and code >= 8:
+            return "factory"
+    elif faction == Faction.SAGES:
+        # Monument for favor acceleration
+        if code >= 12 and random.random() < 0.4:
+            return "monument"
+        if not has_factory and code >= 8:
+            return "factory"
+        if not has_barracks and code >= 6:
+            return "barracks"
+    else:
+        # Anarchists / Provocateurs — barracks for production
+        if not has_barracks and code >= 6:
+            return "barracks"
+        if not has_factory and code >= 8:
+            return "factory"
+
+    # Fallback — cheapest available
+    if code >= 6:
+        return "barracks"
+    return ""
+
+
 def ai_turn(state: StackWarsState) -> list[str]:
-    """Execute a full AI turn."""
+    """Execute a full AI turn with faction-specific strategy."""
     player = state.active_player
     lines = []
 
     emoji = FACTION_EMOJI[player.faction]
     lines.append(f"\n[dim]{emoji} {player.buddy_name}'s turn (Turn {state.turn})...[/dim]")
 
-    # Choose ability based on faction personality
     available = player.available_abilities()
     if not available:
-        # All on cooldown — shouldn't happen with 5 abilities and 2-turn cooldowns
         lines.append(f"[dim]{emoji} passes.[/dim]")
         lines.extend(_end_turn(state))
         return lines
 
-    # AI priority by faction
-    priority: dict[Faction, list[AbilityType]] = {
-        Faction.ENGINEERS: [AbilityType.MARCH, AbilityType.BUILD, AbilityType.DEPLOY, AbilityType.INVOKE, AbilityType.RALLY],
-        Faction.ANARCHISTS: [AbilityType.MARCH, AbilityType.DEPLOY, AbilityType.RALLY, AbilityType.INVOKE, AbilityType.BUILD],
-        Faction.PROVOCATEURS: [AbilityType.INVOKE, AbilityType.MARCH, AbilityType.DEPLOY, AbilityType.RALLY, AbilityType.BUILD],
-        Faction.SAGES: [AbilityType.BUILD, AbilityType.RALLY, AbilityType.DEPLOY, AbilityType.MARCH, AbilityType.INVOKE],
-        Faction.MONKS: [AbilityType.BUILD, AbilityType.RALLY, AbilityType.DEPLOY, AbilityType.MARCH, AbilityType.INVOKE],
-    }
-
-    chosen = None
-    for pref in priority.get(player.faction, list(AbilityType)):
-        if pref in available:
-            chosen = pref
-            break
-    if not chosen:
-        chosen = available[0]
-
+    chosen = _ai_choose_ability(state, player)
     lines.extend(choose_ability(state, chosen))
 
-    # Execute all 3 actions automatically
+    # Execute all 3 actions with faction-appropriate decisions
     for step in range(3):
         if state.game_over:
             break
-        # AI makes simple decisions
-        if chosen == AbilityType.DEPLOY and step == 1:
-            # Recruit a unit if affordable
-            if player.code >= 3:
-                lines.extend(execute_action(state, "kiddie"))
+
+        if chosen == AbilityType.DEPLOY:
+            if step == 1:
+                # Recruit
+                if player.code >= 3:
+                    unit_name = _ai_recruit_unit(player, player.faction)
+                    lines.extend(execute_action(state, unit_name))
+                else:
+                    lines.extend(skip_action(state))
+            elif step == 2:
+                # Teleport toward front lines
+                spawn_units = []
+                for x, y, unit in state.player_units(player.index):
+                    tile = state.grid[y][x]
+                    if tile.terrain == Terrain.HQ or (tile.building and tile.building.building_type == BuildingType.BARRACKS):
+                        spawn_units.append((x, y, unit))
+                if spawn_units:
+                    # Find owned tile closest to a flag
+                    owned = [t for t in state.player_tiles(player.index) if t.terrain != Terrain.FIREWALL]
+                    flags = [(t.x, t.y) for row in state.grid for t in row if t.is_flag and t.owner != player.index]
+                    if flags and owned:
+                        best_tile = min(owned, key=lambda t: min(abs(t.x-fx)+abs(t.y-fy) for fx,fy in flags))
+                        lines.extend(execute_action(state, f"{best_tile.x},{best_tile.y}"))
+                    else:
+                        lines.extend(skip_action(state))
+                else:
+                    lines.extend(execute_action(state, ""))
             else:
-                lines.extend(skip_action(state))
-        elif chosen == AbilityType.BUILD and step == 0:
-            if player.code >= 6:
-                lines.extend(execute_action(state, "barracks"))
+                lines.extend(execute_action(state, ""))
+
+        elif chosen == AbilityType.BUILD:
+            if step == 0:
+                building = _ai_build_choice(player, player.faction, state)
+                if building:
+                    lines.extend(execute_action(state, building))
+                else:
+                    lines.extend(skip_action(state))
             else:
-                lines.extend(skip_action(state))
+                lines.extend(execute_action(state, ""))
+
+        elif chosen == AbilityType.INVOKE:
+            if step == 1:
+                # Bug Bomb if enough bugs and enemies exist
+                if player.bugs >= 3:
+                    lines.extend(execute_action(state, ""))
+                else:
+                    lines.extend(skip_action(state))
+            else:
+                lines.extend(execute_action(state, ""))
+
         else:
             lines.extend(execute_action(state, ""))
 

@@ -183,6 +183,7 @@ class StackWarsScreen(Screen):
                 "\n[bold]StackWars Commands[/bold]",
                 "  [bold]1-5[/bold]     — Choose ability (Deploy/Build/March/Invoke/Rally)",
                 "  [bold]skip[/bold]    — Skip current action",
+                "  [bold]x,y[/bold]     — Target coordinates (e.g. '2,3') for build/deploy/bomb",
                 "  [bold]map[/bold]     — Show the map",
                 "  [bold]status[/bold]  — Show player status",
                 "  [bold]units[/bold]   — List your units",

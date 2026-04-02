@@ -81,6 +81,11 @@ ACHIEVEMENTS: list[Achievement] = [
     Achievement("mud_dragon", "Debt Free", "Defeat the Technical Debt Dragon", "🐉", "secret"),
     Achievement("mud_shopper", "Consumer", "Buy something from a MUD merchant", "🛒", "exploration"),
 
+    # Fusion achievements
+    Achievement("first_fusion", "Soul Splice", "Perform your first buddy fusion", "⚗️", "collection"),
+    Achievement("recipe_fusion", "Alchemist", "Discover a special fusion recipe", "📜", "collection"),
+    Achievement("fusion_collector", "Fusion Addict", "Perform 5 fusions", "🧬", "collection"),
+
     # Session / exploration achievements
     Achievement("session_watcher", "Watchful Eye", "Observe 100 session events", "👁️", "exploration"),
     Achievement("session_marathon", "Marathon", "Observe 500 session events", "🏃", "exploration"),
@@ -120,6 +125,7 @@ def check_achievements(
     themes_changed: int = 0,
     bbs_stats: dict | None = None,
     game_stats: dict | None = None,
+    fusion_stats: dict | None = None,
     unlocked_ids: set[str] | None = None,
 ) -> list[Achievement]:
     """Check all achievements and return newly unlocked ones.
@@ -295,5 +301,20 @@ def check_achievements(
         if active_buddy and gw >= 1:
             chaos_val = active_buddy.get("stat_chaos", 10)
             _check("all_in_chaos", chaos_val >= 30)
+
+    # Fusion achievements
+    if fusion_stats:
+        total_fusions = fusion_stats.get("total", 0)
+        recipe_fusions = fusion_stats.get("recipes", 0)
+        _check("first_fusion", total_fusions >= 1)
+        _check("recipe_fusion", recipe_fusions >= 1)
+        _check("fusion_collector", total_fusions >= 5)
+
+    # Also detect fused buddies by the "(Fused)" tag in soul_description
+    for b in buddies:
+        soul = b.get("soul_description", "")
+        if "(Fused)" in soul:
+            _check("first_fusion", True)
+            break
 
     return newly_unlocked
