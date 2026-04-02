@@ -941,3 +941,219 @@ class TestNewCosmetics:
         new_cosmetics = ["golden_semicolon", "executive_lanyard", "rgb_keyboard_skin", "cloud_in_a_jar", "vintage_floppy"]
         for item_id in new_cosmetics:
             assert state.items[item_id].value > 0, f"Cosmetic {item_id} has no value"
+
+
+# ---------------------------------------------------------------------------
+# Phase 4: Server Status tests
+# ---------------------------------------------------------------------------
+
+from buddies.core.games.mud_engine import ServerStatus
+from unittest.mock import patch
+
+
+class TestServerStatus:
+    def test_initializes_to_all_green(self):
+        ss = ServerStatus()
+        assert ss.current_index == 0
+        assert ss.current["name"] == "All Green"
+
+    def test_status_line_returns_emoji_and_name(self):
+        ss = ServerStatus()
+        line = ss.status_line()
+        assert "🟢" in line
+        assert "All Green" in line
+
+    def test_current_property_returns_dict_with_expected_keys(self):
+        ss = ServerStatus()
+        cur = ss.current
+        for key in ("name", "emoji", "description", "combat_mod", "shop_discount", "event_chance"):
+            assert key in cur, f"Missing key: {key}"
+
+    def test_tick_usually_returns_none(self):
+        """With random > 0.08 and turns_at_status low, tick returns None."""
+        ss = ServerStatus()
+        with patch("buddies.core.games.mud_engine.random.random", return_value=0.99):
+            result = ss.tick()
+        assert result is None
+
+    def test_tick_can_trigger_incident(self):
+        """When random < 0.08, status should degrade."""
+        ss = ServerStatus()
+        assert ss.current_index == 0
+        with patch("buddies.core.games.mud_engine.random.random", return_value=0.01):
+            result = ss.tick()
+        assert ss.current_index == 1
+        assert result is not None
+        assert "ALERT" in result
+        assert ss.incidents_today == 1
+
+    def test_tick_recovers_after_8_turns(self):
+        """After 8+ turns at a degraded status, tick should recover toward green."""
+        ss = ServerStatus()
+        ss.current_index = 2  # Degraded
+        ss.turns_at_status = 9
+        with patch("buddies.core.games.mud_engine.random.random", return_value=0.99):
+            result = ss.tick()
+        assert ss.current_index == 1  # Recovered one step
+        assert result is not None
+        assert "improved" in result.lower()
+
+    def test_incidents_today_tracks_count(self):
+        ss = ServerStatus()
+        with patch("buddies.core.games.mud_engine.random.random", return_value=0.01):
+            ss.tick()
+            ss.tick()
+        assert ss.incidents_today == 2
+
+    def test_status_does_not_go_above_index_4(self):
+        ss = ServerStatus()
+        ss.current_index = 4  # Total Outage (max)
+        with patch("buddies.core.games.mud_engine.random.random", return_value=0.01):
+            ss.tick()
+        assert ss.current_index == 4  # Should not exceed max
+
+
+# ---------------------------------------------------------------------------
+# Phase 4: Status command tests
+# ---------------------------------------------------------------------------
+
+class TestStatusCommand:
+    def test_status_command_returns_info(self):
+        state = _make_game()
+        lines = process_command(state, "status")
+        text = "\n".join(lines)
+        assert "Server Status" in text
+        assert "All Green" in text
+
+    def test_status_shows_combat_modifier_when_degraded(self):
+        state = _make_game()
+        state.server_status.current_index = 2  # Degraded, combat_mod = -1
+        lines = process_command(state, "status")
+        text = "\n".join(lines)
+        assert "Combat modifier" in text
+        assert "-1" in text
+
+    def test_status_shows_discount_when_incident(self):
+        state = _make_game()
+        state.server_status.current_index = 3  # Incident, shop_discount = 20
+        lines = process_command(state, "status")
+        text = "\n".join(lines)
+        assert "discount" in text.lower()
+        assert "20%" in text
+
+
+# ---------------------------------------------------------------------------
+# Phase 4: NPC Gossip tests
+# ---------------------------------------------------------------------------
+
+from buddies.core.games.mud_engine import _get_npc_gossip
+
+
+class TestNPCGossip:
+    def test_gossip_returns_none_when_no_progress(self):
+        state = _make_game()
+        state.quests_completed = 0
+        state.npcs_defeated = 0
+        state.inventory.gold = 0
+        state.gold_gambled = 0
+        state.tips_given = 0
+        result = _get_npc_gossip(state, "sysadmin")
+        assert result is None
+
+    def test_gossip_for_sysadmin_when_quests_completed(self):
+        state = _make_game()
+        state.quests_completed = 3
+        result = _get_npc_gossip(state, "sysadmin")
+        assert result is not None
+        assert isinstance(result, str)
+        assert len(result) > 0
+
+    def test_gossip_for_vendor_when_wealthy(self):
+        state = _make_game()
+        state.inventory.gold = 200
+        result = _get_npc_gossip(state, "vendor")
+        assert result is not None
+        assert "premium" in result.lower() or "flush" in result.lower()
+
+    def test_gossip_for_lucky_when_gambled(self):
+        state = _make_game()
+        state.gold_gambled = 50
+        result = _get_npc_gossip(state, "lucky")
+        assert result is not None
+        assert "favorite" in result.lower() or "odds" in result.lower()
+
+
+# ---------------------------------------------------------------------------
+# Phase 4: Dynamic pricing tests
+# ---------------------------------------------------------------------------
+
+class TestDynamicPricing:
+    def test_buy_at_normal_price_when_green(self):
+        state = _make_game()
+        state.server_status.current_index = 0  # All Green, no discount
+        # Find a merchant room and buy something
+        state.current_room = "town_square"
+        state.inventory.gold = 500
+        # Get shop listing first to find an item name
+        shop_lines = process_command(state, "buy")
+        # Find a purchasable item name from the shop
+        merchant = None
+        room = state.rooms[state.current_room]
+        for nid in room.npcs:
+            npc = state.npcs.get(nid)
+            if npc and npc.disposition == NPCDisposition.MERCHANT and npc.shop_items:
+                merchant = npc
+                break
+        if merchant:
+            item = state.items.get(merchant.shop_items[0])
+            if item:
+                gold_before = state.inventory.gold
+                process_command(state, f"buy {item.name}")
+                gold_after = state.inventory.gold
+                # Should pay full price
+                assert gold_before - gold_after == item.value
+
+    def test_buy_at_discount_when_incident(self):
+        state = _make_game()
+        state.server_status.current_index = 3  # Incident, 20% discount
+        state.current_room = "town_square"
+        state.inventory.gold = 500
+        # Find a merchant
+        merchant = None
+        room = state.rooms[state.current_room]
+        for nid in room.npcs:
+            npc = state.npcs.get(nid)
+            if npc and npc.disposition == NPCDisposition.MERCHANT and npc.shop_items:
+                merchant = npc
+                break
+        if merchant:
+            item = state.items.get(merchant.shop_items[0])
+            if item and item.value > 1:
+                gold_before = state.inventory.gold
+                lines = process_command(state, f"buy {item.name}")
+                text = "\n".join(lines)
+                gold_after = state.inventory.gold
+                expected_discount = item.value * 20 // 100
+                expected_price = max(1, item.value - expected_discount)
+                assert gold_before - gold_after == expected_price
+                assert "discounted" in text.lower()
+
+    def test_discount_shown_in_buy_confirmation(self):
+        state = _make_game()
+        state.server_status.current_index = 3  # Incident, 20% discount
+        state.current_room = "town_square"
+        state.inventory.gold = 500
+        merchant = None
+        room = state.rooms[state.current_room]
+        for nid in room.npcs:
+            npc = state.npcs.get(nid)
+            if npc and npc.disposition == NPCDisposition.MERCHANT and npc.shop_items:
+                merchant = npc
+                break
+        if merchant:
+            item = state.items.get(merchant.shop_items[0])
+            if item and item.value > 1:
+                lines = process_command(state, f"buy {item.name}")
+                text = "\n".join(lines)
+                assert "discounted" in text.lower()
+                assert f"{item.value}g" in text  # Shows original price

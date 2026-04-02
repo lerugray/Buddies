@@ -8,7 +8,7 @@
 [![16 Hats](https://img.shields.io/badge/hats-16-yellow.svg)](#hats-16)
 [![10 Games](https://img.shields.io/badge/games-10-red.svg)](#games-arcade-10-games)
 [![56 Achievements](https://img.shields.io/badge/achievements-56-purple.svg)](#achievements-56)
-[![789 Tests](https://img.shields.io/badge/tests-789_passing-brightgreen.svg)](#)
+[![807 Tests](https://img.shields.io/badge/tests-807_passing-brightgreen.svg)](#)
 
 Hatch buddies, collect species, earn hats, evolve, play games, explore a text adventure, negotiate with bugs, and build a team of quirky little creatures that react to how you code. Runs alongside Claude Code, watches your sessions, and actually helps — grading your config, saving tokens, and mapping your codebase.
 
@@ -277,7 +277,8 @@ See [HANDOFF.md](HANDOFF.md) for the full structured roadmap.
 - 789 tests covering memory, BBS, AI router, personality drift, config intel, MUD economy, all games, and more
 
 **Up next:**
-- MUD Phase 4: Living World (rotating quests, world events, seasonal content)
+- Multiplayer leaderboards on BBS
+- More MUD world expansion (new zones, quest chains)
 - Audio: speech-to-text / text-to-speech (local via Whisper + Piper)
 
 ## Requirements

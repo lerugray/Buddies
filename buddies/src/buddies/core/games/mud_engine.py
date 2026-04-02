@@ -102,6 +102,8 @@ class MudState:
     turns: int = 0
     notes_left: int = 0
     notes_rated: int = 0
+    # Living world
+    server_status: ServerStatus | None = None
     # Flags
     game_over: bool = False
     # Negotiation
@@ -136,6 +138,7 @@ def create_mud_game(party: list[BuddyState]) -> MudState:
         inventory=MudInventory(gold=10),
         party=party,
         mp_store=mp_store,
+        server_status=ServerStatus(),
     )
 
 
@@ -193,6 +196,7 @@ def parse_command(raw: str) -> tuple[str, str]:
         "wealth": "wealth", "balance": "wealth", "money": "wealth",
         "tip": "tip",
         "bounty": "bounty", "bounties": "bounty", "contracts": "bounty",
+        "status": "status", "server": "status", "servers": "status",
     }
 
     cmd = aliases.get(cmd, cmd)
@@ -463,10 +467,125 @@ WORLD_EVENTS = [
 ]
 
 
-def _maybe_world_event() -> str | None:
-    """~20% chance of a random world event occurring."""
-    if random.random() < 0.20:
+def _maybe_world_event(chance: float = 0.20) -> str | None:
+    """Random world event with configurable chance."""
+    if random.random() < chance:
         return random.choice(WORLD_EVENTS)
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Server Status — dynamic "weather" for StackHaven
+# ---------------------------------------------------------------------------
+
+class ServerStatus:
+    """The building's server health affects everything."""
+    STATUSES = [
+        {"name": "All Green", "emoji": "🟢", "description": "All systems nominal. Morale is... cautiously optimistic.",
+         "combat_mod": 0, "shop_discount": 0, "event_chance": 0.15},
+        {"name": "Yellow Alert", "emoji": "🟡", "description": "Latency is up. Someone is running queries in production again.",
+         "combat_mod": 0, "shop_discount": 0, "event_chance": 0.25},
+        {"name": "Degraded", "emoji": "🟠", "description": "Multiple services flapping. The oncall engineer hasn't slept.",
+         "combat_mod": -1, "shop_discount": 10, "event_chance": 0.35},
+        {"name": "Incident", "emoji": "🔴", "description": "INCIDENT IN PROGRESS. All hands. The coffee machine has opinions.",
+         "combat_mod": -2, "shop_discount": 20, "event_chance": 0.50},
+        {"name": "Total Outage", "emoji": "💀", "description": "Everything is down. The website shows a sad cartoon server. Customers are tweeting.",
+         "combat_mod": -3, "shop_discount": 30, "event_chance": 0.60},
+    ]
+
+    def __init__(self):
+        self.current_index = 0
+        self.turns_at_status = 0
+        self.incidents_today = 0
+
+    @property
+    def current(self) -> dict:
+        return self.STATUSES[self.current_index]
+
+    def tick(self) -> str | None:
+        """Called each turn. May change server status. Returns announcement or None."""
+        self.turns_at_status += 1
+
+        # Natural drift toward green (recovery)
+        if self.current_index > 0 and self.turns_at_status > 8:
+            self.current_index -= 1
+            self.turns_at_status = 0
+            status = self.current
+            return f"[bold green]{status['emoji']} Server status improved: {status['name']}[/bold green] — {status['description']}"
+
+        # Random incidents (~8% chance per turn)
+        if random.random() < 0.08 and self.current_index < 4:
+            self.current_index += 1
+            self.turns_at_status = 0
+            self.incidents_today += 1
+            status = self.current
+            return f"[bold red]{status['emoji']} SERVER ALERT: {status['name']}![/bold red] — {status['description']}"
+
+        return None
+
+    def status_line(self) -> str:
+        """One-line status for the map/sidebar."""
+        s = self.current
+        return f"{s['emoji']} {s['name']}"
+
+
+# ---------------------------------------------------------------------------
+# NPC Gossip — NPCs react to player progress
+# ---------------------------------------------------------------------------
+
+def _get_npc_gossip(state: MudState, npc_id: str) -> str | None:
+    """Generate contextual gossip from an NPC based on player progress."""
+    gossip_pool = []
+
+    # React to quest progress
+    if state.quests_completed >= 3:
+        gossip_pool.extend({
+            "sysadmin": "\"Word is you've been cleaning up quests left and right. Don't let it go to your head — there's always another incident.\"",
+            "intern": "\"You've done like THREE whole quests?! That's more than I've done in my entire internship!\"",
+            "product_manager": "\"I see you've been completing tasks. I've added 12 more to the backlog. You're welcome.\"",
+            "vendor": "\"A quester, huh? Those types always have gold to spend. Browse my wares.\"",
+            "coffee_machine": "\"QUERY: You have completed {n} quests. CONCLUSION: Caffeine requirements increasing.\"",
+        }.get(npc_id, "").format(n=state.quests_completed).split("\n"))
+
+    # React to combat prowess
+    if state.npcs_defeated >= 5:
+        gossip_pool.extend({
+            "sysadmin": "\"You've squashed {n} bugs now. The build pipeline thanks you.\"",
+            "intern": "\"I heard you fought a Null Pointer! Was it scary? I bet it was scary.\"",
+            "senior_dev": "\"Impressive kill count. Reminds me of the Great Refactor of '19.\"",
+            "rubber_duck": "\"*knowing quack* Violence is not the answer. But it does close tickets.\"",
+        }.get(npc_id, "").format(n=state.npcs_defeated).split("\n"))
+
+    # React to wealth
+    if state.inventory.gold >= 200:
+        gossip_pool.extend({
+            "vendor": "\"You're looking flush. Can I interest you in something... premium?\"",
+            "lucky": "\"A fellow of means! The slots are warm and waiting, friend.\"",
+            "intern": "\"How do you have so much gold?! They only pay me in stock options!\"",
+            "coffee_machine": "\"WEALTH DETECTED. Upgrading brew quality by 0.3%.\"",
+        }.get(npc_id, "").split("\n"))
+
+    # React to gambling
+    if state.gold_gambled >= 50:
+        gossip_pool.extend({
+            "lucky": "\"My favorite customer! The odds are DEFINITELY in your favor this time.\"",
+            "sysadmin": "\"I hear you've been gambling with Lucky. Bold strategy.\"",
+            "vendor": "\"Lucky tells me you're a regular. I respect that. Also, here's some insurance.\"",
+        }.get(npc_id, "").split("\n"))
+
+    # React to being a generous tipper
+    if state.tips_given >= 20:
+        gossip_pool.extend({
+            "sysadmin": "\"You're the most generous person in this building. That's a low bar, but still.\"",
+            "intern": "\"You actually TIP people? In this economy?\"",
+            "coffee_machine": "\"TIP JAR: Approaching sentience threshold. Thank you for your contribution.\"",
+        }.get(npc_id, "").split("\n"))
+
+    # Filter empty strings
+    gossip_pool = [g for g in gossip_pool if g.strip()]
+
+    if gossip_pool:
+        return random.choice(gossip_pool)
     return None
 
 
@@ -803,6 +922,11 @@ def _handle_talk(state: MudState, target: str) -> list[str]:
             if comment:
                 lines.append(f"\n{comment}")
 
+    # Contextual gossip (30% chance)
+    gossip = _get_npc_gossip(state, npc.id) if npc else None
+    if gossip and random.random() < 0.30:
+        lines.append(f"\n[dim italic]{gossip}[/dim italic]")
+
     return lines
 
 
@@ -953,8 +1077,13 @@ def _handle_buy(state: MudState, target: str) -> list[str]:
     for iid in merchant.shop_items:
         item = state.items.get(iid)
         if item and target_lower in item.name.lower():
-            if state.inventory.gold < item.value:
-                return [f"You can't afford {item.name}. Need {item.value}g, have {state.inventory.gold}g."]
+            # Apply server status panic discount
+            price = item.value
+            if state.server_status and state.server_status.current["shop_discount"] > 0:
+                discount = state.server_status.current["shop_discount"]
+                price = max(1, price - (price * discount // 100))
+            if state.inventory.gold < price:
+                return [f"You can't afford {item.name}. Need {price}g, have {state.inventory.gold}g."]
             # Create a copy of the item for the player
             bought = Item(
                 id=item.id + f"_{random.randint(100,999)}",
@@ -964,9 +1093,10 @@ def _handle_buy(state: MudState, target: str) -> list[str]:
                 heal_amount=item.heal_amount, emoji=item.emoji,
             )
             if state.inventory.add_item(bought):
-                state.inventory.gold -= item.value
-                state.gold_spent += item.value
-                return [f"[green]Bought: {item.emoji} {item.name} for {item.value}g[/green]",
+                state.inventory.gold -= price
+                state.gold_spent += price
+                discount_text = f" (discounted from {item.value}g!)" if price < item.value else ""
+                return [f"[green]Bought: {item.emoji} {item.name} for {price}g{discount_text}[/green]",
                         f"[yellow]Gold remaining: {state.inventory.gold}g[/yellow]"]
             else:
                 return ["Your inventory is full!"]
@@ -1653,6 +1783,7 @@ def _handle_help(state: MudState, _arg: str) -> list[str]:
         "  [bold]quest[/bold] (q)       — View quest log",
         "  [bold]map[/bold]             — Show world map",
         "  [bold]lore[/bold]            — Read collected lore fragments",
+        "  [bold]status[/bold]          — Check server health (affects combat and prices)",
         "",
         "[dim]Press Esc to exit the MUD[/dim]",
     ]
@@ -1767,6 +1898,9 @@ def _combat_round(state: MudState) -> list[str]:
     # Player attacks
     variance = random.uniform(0.8, 1.2)
     player_dmg = max(1, int((combat.player.attack - combat.enemy.defense * 0.5) * variance))
+    if state.server_status:
+        player_dmg += state.server_status.current["combat_mod"]
+        player_dmg = max(1, player_dmg)
     crit = random.random() < 0.15
     if crit:
         player_dmg = int(player_dmg * 1.5)
@@ -1778,9 +1912,12 @@ def _combat_round(state: MudState) -> list[str]:
     if not combat.enemy.alive:
         return lines + _combat_victory(state)
 
-    # Enemy attacks
+    # Enemy attacks — server issues affect enemies too
     variance = random.uniform(0.8, 1.2)
     enemy_dmg = max(1, int((combat.enemy.attack - combat.player.defense * 0.5) * variance))
+    if state.server_status:
+        enemy_dmg += state.server_status.current["combat_mod"]
+        enemy_dmg = max(1, enemy_dmg)
     crit = random.random() < 0.1
     if crit:
         enemy_dmg = int(enemy_dmg * 1.5)
@@ -2181,6 +2318,33 @@ def _handle_bounty(state: MudState, arg: str) -> list[str]:
     return lines
 
 
+def _handle_status(state: MudState, _arg: str) -> list[str]:
+    """Show current server status and building conditions."""
+    if not state.server_status:
+        return ["Server status unavailable."]
+
+    s = state.server_status.current
+    lines = [
+        "\n[bold]🖥️ Server Status[/bold]",
+        f"{'─' * 40}",
+        f"  {s['emoji']} [bold]{s['name']}[/bold]",
+        f"  {s['description']}",
+        "",
+    ]
+
+    if s["combat_mod"] != 0:
+        lines.append(f"  ⚔️ Combat modifier: [red]{s['combat_mod']}[/red] ATK/DEF")
+    if s["shop_discount"] > 0:
+        lines.append(f"  🏷️ Panic discount: [green]{s['shop_discount']}% off[/green] (merchants are nervous)")
+    if s["event_chance"] > 0.20:
+        lines.append(f"  📢 Chaos level: [yellow]HIGH[/yellow] (more random events)")
+
+    lines.append(f"\n  Incidents today: {state.server_status.incidents_today}")
+    lines.append(f"  [dim]Status changes naturally over time.[/dim]")
+
+    return lines
+
+
 # ---------------------------------------------------------------------------
 # Main command dispatch
 # ---------------------------------------------------------------------------
@@ -2212,6 +2376,7 @@ COMMAND_HANDLERS = {
     "wealth": _handle_wealth,
     "tip": _handle_tip,
     "bounty": _handle_bounty,
+    "status": _handle_status,
 }
 
 
@@ -2238,10 +2403,17 @@ def process_command(state: MudState, raw_input: str) -> list[str]:
     if handler:
         result = handler(state, arg)
         # Random world events after non-meta commands
-        if cmd not in ("help", "inventory", "quest", "map", "lore", "note", "notes", "rate", "bloodstain") and not state.combat:
-            event = _maybe_world_event()
+        if cmd not in ("help", "inventory", "quest", "map", "lore", "note", "notes", "rate", "bloodstain", "status") and not state.combat:
+            event_chance = state.server_status.current["event_chance"] if state.server_status else 0.20
+            event = _maybe_world_event(event_chance)
             if event:
                 result.append(f"\n{event}")
+
+            # Server status tick
+            if state.server_status:
+                alert = state.server_status.tick()
+                if alert:
+                    result.append(alert)
         return result
 
     return [f"Unknown command: '{cmd}'. Type [bold]help[/bold] for options."]
@@ -2310,6 +2482,7 @@ def get_game_result(state: MudState, buddy_id: int) -> GameResult:
             "gold_spent": state.gold_spent,
             "gold_gambled": state.gold_gambled,
             "bounties_completed": state.bounties_completed,
+            "incidents": state.server_status.incidents_today if state.server_status else 0,
             "turns": state.turns,
         },
         xp_earned=xp,

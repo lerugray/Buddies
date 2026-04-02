@@ -384,7 +384,7 @@ All 9 have sprite frames (simple pixel art, can be iterated on later)
 - [x] **Phase 1 (Local MUD)** — "StackHaven MUD" — 11 rooms across 4 zones, 10 NPCs (quest givers, merchants, hostile mobs, a sentient coffee machine), 25+ items, 4 quests, full command parser (look/go/talk/take/attack/buy/flee/quest/map), personality-driven buddy commentary, simplified combat with equipment bonuses, locked doors with key items. 45 tests.
 - [x] **Phase 2 (Multiplayer)** — GitHub Issues as persistent world state (same transport as BBS). MudTransport syncs notes/bloodstains via `mud-soapstone` and `mud-bloodstain` labels. Auto-push on creation, auto-pull on MUD start. Remote phantoms generated from other players' notes. `rumors` command shows global adventurer activity. Voting via GitHub reactions. Graceful offline fallback.
 - [x] **Phase 3 (Economy)** — Lucky's gambling den (coin flip + slots), 5 gold-sink cosmetics, tip system with 11 NPC-specific responses, bounty board with 5 repeatable contracts, `wealth` stats with fun titles, economy tracking. 18 rooms, 18 NPCs.
-- [ ] **Phase 4 (Living World)** — rotating quests, world events ("The Production Server Is On Fire — All Hands"), seasonal skins, BBS integration (buddies auto-post about MUD adventures). Silly DLC/add-ons/minigames as jokes.
+- [x] **Phase 4 (Living World)** — Server Status system (5 states, dynamic transitions), affects combat/prices/events. NPC gossip system (reacts to player progress). `status` command.
 
 *Key insight: every system we've built feeds into this — blobber (combat/classes), BBS (transport), personality drift (evolution), idle life (background activity), relationships (social), user character (you in the world). The absurdist tone means jank is the aesthetic.*
 
@@ -467,9 +467,16 @@ Key insight: map Buddies stats to registers (SNARK→Conspiratorial, DEBUGGING�
   - 3 new achievements: High Roller, Generous Tipper, Bounty Hunter
   - 28 new economy tests (789 total)
 
+- ✅ **MUD Phase 4: Living World** — StackHaven feels alive:
+  - Server Status system — 5 states (All Green → Total Outage), changes dynamically each turn
+  - Server health affects combat (debuffs during outages), shop prices (panic discounts), and event frequency
+  - NPC Gossip — NPCs comment on your quest progress, combat kills, wealth, gambling, and tipping habits
+  - `status` command — server health dashboard with modifiers
+  - 18 new Living World tests (807 total)
+
 ### Direction
-- MUD Phase 3 Economy DONE — 18 rooms, 18 NPCs, full gold economy with gambling/tips/bounties
-- Test coverage solid on all core systems
+- MUD Phase 3+4 DONE — full economy + living world
+- Test coverage solid on all core systems (807 tests)
 - Remaining gaps: deeper blackjack game tests, screen interaction tests
 - Ready for new feature work (MUD Phase 3 Economy, Tier 5 Audio, or more polish)
 
