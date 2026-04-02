@@ -71,12 +71,29 @@ class BBSConfig:
 
 
 @dataclass
+class CCBuddyConfig:
+    """Manual override for CC companion auto-import."""
+
+    name: str = ""
+    species: str = ""
+    rarity: str = "common"
+    debugging: int = 10
+    patience: int = 10
+    chaos: int = 10
+    wisdom: int = 10
+    snark: int = 10
+    personality: str = ""
+    shiny: bool = False
+
+
+@dataclass
 class BuddyConfig:
     """Main configuration."""
 
     user_seed: str = ""  # Used for deterministic species selection
     ai_backend: AIBackendConfig = field(default_factory=AIBackendConfig)
     bbs: BBSConfig = field(default_factory=BBSConfig)
+    cc_buddy: CCBuddyConfig = field(default_factory=CCBuddyConfig)
     theme: str = "default"
     animation_fps: int = 4
     db_path: str = ""
@@ -102,7 +119,9 @@ class BuddyConfig:
             ai_config = AIBackendConfig(**ai_data)
             bbs_data = data.pop("bbs", {})
             bbs_config = BBSConfig(**bbs_data) if bbs_data else BBSConfig()
-            config = cls(ai_backend=ai_config, bbs=bbs_config, **data)
+            cc_data = data.pop("cc_buddy", {})
+            cc_config = CCBuddyConfig(**cc_data) if cc_data else CCBuddyConfig()
+            config = cls(ai_backend=ai_config, bbs=bbs_config, cc_buddy=cc_config, **data)
         else:
             config = cls()
             config.save()
@@ -166,5 +185,20 @@ class BuddyConfig:
             "animation_fps": self.animation_fps,
             "db_path": self.db_path,
         }
+
+        # Only persist cc_buddy if a name is set (keep config clean)
+        if self.cc_buddy.name:
+            data["cc_buddy"] = {
+                "name": self.cc_buddy.name,
+                "species": self.cc_buddy.species,
+                "rarity": self.cc_buddy.rarity,
+                "debugging": self.cc_buddy.debugging,
+                "patience": self.cc_buddy.patience,
+                "chaos": self.cc_buddy.chaos,
+                "wisdom": self.cc_buddy.wisdom,
+                "snark": self.cc_buddy.snark,
+                "personality": self.cc_buddy.personality,
+                "shiny": self.cc_buddy.shiny,
+            }
         config_path.write_text(json.dumps(data, indent=2))
         _restrict_permissions(config_path)

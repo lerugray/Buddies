@@ -24,6 +24,7 @@ from buddies.core.games import GameResult
 from buddies.core.games.mud_engine import (
     MudState, create_mud_game, process_command, get_intro_text, get_game_result,
 )
+from buddies.core.games.mud_save import save_mud_state, load_mud_state, has_save, list_saves
 from buddies.core.games.mud_transport import MudTransport
 
 log = logging.getLogger(__name__)
@@ -88,6 +89,7 @@ class MudScreen(Screen):
         self.mud_state = create_mud_game(all_buddies)
         self._result: GameResult | None = None
         self._transport: MudTransport | None = None
+        self._loaded_save = False
 
     def compose(self) -> ComposeResult:
         with Horizontal():
@@ -101,8 +103,29 @@ class MudScreen(Screen):
 
     def on_mount(self):
         output = self.query_one("#mud-output", RichLog)
-        for line in get_intro_text(self.mud_state):
-            output.write(line)
+
+        # Try to load saved game
+        if has_save():
+            if load_mud_state(self.mud_state):
+                self._loaded_save = True
+                output.write("[bold green]═══ SAVE FILE LOADED ═══[/bold green]")
+                output.write(
+                    f"[dim]Welcome back! Turn {self.mud_state.turns}, "
+                    f"{self.mud_state.inventory.gold}g, "
+                    f"{self.mud_state.rooms_visited} rooms explored.[/dim]"
+                )
+                output.write("")
+                # Show current room instead of intro
+                for line in process_command(self.mud_state, "look"):
+                    output.write(line)
+            else:
+                # Save corrupted — start fresh
+                for line in get_intro_text(self.mud_state):
+                    output.write(line)
+        else:
+            for line in get_intro_text(self.mud_state):
+                output.write(line)
+
         self._update_sidebar()
         # Focus the input
         self.query_one("#mud-input", Input).focus()
@@ -263,7 +286,17 @@ class MudScreen(Screen):
         party_widget.update("\n".join(party_lines))
 
     def action_quit_mud(self):
-        """Exit the MUD and return results."""
+        """Exit the MUD — auto-save and return results."""
+        # Auto-save on quit
+        if not self.mud_state.game_over:
+            saved = save_mud_state(self.mud_state)
+            if saved:
+                try:
+                    output = self.query_one("#mud-output", RichLog)
+                    output.write("\n[dim]💾 Game saved.[/dim]")
+                except Exception:
+                    pass
+
         # Clean up transport
         if self._transport:
             asyncio.create_task(self._transport.close())

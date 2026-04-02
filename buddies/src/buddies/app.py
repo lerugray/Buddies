@@ -267,11 +267,39 @@ class BuddyApp(App):
         asyncio.create_task(self._memory_startup_decay())
 
     async def _load_cc_buddy_name(self):
-        """Cache the CC companion's name for prose injection."""
+        """Cache the CC companion's name for prose injection.
+
+        Also tries auto-detection (Tier 3) if no CC buddy imported yet.
+        """
         try:
             cc = await self.store.get_cc_buddy()
             if cc:
                 self._cc_buddy_name = cc["name"]
+                return
+
+            # Tier 3: Try auto-detect from config files
+            from buddies.core.cc_companion import detect_cc_buddy, build_cc_buddy_data
+            detected = detect_cc_buddy()
+            if detected:
+                data = build_cc_buddy_data(
+                    name=detected["name"],
+                    cc_species=detected["species"],
+                    cc_rarity=detected["rarity"],
+                    stats=detected["stats"],
+                    personality=detected["personality"],
+                    shiny=detected["shiny"],
+                )
+                await self.store.create_cc_buddy(data)
+                self._cc_buddy_name = detected["name"]
+                # Notify in chat
+                try:
+                    chat = self.query_one("#chat-panel")
+                    chat.add_system(
+                        f"🔗 Auto-detected CC companion: {detected['name']} "
+                        f"({detected['species']}) — joined the party!"
+                    )
+                except Exception:
+                    pass
         except Exception:
             pass
 

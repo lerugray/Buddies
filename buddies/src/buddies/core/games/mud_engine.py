@@ -200,6 +200,8 @@ def parse_command(raw: str) -> tuple[str, str]:
         "tip": "tip",
         "bounty": "bounty", "bounties": "bounty", "contracts": "bounty",
         "status": "status", "server": "status", "servers": "status",
+        "save": "save",
+        "newsave": "newsave", "newgame": "newsave", "restart": "newsave",
     }
 
     cmd = aliases.get(cmd, cmd)
@@ -1788,7 +1790,11 @@ def _handle_help(state: MudState, _arg: str) -> list[str]:
         "  [bold]lore[/bold]            — Read collected lore fragments",
         "  [bold]status[/bold]          — Check server health (affects combat and prices)",
         "",
-        "[dim]Press Esc to exit the MUD[/dim]",
+        "[bold cyan]Save/Load:[/bold cyan]",
+        "  [bold]save[/bold]            — Save your game",
+        "  [bold]newsave[/bold]         — Start a new game (deletes save)",
+        "",
+        "[dim]Press Esc to exit the MUD (auto-saves)[/dim]",
     ]
 
 
@@ -2351,6 +2357,29 @@ def _handle_status(state: MudState, _arg: str) -> list[str]:
 
 
 # ---------------------------------------------------------------------------
+# Save/Load commands
+# ---------------------------------------------------------------------------
+
+def _handle_save(state: MudState, _arg: str) -> list[str]:
+    """Save the current game."""
+    from buddies.core.games.mud_save import save_mud_state
+    if save_mud_state(state):
+        return ["[bold green]💾 Game saved![/bold green]", "[dim]Your progress will be restored next time you enter StackHaven.[/dim]"]
+    return ["[red]Failed to save game.[/red]"]
+
+
+def _handle_newsave(state: MudState, _arg: str) -> list[str]:
+    """Delete save and reset (handled at screen level — this just confirms)."""
+    from buddies.core.games.mud_save import delete_save
+    if delete_save():
+        return [
+            "[yellow]💾 Save file deleted.[/yellow]",
+            "[dim]Exit and re-enter the MUD to start a fresh adventure.[/dim]",
+        ]
+    return ["[dim]No save file found.[/dim]"]
+
+
+# ---------------------------------------------------------------------------
 # Main command dispatch
 # ---------------------------------------------------------------------------
 
@@ -2382,6 +2411,8 @@ COMMAND_HANDLERS = {
     "tip": _handle_tip,
     "bounty": _handle_bounty,
     "status": _handle_status,
+    "save": _handle_save,
+    "newsave": _handle_newsave,
 }
 
 
@@ -2408,7 +2439,7 @@ def process_command(state: MudState, raw_input: str) -> list[str]:
     if handler:
         result = handler(state, arg)
         # Random world events after non-meta commands
-        if cmd not in ("help", "inventory", "quest", "map", "lore", "note", "notes", "rate", "bloodstain", "status") and not state.combat:
+        if cmd not in ("help", "inventory", "quest", "map", "lore", "note", "notes", "rate", "bloodstain", "status", "save", "newsave") and not state.combat:
             event_chance = state.server_status.current["event_chance"] if state.server_status else 0.20
             event = _maybe_world_event(event_chance)
             if event:

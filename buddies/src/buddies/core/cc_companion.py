@@ -6,7 +6,14 @@ official CC buddy can coexist with your collection.
 
 from __future__ import annotations
 
+import json
+import logging
+import os
+from pathlib import Path
+
 from buddies.core.buddy_brain import SPECIES_CATALOG, Species, Rarity
+
+log = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Species mapping: CC's 18 species → closest Buddies species
@@ -109,4 +116,121 @@ def build_cc_buddy_data(
         "stats": final_stats,
         "soul_description": soul,
         "source": "cc_companion",
+    }
+
+
+# ---------------------------------------------------------------------------
+# Tier 3: Auto-detect CC buddy from config
+# ---------------------------------------------------------------------------
+
+# Possible locations where CC might store buddy config
+CC_CONFIG_PATHS = [
+    Path.home() / ".claude" / "buddy.json",
+    Path.home() / ".claude" / "companion.json",
+    Path.home() / ".claude" / "cache" / "buddy.json",
+]
+
+
+def _read_cc_config_file() -> dict | None:
+    """Try to read CC buddy data from known config file locations."""
+    for path in CC_CONFIG_PATHS:
+        if path.exists():
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+                if isinstance(data, dict) and "name" in data:
+                    log.info("Found CC buddy config at %s", path)
+                    return data
+            except (json.JSONDecodeError, OSError) as e:
+                log.debug("Failed to read %s: %s", path, e)
+    return None
+
+
+def _read_cc_settings_buddy() -> dict | None:
+    """Check CC's settings.json for a buddy/companion key."""
+    settings_path = Path.home() / ".claude" / "settings.json"
+    if not settings_path.exists():
+        return None
+    try:
+        data = json.loads(settings_path.read_text(encoding="utf-8"))
+        # Check for buddy or companion keys
+        for key in ("buddy", "companion", "pet"):
+            if key in data and isinstance(data[key], dict):
+                buddy_data = data[key]
+                if "name" in buddy_data:
+                    log.info("Found CC buddy in settings.json under '%s'", key)
+                    return buddy_data
+    except (json.JSONDecodeError, OSError) as e:
+        log.debug("Failed to read CC settings: %s", e)
+    return None
+
+
+def _read_manual_override() -> dict | None:
+    """Read CC buddy override from Buddies' own config.json."""
+    if os.name == "nt":
+        base = Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming"))
+    else:
+        base = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share"))
+    config_path = base / "buddy" / "config.json"
+    if not config_path.exists():
+        return None
+    try:
+        data = json.loads(config_path.read_text(encoding="utf-8"))
+        cc_data = data.get("cc_buddy")
+        if isinstance(cc_data, dict) and cc_data.get("name"):
+            log.info("Found CC buddy manual override in Buddies config")
+            return cc_data
+    except (json.JSONDecodeError, OSError) as e:
+        log.debug("Failed to read Buddies config for CC override: %s", e)
+    return None
+
+
+def detect_cc_buddy() -> dict | None:
+    """Try all detection methods to find a CC companion.
+
+    Returns a dict with keys: name, species, rarity, stats, personality, shiny
+    or None if no CC buddy detected.
+
+    Detection priority:
+    1. Manual override in Buddies' config.json (most reliable)
+    2. CC's dedicated buddy config file (if it exists)
+    3. CC's settings.json buddy key (if present)
+    """
+    # Priority 1: Manual override
+    data = _read_manual_override()
+    if data:
+        return _normalize_cc_data(data)
+
+    # Priority 2: Dedicated CC config file
+    data = _read_cc_config_file()
+    if data:
+        return _normalize_cc_data(data)
+
+    # Priority 3: CC settings.json
+    data = _read_cc_settings_buddy()
+    if data:
+        return _normalize_cc_data(data)
+
+    return None
+
+
+def _normalize_cc_data(raw: dict) -> dict:
+    """Normalize raw CC buddy data into a standard format."""
+    # Support both flat stats and nested stats dict
+    stats = raw.get("stats", {})
+    if not stats:
+        stats = {
+            "debugging": raw.get("debugging", raw.get("DEBUGGING", 10)),
+            "patience": raw.get("patience", raw.get("PATIENCE", 10)),
+            "chaos": raw.get("chaos", raw.get("CHAOS", 10)),
+            "wisdom": raw.get("wisdom", raw.get("WISDOM", 10)),
+            "snark": raw.get("snark", raw.get("SNARK", 10)),
+        }
+
+    return {
+        "name": str(raw.get("name", "CC Buddy"))[:50],
+        "species": str(raw.get("species", "duck"))[:30],
+        "rarity": str(raw.get("rarity", "common"))[:20],
+        "stats": {k: clamp_stat(v) for k, v in stats.items()},
+        "personality": str(raw.get("personality", ""))[:500],
+        "shiny": bool(raw.get("shiny", False)),
     }

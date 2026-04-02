@@ -28,7 +28,7 @@ except ImportError:
     )
 
 from buddies.config import BuddyConfig, get_data_dir
-from buddies.core.cc_companion import build_cc_buddy_data
+from buddies.core.cc_companion import build_cc_buddy_data, detect_cc_buddy
 from buddies.core.hooks import get_events_path
 from buddies.core.prompt_builder import build_mcp_prompt
 from buddies.db.store import BuddyStore
@@ -308,6 +308,55 @@ async def import_cc_buddy(
         f"*{name} can now join discussions, play arcade games, "
         f"and explore StackHaven with the rest of the party. "
         f"The user can switch to {name} in the Party screen [p].*"
+    )
+
+
+@mcp.tool()
+async def detect_cc_companion() -> str:
+    """Check if a CC companion can be auto-detected from config files.
+
+    Tries to find CC buddy data in config files or manual override.
+    If found, auto-imports it. If not, returns instructions for manual setup.
+    """
+    detected = detect_cc_buddy()
+    if not detected:
+        return (
+            "No CC companion auto-detected from config files.\n\n"
+            "To set up auto-import, add this to your Buddies config "
+            "(in %APPDATA%/buddy/config.json or ~/.local/share/buddy/config.json):\n\n"
+            '```json\n'
+            '{\n'
+            '  "cc_buddy": {\n'
+            '    "name": "YourBuddyName",\n'
+            '    "species": "mushroom",\n'
+            '    "rarity": "common",\n'
+            '    "debugging": 10,\n'
+            '    "patience": 10,\n'
+            '    "chaos": 10,\n'
+            '    "wisdom": 10,\n'
+            '    "snark": 10\n'
+            '  }\n'
+            '}\n'
+            '```\n\n'
+            "Or use the `import_cc_buddy` tool to import directly."
+        )
+
+    data = build_cc_buddy_data(
+        name=detected["name"],
+        cc_species=detected["species"],
+        cc_rarity=detected["rarity"],
+        stats=detected["stats"],
+        personality=detected["personality"],
+        shiny=detected["shiny"],
+    )
+
+    store = await _get_store()
+    await store.create_cc_buddy(data)
+
+    return (
+        f"# CC Companion Auto-Detected! 🔗\n\n"
+        f"**{detected['name']}** ({detected['species']}) has been imported into Buddies.\n"
+        f"The user can see them in the Party screen [p]."
     )
 
 
